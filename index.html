@@ -46,16 +46,43 @@
         const payload = { data_payload: data };
 
         // Cek apakah NPSN sudah ada untuk menghindari duplikat (Upsert Logika)
-        if (data.npsn) {
+        let npsnVal = null;
+        if (typeof data.npsn !== 'undefined' && data.npsn !== null && String(data.npsn).trim() !== '') {
+            npsnVal = String(data.npsn).trim();
+        }
+
+        if (npsnVal) {
           const { data: existing, error: findErr } = await supabaseClient
             .from(colName)
             .select('id, data_payload')
-            .eq('data_payload->>npsn', data.npsn)
+            .eq('data_payload->>npsn', npsnVal)
             .maybeSingle();
 
           if (existing) {
              const merged = { ...existing.data_payload, ...data };
-             // Gabungkan array kelas agar unik jika update
+             
+             // Setup history_logs
+             const historyLogs = existing.data_payload.history_logs || [];
+             
+             // Extract metadata of previous state to be pushed to history
+             if (existing.data_payload.timestamp) {
+               const oldEntry = {
+                  timestamp: existing.data_payload.timestamp,
+                  kelas: existing.data_payload.kelas,
+                  "jenis-pesanan": existing.data_payload["jenis-pesanan"],
+                  isDraft: existing.data_payload.isDraft,
+               };
+               // Only push if timestamp differs to avoid duplicates
+               if (oldEntry.timestamp !== data.timestamp) {
+                   merged.history_logs = [...historyLogs, oldEntry];
+               } else {
+                   merged.history_logs = historyLogs; // keep as-is
+               }
+             } else {
+               merged.history_logs = historyLogs;
+             }
+
+             // Merge array kelas
              if (existing.data_payload.kelas && data.kelas) {
                 merged.kelas = [...new Set([...existing.data_payload.kelas, ...data.kelas])];
              }
@@ -75,12 +102,33 @@
 
       async function updateDoc(docRef, data) {
         if (!supabaseClient) throw new Error("Supabase is offline");
-        const { data: oldRecord, error: fetchErr } = await supabaseClient.from(docRef.table).select('data_payload').eq('id', docRef.id).single();
+        
+        let realId = docRef.id;
+        let histIndex = -1;
+        if (String(docRef.id).includes("_hist_")) {
+           const parts = docRef.id.split("_hist_");
+           realId = parts[0];
+           histIndex = parseInt(parts[1], 10);
+        }
+
+        const { data: oldRecord, error: fetchErr } = await supabaseClient.from(docRef.table).select('data_payload').eq('id', realId).single();
         if (fetchErr) throw fetchErr;
         
-        const mergedData = { ...(oldRecord.data_payload || {}), ...data };
-        const { error } = await supabaseClient.from(docRef.table).update({ data_payload: mergedData }).eq('id', docRef.id);
-        if (error) throw error;
+        const payload = oldRecord.data_payload || {};
+        
+        if (histIndex > -1) {
+             // updating a history element internally
+             if (payload.history_logs && payload.history_logs[histIndex]) {
+                 payload.history_logs[histIndex] = { ...payload.history_logs[histIndex], ...data };
+                 const { error } = await supabaseClient.from(docRef.table).update({ data_payload: payload }).eq('id', realId);
+                 if (error) throw error;
+             }
+        } else {
+             // updating the main element
+             const mergedData = { ...payload, ...data };
+             const { error } = await supabaseClient.from(docRef.table).update({ data_payload: mergedData }).eq('id', realId);
+             if (error) throw error;
+        }
       }
 
       async function setDoc(docRef, data, options = {}) {
@@ -98,6 +146,27 @@
 
       async function deleteDoc(docRef) {
         if (!supabaseClient) throw new Error("Supabase is offline");
+
+        if (String(docRef.id).includes("_hist_")) {
+           // Intercept history log deletion
+           const parts = String(docRef.id).split("_hist_");
+           const realId = parts[0];
+           const histIndex = parseInt(parts[1], 10);
+           
+           const { data: record, error: fetchErr } = await supabaseClient.from(docRef.table).select('data_payload').eq('id', realId).single();
+           if (fetchErr) throw fetchErr;
+           
+           const payload = record.data_payload || {};
+           if (payload.history_logs && Array.isArray(payload.history_logs)) {
+               const newHistory = [...payload.history_logs];
+               newHistory.splice(histIndex, 1);
+               payload.history_logs = newHistory;
+               const { error } = await supabaseClient.from(docRef.table).update({ data_payload: payload }).eq('id', realId);
+               if (error) throw error;
+           }
+           return;
+        }
+
         const { error } = await supabaseClient.from(docRef.table).delete().eq('id', docRef.id);
         if (error) throw error;
       }
@@ -111,14 +180,30 @@
            callback({ docs: [] });
            return () => {};
         }
+
+        const processData = (dataRow) => {
+            let docsData = [];
+            dataRow.forEach(d => {
+               const payload = d.data_payload || {};
+               const { history_logs, ...currentData } = payload;
+               docsData.push({ id: d.id, data: () => currentData });
+
+               if (history_logs && Array.isArray(history_logs)) {
+                   history_logs.forEach((hist, index) => {
+                       const histDoc = { ...currentData, ...hist }; 
+                       docsData.push({ id: d.id + "_hist_" + index, data: () => histDoc });
+                   });
+               }
+            });
+            return docsData;
+        }
+
         supabaseClient.from(q).select('*').then(({ data, error }) => {
           if (error) {
              console.error("Supabase select error:", error);
           }
           if (!error && data) {
-            callback({
-              docs: data.map(d => ({ id: d.id, data: () => d.data_payload || {} }))
-            });
+            callback({ docs: processData(data) });
           }
         }).catch(err => console.error("Supabase select uncaught:", err));
 
@@ -127,7 +212,7 @@
             supabaseClient.from(q).select('*').then(({ data, error }) => {
               if (error) console.error("Supabase realtime error:", error);
               if (!error && data) {
-                callback({ docs: data.map(d => ({ id: d.id, data: () => d.data_payload || {} })) });
+                callback({ docs: processData(data) });
               }
             });
           })
