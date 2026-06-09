@@ -11,24 +11,15 @@
     />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
-    <script>
-      window.onerror = function(msg, url, line, col, error) {
-        document.body.innerHTML += "<div style='position:fixed;top:0;left:0;z-index:9999;background:white;color:red;padding:10px;border:1px solid red;max-width:100%;word-break:break-all'>Error: " + msg + " line " + line + "<br>" + (error ? error.stack : '') + "</div>";
-      };
-      window.onunhandledrejection = function(e) {
-        document.body.innerHTML += "<div style='position:fixed;top:50px;left:0;z-index:9999;background:white;color:red;padding:10px;border:1px solid red;max-width:100%;word-break:break-all'>Promise Rejection: " + (e.reason && e.reason.stack ? e.reason.stack : e.reason) + "</div>";
-      };
-    </script>
-
     <!-- Supabase CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
-      let supabase = null;
+      let supabaseClient = null;
       try {
         const supabaseUrl = 'https://tnzceffjxostkwyellwf.supabase.co';
         const supabaseKey = 'sb_publishable_b0Myq0XAqdiUj-Dzb-pHBQ_9LAmpsVE';
         if (window.supabase) {
-          supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+          supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
         } else {
           console.error("Supabase script failed to load. window.supabase is undefined.");
         }
@@ -40,7 +31,7 @@
       const collectionName = "aplikasirapor";
 
       const auth = {};
-      const db = supabase;
+      const db = supabaseClient;
 
       function collection(db, ...paths) {
         return collectionName; 
@@ -51,9 +42,9 @@
       }
 
       async function addDoc(colName, data) {
-        if (!supabase) throw new Error("Supabase is offline");
+        if (!supabaseClient) throw new Error("Supabase is offline");
         const payload = { data_payload: data };
-        const { data: record, error } = await supabase.from(colName).insert([payload]).select();
+        const { data: record, error } = await supabaseClient.from(colName).insert([payload]).select();
         if (error) {
             console.error("Supabase insert error:", error);
             throw error;
@@ -62,18 +53,18 @@
       }
 
       async function updateDoc(docRef, data) {
-        if (!supabase) throw new Error("Supabase is offline");
-        const { data: oldRecord, error: fetchErr } = await supabase.from(docRef.table).select('data_payload').eq('id', docRef.id).single();
+        if (!supabaseClient) throw new Error("Supabase is offline");
+        const { data: oldRecord, error: fetchErr } = await supabaseClient.from(docRef.table).select('data_payload').eq('id', docRef.id).single();
         if (fetchErr) throw fetchErr;
         
         const mergedData = { ...(oldRecord.data_payload || {}), ...data };
-        const { error } = await supabase.from(docRef.table).update({ data_payload: mergedData }).eq('id', docRef.id);
+        const { error } = await supabaseClient.from(docRef.table).update({ data_payload: mergedData }).eq('id', docRef.id);
         if (error) throw error;
       }
 
       async function deleteDoc(docRef) {
-        if (!supabase) throw new Error("Supabase is offline");
-        const { error } = await supabase.from(docRef.table).delete().eq('id', docRef.id);
+        if (!supabaseClient) throw new Error("Supabase is offline");
+        const { error } = await supabaseClient.from(docRef.table).delete().eq('id', docRef.id);
         if (error) throw error;
       }
 
@@ -82,11 +73,11 @@
       }
 
       function onSnapshot(q, callback) {
-        if (!supabase) {
+        if (!supabaseClient) {
            callback({ docs: [] });
            return () => {};
         }
-        supabase.from(q).select('*').then(({ data, error }) => {
+        supabaseClient.from(q).select('*').then(({ data, error }) => {
           if (error) {
              console.error("Supabase select error:", error);
           }
@@ -97,9 +88,9 @@
           }
         }).catch(err => console.error("Supabase select uncaught:", err));
 
-        const channel = supabase.channel('table-db-changes')
+        const channel = supabaseClient.channel('table-db-changes')
           .on('postgres_changes', { event: '*', schema: 'public', table: q }, payload => {
-            supabase.from(q).select('*').then(({ data, error }) => {
+            supabaseClient.from(q).select('*').then(({ data, error }) => {
               if (error) console.error("Supabase realtime error:", error);
               if (!error && data) {
                 callback({ docs: data.map(d => ({ id: d.id, data: () => d.data_payload || {} })) });
@@ -110,7 +101,7 @@
             if (err) console.error("Supabase subscribe error:", status, err);
           });
 
-        return () => supabase.removeChannel(channel);
+        return () => supabaseClient.removeChannel(channel);
       }
 
       function serverTimestamp() {
@@ -124,9 +115,9 @@
             this.ops.push(docRef.id);
           },
           commit: async function() {
-            if (!supabase) return;
+            if (!supabaseClient) return;
             if (this.ops.length > 0) {
-              const { error } = await supabase.from(collectionName).delete().in('id', this.ops);
+              const { error } = await supabaseClient.from(collectionName).delete().in('id', this.ops);
               if (error) throw error;
             }
           }
@@ -134,8 +125,8 @@
       }
 
       async function getDocs(colName) {
-         if (!supabase) return { docs: [] };
-         const { data, error } = await supabase.from(colName).select('*');
+         if (!supabaseClient) return { docs: [] };
+         const { data, error } = await supabaseClient.from(colName).select('*');
          if (error) throw error;
          return {
             docs: data.map(d => ({ id: d.id, data: () => d.data_payload || {} }))
@@ -1548,7 +1539,9 @@
       }
 
       async function initApp() {
+        console.log("initApp started");
         const {
+
           auth,
           db,
           collection,
@@ -1569,9 +1562,14 @@
         } = window.fbComponents;
 
         let allData = [];
-        let drafts = JSON.parse(
-          localStorage.getItem("aplikasi-rapor-drafts") || "[]",
-        );
+        let drafts = [];
+        try {
+          drafts = JSON.parse(
+            window.localStorage.getItem("aplikasi-rapor-drafts") || "[]"
+          );
+        } catch(e) {
+          console.warn("localStorage not available, drafts will not be saved locally.");
+        }
         let displayedData = [];
         let selectedIds = new Set();
         let sortConfig = { key: null, direction: null };
@@ -1779,6 +1777,7 @@
         };
 
         try {
+          console.log("Attempting sign in", { auth, __initial_auth_token: typeof __initial_auth_token });
           if (
             typeof __initial_auth_token !== "undefined" &&
             __initial_auth_token
@@ -1792,10 +1791,13 @@
             await signInAnonymously(auth);
           }
         } catch (e) {
+          console.error("Sign in error:", e);
           showToast("Gagal koneksi cloud.", false);
         }
 
+        console.log("Calling onAuthStateChanged");
         onAuthStateChanged(auth, (user) => {
+          console.log("onAuthStateChanged callback fired. user:", user);
           const status = document.getElementById("sync-status");
           const overlay = document.getElementById("loading-overlay");
           if (user) {
@@ -2229,10 +2231,12 @@
           try {
             if (id && id.startsWith("draft-")) {
               drafts = drafts.filter((d) => d.id !== id);
-              localStorage.setItem(
-                "aplikasi-rapor-drafts",
-                JSON.stringify(drafts),
-              );
+              try {
+                localStorage.setItem(
+                  "aplikasi-rapor-drafts",
+                  JSON.stringify(drafts),
+                );
+              } catch(e) {}
               refreshFilterAndRender();
               document
                 .getElementById("history-modal")
@@ -2459,7 +2463,7 @@
             formData.id = "draft-" + Date.now();
             drafts.unshift(formData);
           }
-          localStorage.setItem("aplikasi-rapor-drafts", JSON.stringify(drafts));
+          try { localStorage.setItem("aplikasi-rapor-drafts", JSON.stringify(drafts)); } catch(e) {}
           showToast("Draft berhasil disimpan!");
           closeModal();
           refreshFilterAndRender();
@@ -2680,10 +2684,12 @@
             formData.id = "draft-" + Date.now();
             formData.isDraft = true;
             drafts.unshift(formData);
-            localStorage.setItem(
-              "aplikasi-rapor-drafts",
-              JSON.stringify(drafts),
-            );
+            try {
+              localStorage.setItem(
+                "aplikasi-rapor-drafts",
+                JSON.stringify(drafts),
+              );
+            } catch(e) {}
             showToast("Draft diduplikat!");
             closeModal();
             refreshFilterAndRender();
@@ -2718,10 +2724,12 @@
             try {
               if (id.startsWith("draft-")) {
                 drafts = drafts.filter((d) => d.id !== id);
-                localStorage.setItem(
-                  "aplikasi-rapor-drafts",
-                  JSON.stringify(drafts),
-                );
+                try {
+                  localStorage.setItem(
+                    "aplikasi-rapor-drafts",
+                    JSON.stringify(drafts),
+                  );
+                } catch(e) {}
               } else {
                 await deleteDoc(
                   doc(
@@ -2773,10 +2781,12 @@
               });
 
               await batch.commit();
-              localStorage.setItem(
-                "aplikasi-rapor-drafts",
-                JSON.stringify(drafts),
-              );
+              try {
+                localStorage.setItem(
+                  "aplikasi-rapor-drafts",
+                  JSON.stringify(drafts),
+                );
+              } catch(e) {}
               selectedIds.clear();
               showToast("Penghapusan data selesai.");
               refreshFilterAndRender();
