@@ -47,7 +47,7 @@
         const { data: oldRecord, error: fetchErr } = await supabase.from(docRef.table).select('data_payload').eq('id', docRef.id).single();
         if (fetchErr) throw fetchErr;
         
-        const mergedData = { ...oldRecord.data_payload, ...data };
+        const mergedData = { ...(oldRecord.data_payload || {}), ...data };
         const { error } = await supabase.from(docRef.table).update({ data_payload: mergedData }).eq('id', docRef.id);
         if (error) throw error;
       }
@@ -63,22 +63,28 @@
 
       function onSnapshot(q, callback) {
         supabase.from(q).select('*').then(({ data, error }) => {
+          if (error) {
+             console.error("Supabase select error:", error);
+          }
           if (!error && data) {
             callback({
-              docs: data.map(d => ({ id: d.id, data: () => d.data_payload }))
+              docs: data.map(d => ({ id: d.id, data: () => d.data_payload || {} }))
             });
           }
-        });
+        }).catch(err => console.error("Supabase select uncaught:", err));
 
         const channel = supabase.channel('table-db-changes')
           .on('postgres_changes', { event: '*', schema: 'public', table: q }, payload => {
             supabase.from(q).select('*').then(({ data, error }) => {
+              if (error) console.error("Supabase realtime error:", error);
               if (!error && data) {
-                callback({ docs: data.map(d => ({ id: d.id, data: () => d.data_payload })) });
+                callback({ docs: data.map(d => ({ id: d.id, data: () => d.data_payload || {} })) });
               }
             });
           })
-          .subscribe();
+          .subscribe((status, err) => {
+            if (err) console.error("Supabase subscribe error:", status, err);
+          });
 
         return () => supabase.removeChannel(channel);
       }
@@ -1507,12 +1513,11 @@
     <div id="toast-notification"></div>
 
     <script>
-      const checkFB = setInterval(() => {
+      document.addEventListener("DOMContentLoaded", () => {
         if (window.fbComponents) {
-          clearInterval(checkFB);
           initApp();
         }
-      }, 100);
+      });
 
       async function initApp() {
         const {
