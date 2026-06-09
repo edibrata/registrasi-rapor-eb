@@ -11,15 +11,32 @@
     />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
+    <script>
+      window.onerror = function(msg, url, line, col, error) {
+        document.body.innerHTML += "<div style='position:fixed;top:0;left:0;z-index:9999;background:white;color:red;padding:10px;border:1px solid red;max-width:100%;word-break:break-all'>Error: " + msg + " line " + line + "<br>" + (error ? error.stack : '') + "</div>";
+      };
+      window.onunhandledrejection = function(e) {
+        document.body.innerHTML += "<div style='position:fixed;top:50px;left:0;z-index:9999;background:white;color:red;padding:10px;border:1px solid red;max-width:100%;word-break:break-all'>Promise Rejection: " + (e.reason && e.reason.stack ? e.reason.stack : e.reason) + "</div>";
+      };
+    </script>
+
     <!-- Supabase CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
-      const supabaseUrl = 'https://tnzceffjxostkwyellwf.supabase.co';
-      const supabaseKey = 'sb_publishable_b0Myq0XAqdiUj-Dzb-pHBQ_9LAmpsVE';
-      const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+      let supabase = null;
+      try {
+        const supabaseUrl = 'https://tnzceffjxostkwyellwf.supabase.co';
+        const supabaseKey = 'sb_publishable_b0Myq0XAqdiUj-Dzb-pHBQ_9LAmpsVE';
+        if (window.supabase) {
+          supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+        } else {
+          console.error("Supabase script failed to load. window.supabase is undefined.");
+        }
+      } catch (e) {
+        console.error("Supabase init error:", e);
+      }
 
       const appId = typeof __app_id !== "undefined" ? __app_id : "aplikasirapor-App";
-      // Supabase table target
       const collectionName = "aplikasirapor";
 
       const auth = {};
@@ -34,6 +51,7 @@
       }
 
       async function addDoc(colName, data) {
+        if (!supabase) throw new Error("Supabase is offline");
         const payload = { data_payload: data };
         const { data: record, error } = await supabase.from(colName).insert([payload]).select();
         if (error) {
@@ -44,6 +62,7 @@
       }
 
       async function updateDoc(docRef, data) {
+        if (!supabase) throw new Error("Supabase is offline");
         const { data: oldRecord, error: fetchErr } = await supabase.from(docRef.table).select('data_payload').eq('id', docRef.id).single();
         if (fetchErr) throw fetchErr;
         
@@ -53,6 +72,7 @@
       }
 
       async function deleteDoc(docRef) {
+        if (!supabase) throw new Error("Supabase is offline");
         const { error } = await supabase.from(docRef.table).delete().eq('id', docRef.id);
         if (error) throw error;
       }
@@ -62,6 +82,10 @@
       }
 
       function onSnapshot(q, callback) {
+        if (!supabase) {
+           callback({ docs: [] });
+           return () => {};
+        }
         supabase.from(q).select('*').then(({ data, error }) => {
           if (error) {
              console.error("Supabase select error:", error);
@@ -100,6 +124,7 @@
             this.ops.push(docRef.id);
           },
           commit: async function() {
+            if (!supabase) return;
             if (this.ops.length > 0) {
               const { error } = await supabase.from(collectionName).delete().in('id', this.ops);
               if (error) throw error;
@@ -109,10 +134,11 @@
       }
 
       async function getDocs(colName) {
+         if (!supabase) return { docs: [] };
          const { data, error } = await supabase.from(colName).select('*');
          if (error) throw error;
          return {
-            docs: data.map(d => ({ id: d.id, data: () => d.data_payload }))
+            docs: data.map(d => ({ id: d.id, data: () => d.data_payload || {} }))
          };
       }
 
@@ -1513,11 +1539,13 @@
     <div id="toast-notification"></div>
 
     <script>
-      document.addEventListener("DOMContentLoaded", () => {
-        if (window.fbComponents) {
-          initApp();
-        }
-      });
+      if (document.readyState === 'loading') {
+        document.addEventListener("DOMContentLoaded", () => {
+          if (window.fbComponents) initApp();
+        });
+      } else {
+        if (window.fbComponents) initApp();
+      }
 
       async function initApp() {
         const {
