@@ -611,20 +611,60 @@
         </div>
       </div>
 
-      <!-- Tabs Navigasi -->
-      <div class="flex items-center gap-6 mb-4 border-b border-slate-200">
-        <button
-          id="tab-data"
-          class="pb-3 text-sm font-bold border-b-2 border-teal-500 text-teal-600 transition-colors"
+      <!-- Tabs Navigasi & Filter -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-4 border-b border-slate-200 gap-3">
+        <div class="flex items-center gap-6">
+          <button
+            id="tab-data"
+            class="pb-3 text-sm font-bold border-b-[3px] border-teal-500 text-teal-600 transition-colors"
+          >
+            Data Pokok
+          </button>
+          <button
+            id="tab-tagihan"
+            class="pb-3 text-sm font-bold border-b-[3px] border-transparent text-slate-500 hover:text-slate-700 transition-colors"
+          >
+            Pesanan & Tagihan
+          </button>
+        </div>
+
+        <!-- Filter Container (Compact Inline) -->
+        <div
+          id="filter-tagihan-container"
+          class="hidden w-full sm:w-auto flex-col sm:flex-row items-center gap-1.5 pb-2"
         >
-          Data Pokok
-        </button>
-        <button
-          id="tab-tagihan"
-          class="pb-3 text-sm font-bold border-b-2 border-transparent text-slate-500 hover:text-slate-700 transition-colors"
-        >
-          Pesanan & Tagihan
-        </button>
+          <div
+            class="flex items-center gap-1 bg-white border border-slate-200/60 rounded-lg p-1 shadow-sm w-full sm:w-auto"
+          >
+            <input
+              type="date"
+              id="filter-tagihan-start"
+              class="w-full sm:w-auto text-xs font-medium py-1 px-1.5 hover:bg-slate-50 focus:bg-slate-50 rounded outline-none text-slate-600 transition-all font-mono"
+            />
+            <span class="text-slate-300 font-bold text-xs">-</span>
+            <input
+              type="date"
+              id="filter-tagihan-end"
+              class="w-full sm:w-auto text-xs font-medium py-1 px-1.5 hover:bg-slate-50 focus:bg-slate-50 rounded outline-none text-slate-600 transition-all font-mono"
+            />
+          </div>
+          <div class="flex items-center gap-1.5 w-full sm:w-auto justify-end">
+            <button
+              id="btn-filter-tagihan"
+              title="Terapkan"
+              class="group relative bg-teal-600 hover:bg-teal-700 text-white p-1.5 rounded-lg transition-colors shadow-sm flex items-center justify-center h-[28px] w-[28px]"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            </button>
+            <button
+              id="btn-reset-tagihan"
+              title="Reset"
+              class="group relative bg-slate-50 hover:bg-slate-100 text-slate-600 p-1.5 rounded-lg border border-slate-200/60 transition-colors shadow-sm h-[28px] w-[28px] flex items-center justify-center"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+            </button>
+          </div>
+        </div>
       </div>
 
       <!-- Wadah Tabel Data Pokok -->
@@ -682,68 +722,6 @@
 
       <!-- Wadah Tabel Tagihan -->
       <div id="view-tagihan" class="hidden flex-col gap-3 w-full">
-        <!-- Toggle & Filter Rentang Waktu Tagihan -->
-        <div
-          class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 w-full"
-        >
-          <!-- Toggle Button -->
-          <button
-            id="toggle-filter-btn"
-            class="flex items-center gap-1.5 text-xs text-slate-500 hover:text-teal-600 font-bold transition-colors focus:outline-none bg-white border border-slate-200/60 px-3 py-1.5 rounded-lg shadow-sm"
-          >
-            <svg
-              class="w-3.5 h-3.5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
-              ></path>
-            </svg>
-            <span id="toggle-filter-text">Tampilkan Filter</span>
-          </button>
-
-          <!-- Filter Container (Compact Inline) -->
-          <div
-            id="filter-tagihan-container"
-            class="hidden w-full sm:w-auto flex-col sm:flex-row items-center gap-2"
-            style="display: none"
-          >
-            <div
-              class="flex items-center gap-2 bg-white border border-slate-200/60 rounded-lg p-1 shadow-sm w-full sm:w-auto"
-            >
-              <input
-                type="date"
-                id="filter-tagihan-start"
-                class="w-full sm:w-auto text-xs py-1 px-2 hover:bg-slate-50 focus:bg-slate-50 rounded outline-none text-slate-600 transition-all font-mono"
-              />
-              <span class="text-slate-300 font-bold text-xs">-</span>
-              <input
-                type="date"
-                id="filter-tagihan-end"
-                class="w-full sm:w-auto text-xs py-1 px-2 hover:bg-slate-50 focus:bg-slate-50 rounded outline-none text-slate-600 transition-all font-mono"
-              />
-            </div>
-            <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
-              <button
-                id="btn-filter-tagihan"
-                class="bg-teal-600 hover:bg-teal-700 text-white font-bold py-1.5 px-3 rounded-lg transition-colors text-xs shadow-sm flex items-center justify-center gap-1.5 h-[30px] w-full sm:w-auto"
-              >
-                Terapkan
-              </button>
-              <button
-                id="btn-reset-tagihan"
-                class="bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold py-1.5 px-3 rounded-lg transition-colors text-xs shadow-sm h-[30px] w-full sm:w-auto"
-              >
-                Reset
-              </button>
-            </div>
-          </div>
-        </div>
 
         <div
           class="overflow-x-auto overflow-y-auto rounded-xl border border-slate-200/60 shadow-sm relative group bg-white custom-scrollbar w-full"
@@ -1299,6 +1277,17 @@
                 />
               </div>
             </div>
+            
+            <div class="flex items-center gap-2 mt-4 pt-4 border-t border-slate-100">
+              <input 
+                type="checkbox" 
+                id="edit-sekolah-gratis" 
+                class="w-4 h-4 text-teal-600 border-slate-300 rounded focus:ring-teal-500" 
+              />
+              <label for="edit-sekolah-gratis" class="font-bold text-slate-500 uppercase tracking-tight text-[11px] cursor-pointer">
+                Sekolah Gratis
+              </label>
+            </div>
           </div>
           <div id="pesanan-fields" class="space-y-3 sm:space-y-4">
             <div
@@ -1527,6 +1516,12 @@
             viewData.classList.remove("hidden");
             viewTagihan.classList.add("hidden");
             viewTagihan.classList.remove("flex"); // remove flex if we used it
+            
+            const fContainer = document.getElementById("filter-tagihan-container");
+            if (fContainer) {
+              fContainer.classList.add("hidden");
+              fContainer.classList.remove("flex");
+            }
           });
 
           tabTagihan.addEventListener("click", () => {
@@ -1538,6 +1533,12 @@
             viewTagihan.classList.remove("hidden");
             viewTagihan.classList.add("flex"); // add flex for layout
             viewData.classList.add("hidden");
+            
+            const fContainer = document.getElementById("filter-tagihan-container");
+            if (fContainer) {
+              fContainer.classList.remove("hidden");
+              fContainer.classList.add("flex");
+            }
           });
         }
 
@@ -1577,24 +1578,7 @@
           });
         }
 
-        const btnToggleFilter = document.getElementById("toggle-filter-btn");
-        const filterContainer = document.getElementById(
-          "filter-tagihan-container",
-        );
-        const filterText = document.getElementById("toggle-filter-text");
-        if (btnToggleFilter && filterContainer) {
-          btnToggleFilter.addEventListener("click", () => {
-            if (filterContainer.style.display === "none") {
-              filterContainer.style.display = "flex";
-              filterContainer.classList.remove("hidden");
-              filterText.textContent = "Sembunyikan Filter";
-            } else {
-              filterContainer.style.display = "none";
-              filterContainer.classList.add("hidden");
-              filterText.textContent = "Tampilkan Filter";
-            }
-          });
-        }
+
         // -----------------
 
         const fieldIds = [
@@ -1927,6 +1911,7 @@
                     if (kCount > 0) costForThisDoc = 50000 + kCount * 50000;
                   }
 
+                  if (doc['sekolah-gratis']) costForThisDoc = 0;
                   if (isWithinRange) {
                     totalSchoolBiaya += costForThisDoc;
                     hasValidTransactionInPeriod = true;
@@ -2207,6 +2192,7 @@
           const displayId = document.getElementById("display-id");
           const editIdInput = document.getElementById("edit-id");
 
+          document.getElementById('edit-sekolah-gratis').checked = false;
           fieldIds.forEach((fid) => {
             const el = document.getElementById(`edit-${fid}`);
             if (el) el.value = "";
@@ -2296,6 +2282,7 @@
               const el = document.getElementById(`edit-${fid}`);
               if (el) el.value = item[fid] || "";
             });
+            document.getElementById('edit-sekolah-gratis').checked = !!item['sekolah-gratis'];
             if (item["jenis-pesanan"] === "lanjutan") {
               document.getElementById("jenis-pesanan-lanjut").checked = true;
             } else {
@@ -2360,6 +2347,7 @@
             timestamp: Date.now(),
             isDraft: true,
             kelas: window.currentSelectedKelas || [],
+            'sekolah-gratis': document.getElementById('edit-sekolah-gratis').checked
           };
           const isLanjutan = document.getElementById(
             "jenis-pesanan-lanjut",
@@ -2403,6 +2391,7 @@
             if (!val) isAnyEmpty = true;
             textUpdates[fid] = val;
           });
+          textUpdates['sekolah-gratis'] = document.getElementById('edit-sekolah-gratis').checked;
 
           const isLanjutan = document.getElementById(
             "jenis-pesanan-lanjut",
@@ -2595,6 +2584,7 @@
           const formData = {
             timestamp: Date.now(),
             kelas: window.currentSelectedKelas || [],
+            'sekolah-gratis': document.getElementById('edit-sekolah-gratis').checked
           };
           fieldIds.forEach((fid) => {
             const el = document.getElementById(`edit-${fid}`);
@@ -2877,6 +2867,7 @@
                       : "Pesanan Baru";
                   }
                   if (col.id === "biaya") {
+                    if (item['sekolah-gratis']) return 0;
                     const kCount = Array.isArray(item.kelas)
                       ? item.kelas.length
                       : 0;
