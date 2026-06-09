@@ -44,6 +44,27 @@
       async function addDoc(colName, data) {
         if (!supabaseClient) throw new Error("Supabase is offline");
         const payload = { data_payload: data };
+
+        // Cek apakah NPSN sudah ada untuk menghindari duplikat (Upsert Logika)
+        if (data.npsn) {
+          const { data: existing, error: findErr } = await supabaseClient
+            .from(colName)
+            .select('id, data_payload')
+            .eq('data_payload->>npsn', data.npsn)
+            .maybeSingle();
+
+          if (existing) {
+             const merged = { ...existing.data_payload, ...data };
+             // Gabungkan array kelas agar unik jika update
+             if (existing.data_payload.kelas && data.kelas) {
+                merged.kelas = [...new Set([...existing.data_payload.kelas, ...data.kelas])];
+             }
+             const { error } = await supabaseClient.from(colName).update({ data_payload: merged }).eq('id', existing.id);
+             if (error) throw error;
+             return { id: existing.id };
+          }
+        }
+
         const { data: record, error } = await supabaseClient.from(colName).insert([payload]).select();
         if (error) {
             console.error("Supabase insert error:", error);
@@ -59,6 +80,19 @@
         
         const mergedData = { ...(oldRecord.data_payload || {}), ...data };
         const { error } = await supabaseClient.from(docRef.table).update({ data_payload: mergedData }).eq('id', docRef.id);
+        if (error) throw error;
+      }
+
+      async function setDoc(docRef, data, options = {}) {
+        if (!supabaseClient) throw new Error("Supabase is offline");
+        const payload = { id: docRef.id, data_payload: data };
+        if (options.merge) {
+          const { data: oldRecord } = await supabaseClient.from(docRef.table).select('data_payload').eq('id', docRef.id).maybeSingle();
+          if (oldRecord) {
+             payload.data_payload = { ...oldRecord.data_payload, ...data };
+          }
+        }
+        const { error } = await supabaseClient.from(docRef.table).upsert(payload);
         if (error) throw error;
       }
 
@@ -138,7 +172,7 @@
       function onAuthStateChanged(auth, cb) { cb({ uid: 'anonymous' }); }
 
       window.fbComponents = {
-        auth, db, collection, addDoc, updateDoc, deleteDoc, doc, 
+        auth, db, collection, addDoc, setDoc, updateDoc, deleteDoc, doc, 
         onSnapshot, query, appId, collectionName, signInWithCustomToken, 
         signInAnonymously, onAuthStateChanged, serverTimestamp, writeBatch, getDocs
       };
