@@ -1,0 +1,96 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary-50: var(--p-50);
+  --color-primary-100: var(--p-100);
+  --color-primary-200: var(--p-200);
+  --color-primary-300: var(--p-300);
+  --color-primary-400: var(--p-400);
+  --color-primary-500: var(--p-500);
+  --color-primary-600: var(--p-600);
+  --color-primary-700: var(--p-700);
+  --color-primary-800: var(--p-800);
+  --color-primary-900: var(--p-900);
+  --color-primary-950: var(--p-950);
+}
+
+:root {
+  /* Default Theme: Indigo (Modern & Elegant) */
+  --p-50: #eef2ff;
+  --p-100: #e0e7ff;
+  --p-200: #c7d2fe;
+  --p-300: #a5b4fc;
+  --p-400: #818cf8;
+  --p-500: #6366f1;
+  --p-600: #4f46e5;
+  --p-700: #4338ca;
+  --p-800: #3730a3;
+  --p-900: #312e81;
+  --p-950: #1e1b4b;
+}
+
+:root[data-theme="emerald"] {
+  --p-50: #ecfdf5;
+  --p-100: #d1fae5;
+  --p-200: #a7f3d0;
+  --p-300: #6ee7b7;
+  --p-400: #34d399;
+  --p-500: #10b981;
+  --p-600: #059669;
+  --p-700: #047857;
+  --p-800: #065f46;
+  --p-900: #064e3b;
+  --p-950: #022c22;
+}
+
+:root[data-theme="rose"] {
+  --p-50: #fff1f2;
+  --p-100: #ffe4e6;
+  --p-200: #fecdd3;
+  --p-300: #fda4af;
+  --p-400: #fb7185;
+  --p-500: #f43f5e;
+  --p-600: #e11d48;
+  --p-700: #be123c;
+  --p-800: #9f1239;
+  --p-900: #881337;
+  --p-950: #4c0519;
+}
+
+:root[data-theme="amber"] {
+  --p-50: #fffbeb;
+  --p-100: #fef3c7;
+  --p-200: #fde68a;
+  --p-300: #fcd34d;
+  --p-400: #fbbf24;
+  --p-500: #f59e0b;
+  --p-600: #d97706;
+  --p-700: #b45309;
+  --p-800: #92400e;
+  --p-900: #78350f;
+  --p-950: #451a03;
+}
+
+@layer base {
+  body {
+    @apply transition-colors duration-300;
+  }
+}
+
+/* Custom Scrollbar for elegant feel */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-slate-300 dark:bg-slate-700 rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-slate-400 dark:bg-slate-600;
+}
