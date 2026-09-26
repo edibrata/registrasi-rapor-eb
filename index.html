@@ -3,7 +3,12 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Database Registrasi Aplikasi Rapor Edi Brata</title>
+    <title>E-Rapor Edi Brata Registrasi</title>
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230d9488'/><path d='M25 75V25A10 10 0 0 1 35 15H75V85H35A10 10 0 0 1 25 75' fill='none' stroke='white' stroke-width='8'/><path d='M35 15A10 10 0 0 0 25 25V75A10 10 0 0 0 35 85H75' fill='none' stroke='white' stroke-width='8'/><path d='M40 35H65M40 50H65M40 65H55' stroke='white' stroke-width='6' stroke-linecap='round'/></svg>"
+    />
     <script src="https://cdn.tailwindcss.com"></script>
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap"
@@ -629,7 +634,7 @@
             <h1
               class="font-bold tracking-tight text-slate-800 text-lg md:text-xl leading-tight group-hover:text-teal-700 transition-colors"
             >
-              Registrasi Aplikasi Rapor Edi Brata
+              E-Rapor Edi Brata Registrasi
             </h1>
             <div class="flex items-center gap-2 mt-0.5">
               <span
@@ -819,6 +824,18 @@
           >
             Pesanan & Tagihan
           </button>
+          <button
+            id="tab-akses"
+            class="pb-3 text-sm font-bold border-b-[3px] border-transparent text-slate-500 hover:text-slate-700 transition-colors"
+          >
+            Akses
+          </button>
+          <button
+            id="tab-pengguna"
+            class="pb-3 text-sm font-bold border-b-[3px] border-transparent text-slate-500 hover:text-slate-700 transition-colors flex items-center gap-1.5"
+          >
+            <span>Data Pengguna</span>
+          </button>
         </div>
 
         <!-- Filter Container (Compact Inline) -->
@@ -967,6 +984,111 @@
                 </td>
               </tr>
             </tfoot>
+          </table>
+        </div>
+      </div>
+
+      <!-- Wadah Tabel Akses -->
+      <div id="view-akses" class="hidden flex-col gap-3 w-full">
+        <div
+          class="overflow-x-auto overflow-y-auto rounded-xl border border-slate-200/60 shadow-sm relative group bg-white custom-scrollbar w-full"
+          style="max-height: 60vh"
+        >
+          <table
+            class="w-full text-left text-sm border-collapse whitespace-nowrap min-w-max"
+          >
+            <thead
+              class="bg-slate-50 border-b border-slate-200/60 text-[10px] text-slate-500 font-bold uppercase tracking-wider sticky top-0 z-20"
+            >
+              <tr>
+                <th
+                  class="px-4 py-3 text-center sticky left-0 z-30 bg-slate-50 border-r border-slate-100 min-w-[50px]"
+                >
+                  NO
+                </th>
+                <th
+                  class="px-4 py-3 sticky left-[50px] z-30 bg-slate-50 border-r border-slate-200/80 shadow-[4px_0_12px_-4px_rgba(0,0,0,0.05)] min-w-[220px]"
+                >
+                  NAMA SEKOLAH
+                </th>
+                <th class="px-4 py-3 text-center min-w-[320px]">PASSWORD</th>
+                <th class="px-4 py-3 text-center min-w-[140px]">MAPEL KUSTOM</th>
+                <th class="px-4 py-3 text-center min-w-[140px]">BUKU INDUK</th>
+              </tr>
+            </thead>
+            <tbody
+              id="akses-table-body"
+              class="divide-y divide-slate-100 text-[11px]"
+            ></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Wadah Tabel Data Pengguna -->
+      <div id="view-pengguna" class="hidden flex-col gap-3 w-full">
+        <!-- Sub Ekspor XLSX Header Toolbar -->
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between bg-slate-50 p-3 rounded-xl border border-slate-200/80 shadow-sm gap-2">
+          <div class="flex items-center gap-2">
+            <span class="w-2.5 h-2.5 bg-teal-500 rounded-full animate-pulse"></span>
+            <div>
+              <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider">
+                Data Kepala Sekolah & Guru Operator
+              </h3>
+              <p class="text-[10px] text-slate-500">
+                Kelola data Kepala Sekolah dan Guru Operator untuk seluruh satuan pendidikan.
+              </p>
+            </div>
+          </div>
+          <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
+            <!-- Sub Ekspor XLSX dengan Tooltips Tailwind CSS -->
+            <div class="tooltip-container">
+              <button
+                id="export-pengguna-excel-btn"
+                class="flex items-center gap-1.5 px-3.5 py-1.5 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white rounded-lg text-xs font-bold shadow-md hover:shadow-teal-300 transition-all cursor-pointer border border-teal-500"
+              >
+                <svg viewBox="0 0 24 24" stroke="currentColor" class="w-4 h-4">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                  <polyline points="14 2 14 8 20 8"></polyline>
+                  <line x1="12" y1="18" x2="12" y2="12"></line>
+                  <line x1="9" y1="15" x2="15" y2="15"></line>
+                </svg>
+                <span>Ekspor XLSX Data Pengguna</span>
+              </button>
+              <span class="tooltip-text">Ekspor Tabel Data Pengguna ke File Excel (.xlsx)</span>
+            </div>
+          </div>
+        </div>
+
+        <div
+          class="overflow-x-auto overflow-y-auto rounded-xl border border-slate-200/60 shadow-sm relative group bg-white custom-scrollbar w-full"
+          style="max-height: 60vh"
+        >
+          <table
+            class="w-full text-left text-sm border-collapse whitespace-nowrap min-w-max"
+          >
+            <thead
+              class="bg-slate-50 border-b border-slate-200/60 text-[10px] text-slate-500 font-bold uppercase tracking-wider sticky top-0 z-20"
+            >
+              <tr>
+                <th class="px-3 py-3 text-center sticky left-0 z-30 bg-slate-50 border-r border-slate-100 min-w-[45px]">NO</th>
+                <th class="px-3 py-3 sticky left-[45px] z-30 bg-slate-50 border-r border-slate-200/80 shadow-[4px_0_12px_-4px_rgba(0,0,0,0.05)] min-w-[200px]">NAMA SEKOLAH</th>
+                <th class="px-3 py-3 text-left min-w-[120px]">KECAMATAN</th>
+                <th class="px-3 py-3 text-left min-w-[140px]">KABUPATEN/KOTA</th>
+                <th class="px-3 py-3 text-left min-w-[120px]">PROVINSI</th>
+                <th class="px-3 py-3 text-left bg-teal-50/70 text-teal-800 border-l border-teal-100 min-w-[160px]">NAMA KEPSEK</th>
+                <th class="px-3 py-3 text-center bg-teal-50/70 text-teal-800 min-w-[130px]">NIP KEPSEK</th>
+                <th class="px-3 py-3 text-center bg-teal-50/70 text-teal-800 min-w-[130px]">WHATSAPP KEPSEK</th>
+                <th class="px-3 py-3 text-center bg-teal-50/70 text-teal-800 min-w-[140px]">TANGGAL LAHIR KEPSEK</th>
+                <th class="px-3 py-3 text-left bg-indigo-50/70 text-indigo-800 border-l border-indigo-100 min-w-[160px]">NAMA GURU</th>
+                <th class="px-3 py-3 text-center bg-indigo-50/70 text-indigo-800 min-w-[130px]">NIP GURU</th>
+                <th class="px-3 py-3 text-center bg-indigo-50/70 text-indigo-800 min-w-[130px]">WHATSAPP GURU</th>
+                <th class="px-3 py-3 text-center bg-indigo-50/70 text-indigo-800 min-w-[140px]">TANGGAL LAHIR GURU</th>
+              </tr>
+            </thead>
+            <tbody
+              id="pengguna-table-body"
+              class="divide-y divide-slate-100 text-[11px]"
+            ></tbody>
           </table>
         </div>
       </div>
@@ -1146,6 +1268,38 @@
               </h4>
               <p class="text-[10px] sm:text-[11px] text-slate-500 mt-0.5">
                 Ubah daftar kelas, hapus,/tambah.
+              </p>
+            </div>
+          </button>
+          <button
+            onclick="openActionModalObj(window.currentEditId, 'pengguna')"
+            class="group flex items-center p-3 sm:p-4 text-left bg-slate-50 border border-slate-200 rounded-xl hover:border-teal-400 hover:shadow-md transition-all"
+          >
+            <div
+              class="w-8 h-8 rounded bg-white text-slate-400 flex items-center justify-center mr-3 sm:mr-4 group-hover:text-teal-600 group-hover:bg-teal-50"
+            >
+              <svg
+                class="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
+                ></path>
+              </svg>
+            </div>
+            <div>
+              <h4
+                class="font-bold text-slate-700 text-sm group-hover:text-teal-700"
+              >
+                Edit Data Pengguna (Kepsek & Guru)
+              </h4>
+              <p class="text-[10px] sm:text-[11px] text-slate-500 mt-0.5">
+                Ubah nama, NIP, WhatsApp, dan Tgl Lahir Kepsek & Guru.
               </p>
             </div>
           </button>
@@ -1569,6 +1723,60 @@
               </div>
             </div>
           </div>
+
+          <div id="pengguna-fields" class="space-y-3 sm:space-y-4">
+            <!-- Kepsek Section -->
+            <div class="bg-teal-50/50 p-3 rounded-xl border border-teal-100/80">
+              <h4 class="font-bold text-teal-800 text-xs mb-2.5 flex items-center gap-1.5 uppercase tracking-wider">
+                <svg class="w-4 h-4 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                Data Kepala Sekolah
+              </h4>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label class="block font-bold text-slate-500 mb-1 uppercase tracking-tight">Nama Kepsek</label>
+                  <input type="text" id="edit-kepsek_nama" class="py-1.5 px-3 w-full" placeholder="Nama Lengkap & Gelar Kepsek" />
+                </div>
+                <div>
+                  <label class="block font-bold text-slate-500 mb-1 uppercase tracking-tight">NIP Kepsek</label>
+                  <input type="text" id="edit-kepsek_nip" class="py-1.5 px-3 w-full" placeholder="NIP (18 Digit Angka / -)" />
+                </div>
+                <div>
+                  <label class="block font-bold text-slate-500 mb-1 uppercase tracking-tight">WhatsApp Kepsek</label>
+                  <input type="text" id="edit-kepsek_wa" class="py-1.5 px-3 w-full" placeholder="Contoh: 08123456789" />
+                </div>
+                <div>
+                  <label class="block font-bold text-slate-500 mb-1 uppercase tracking-tight">Tanggal Lahir Kepsek</label>
+                  <input type="date" id="edit-kepsek_tgl_lahir" class="py-1.5 px-3 w-full" />
+                </div>
+              </div>
+            </div>
+
+            <!-- Guru Section -->
+            <div class="bg-indigo-50/50 p-3 rounded-xl border border-indigo-100/80">
+              <h4 class="font-bold text-indigo-800 text-xs mb-2.5 flex items-center gap-1.5 uppercase tracking-wider">
+                <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0112 20.055a11.952 11.952 0 01-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"></path></svg>
+                Data Guru Operator / Penanggung Jawab
+              </h4>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label class="block font-bold text-slate-500 mb-1 uppercase tracking-tight">Nama Guru</label>
+                  <input type="text" id="edit-guru_nama" class="py-1.5 px-3 w-full" placeholder="Nama Lengkap & Gelar Guru" />
+                </div>
+                <div>
+                  <label class="block font-bold text-slate-500 mb-1 uppercase tracking-tight">NIP Guru</label>
+                  <input type="text" id="edit-guru_nip" class="py-1.5 px-3 w-full" placeholder="NIP Guru / -" />
+                </div>
+                <div>
+                  <label class="block font-bold text-slate-500 mb-1 uppercase tracking-tight">WhatsApp Guru</label>
+                  <input type="text" id="edit-guru_wa" class="py-1.5 px-3 w-full" placeholder="Contoh: 08123456789" />
+                </div>
+                <div>
+                  <label class="block font-bold text-slate-500 mb-1 uppercase tracking-tight">Tanggal Lahir Guru</label>
+                  <input type="date" id="edit-guru_tgl_lahir" class="py-1.5 px-3 w-full" />
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div
@@ -1646,6 +1854,35 @@
       </div>
     </div>
 
+    <!-- Modal Edit Password -->
+    <div id="edit-password-modal" class="modal-overlay">
+      <div class="modal-content max-w-sm">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
+          <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-lg bg-teal-100 text-teal-700 flex items-center justify-center font-bold">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+            </div>
+            <div>
+              <h3 class="font-bold text-slate-800 text-sm">Edit Password Akses</h3>
+              <p id="edit-password-school-name" class="text-[10px] text-slate-500 font-medium truncate max-w-[200px]"></p>
+            </div>
+          </div>
+          <button onclick="document.getElementById('edit-password-modal').classList.remove('active')" class="text-slate-400 hover:text-slate-600 p-1">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+          </button>
+        </div>
+        <input type="hidden" id="edit-password-doc-id" />
+        <div class="mb-4">
+          <label class="block text-[11px] font-bold text-slate-600 mb-1">PASSWORD KUSTOM</label>
+          <input type="text" id="edit-password-input" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs font-mono font-bold focus:ring-2 focus:ring-teal-500 focus:border-teal-500" placeholder="Masukkan password..." />
+        </div>
+        <div class="flex gap-2 justify-end">
+          <button onclick="document.getElementById('edit-password-modal').classList.remove('active')" class="px-4 py-1.5 text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors">BATAL</button>
+          <button id="save-password-btn" class="px-4 py-1.5 text-xs font-bold text-white bg-teal-600 hover:bg-teal-700 rounded-lg transition-colors shadow-sm">SIMPAN</button>
+        </div>
+      </div>
+    </div>
+
     <div id="toast-notification"></div>
 
     <script>
@@ -1700,48 +1937,62 @@
         // --- TAB LOGIC ---
         const tabData = document.getElementById("tab-data");
         const tabTagihan = document.getElementById("tab-tagihan");
+        const tabAkses = document.getElementById("tab-akses");
+        const tabPengguna = document.getElementById("tab-pengguna");
+
         const viewData = document.getElementById("view-data");
         const viewTagihan = document.getElementById("view-tagihan");
+        const viewAkses = document.getElementById("view-akses");
+        const viewPengguna = document.getElementById("view-pengguna");
 
-        if (tabData && tabTagihan) {
-          tabData.addEventListener("click", () => {
-            tabData.classList.add("border-teal-500", "text-teal-600");
-            tabData.classList.remove(
-              "border-transparent",
-              "text-slate-50",
-              "text-slate-500",
-            );
-            tabTagihan.classList.remove("border-teal-500", "text-teal-600");
-            tabTagihan.classList.add("border-transparent", "text-slate-500");
-
-            viewData.classList.remove("hidden");
-            viewTagihan.classList.add("hidden");
-            viewTagihan.classList.remove("flex"); // remove flex if we used it
-            
-            const fContainer = document.getElementById("filter-tagihan-container");
-            if (fContainer) {
-              fContainer.classList.add("hidden");
-              fContainer.classList.remove("flex");
+        function activateTab(activeTab) {
+          [tabData, tabTagihan, tabAkses, tabPengguna].forEach(t => {
+            if (t) {
+              if (t === activeTab) {
+                t.classList.add("border-teal-500", "text-teal-600");
+                t.classList.remove("border-transparent", "text-slate-500", "text-slate-50");
+              } else {
+                t.classList.remove("border-teal-500", "text-teal-600");
+                t.classList.add("border-transparent", "text-slate-500");
+              }
             }
           });
 
-          tabTagihan.addEventListener("click", () => {
-            tabTagihan.classList.add("border-teal-500", "text-teal-600");
-            tabTagihan.classList.remove("border-transparent", "text-slate-500");
-            tabData.classList.remove("border-teal-500", "text-teal-600");
-            tabData.classList.add("border-transparent", "text-slate-500");
-
-            viewTagihan.classList.remove("hidden");
-            viewTagihan.classList.add("flex"); // add flex for layout
-            viewData.classList.add("hidden");
-            
+          if (activeTab === tabData) {
+            if (viewData) viewData.classList.remove("hidden");
+            if (viewTagihan) { viewTagihan.classList.add("hidden"); viewTagihan.classList.remove("flex"); }
+            if (viewAkses) { viewAkses.classList.add("hidden"); viewAkses.classList.remove("flex"); }
+            if (viewPengguna) { viewPengguna.classList.add("hidden"); viewPengguna.classList.remove("flex"); }
             const fContainer = document.getElementById("filter-tagihan-container");
-            if (fContainer) {
-              fContainer.classList.remove("hidden");
-              fContainer.classList.add("flex");
-            }
-          });
+            if (fContainer) { fContainer.classList.add("hidden"); fContainer.classList.remove("flex"); }
+          } else if (activeTab === tabTagihan) {
+            if (viewTagihan) { viewTagihan.classList.remove("hidden"); viewTagihan.classList.add("flex"); }
+            if (viewData) viewData.classList.add("hidden");
+            if (viewAkses) { viewAkses.classList.add("hidden"); viewAkses.classList.remove("flex"); }
+            if (viewPengguna) { viewPengguna.classList.add("hidden"); viewPengguna.classList.remove("flex"); }
+            const fContainer = document.getElementById("filter-tagihan-container");
+            if (fContainer) { fContainer.classList.remove("hidden"); fContainer.classList.add("flex"); }
+          } else if (activeTab === tabAkses) {
+            if (viewAkses) { viewAkses.classList.remove("hidden"); viewAkses.classList.add("flex"); }
+            if (viewData) viewData.classList.add("hidden");
+            if (viewTagihan) { viewTagihan.classList.add("hidden"); viewTagihan.classList.remove("flex"); }
+            if (viewPengguna) { viewPengguna.classList.add("hidden"); viewPengguna.classList.remove("flex"); }
+            const fContainer = document.getElementById("filter-tagihan-container");
+            if (fContainer) { fContainer.classList.add("hidden"); fContainer.classList.remove("flex"); }
+          } else if (activeTab === tabPengguna) {
+            if (viewPengguna) { viewPengguna.classList.remove("hidden"); viewPengguna.classList.add("flex"); }
+            if (viewData) viewData.classList.add("hidden");
+            if (viewTagihan) { viewTagihan.classList.add("hidden"); viewTagihan.classList.remove("flex"); }
+            if (viewAkses) { viewAkses.classList.add("hidden"); viewAkses.classList.remove("flex"); }
+            const fContainer = document.getElementById("filter-tagihan-container");
+            if (fContainer) { fContainer.classList.add("hidden"); fContainer.classList.remove("flex"); }
+          }
         }
+
+        if (tabData) tabData.addEventListener("click", () => activateTab(tabData));
+        if (tabTagihan) tabTagihan.addEventListener("click", () => activateTab(tabTagihan));
+        if (tabAkses) tabAkses.addEventListener("click", () => activateTab(tabAkses));
+        if (tabPengguna) tabPengguna.addEventListener("click", () => activateTab(tabPengguna));
 
         // --- FILTER TAGIHAN LOGIC ---
         const inputTagihanStart = document.getElementById(
@@ -1792,6 +2043,14 @@
           "kabupaten-kota-jenis",
           "kabupaten-kota-nama",
           "provinsi",
+          "kepsek_nama",
+          "kepsek_nip",
+          "kepsek_wa",
+          "kepsek_tgl_lahir",
+          "guru_nama",
+          "guru_nip",
+          "guru_wa",
+          "guru_tgl_lahir",
         ];
 
         const excelColumns = [
@@ -1806,7 +2065,48 @@
           { id: "kabupaten-kota-nama", label: "Nama Kab/Kota" },
           { id: "provinsi", label: "Provinsi" },
           { id: "kelas", label: "Kelas" },
+          { id: "kepsek_nama", label: "Nama Kepsek" },
+          { id: "kepsek_nip", label: "NIP Kepsek" },
+          { id: "kepsek_wa", label: "WhatsApp Kepsek" },
+          { id: "kepsek_tgl_lahir", label: "Tanggal Lahir Kepsek" },
+          { id: "guru_nama", label: "Nama Guru" },
+          { id: "guru_nip", label: "NIP Guru" },
+          { id: "guru_wa", label: "WhatsApp Guru" },
+          { id: "guru_tgl_lahir", label: "Tanggal Lahir Guru" },
         ];
+
+        const exportPenggunaBtn = document.getElementById("export-pengguna-excel-btn");
+        if (exportPenggunaBtn) {
+          exportPenggunaBtn.addEventListener("click", () => {
+            const list = window.latestUniqueSchools || [];
+            if (list.length === 0) {
+              return showToast("Tidak ada data pengguna untuk diekspor.", false);
+            }
+            const exportRows = list.map((school, index) => {
+              const kabKota = (school["kabupaten-kota-jenis"] ? school["kabupaten-kota-jenis"] + " " : "") + (school["kabupaten-kota-nama"] || "");
+              return {
+                "NO": index + 1,
+                "NAMA SEKOLAH": school["nama-sekolah"] || "-",
+                "KECAMATAN": school["kecamatan"] || "-",
+                "KABUPATEN/KOTA": kabKota || "-",
+                "PROVINSI": school["provinsi"] || "-",
+                "NAMA KEPSEK": school["kepsek_nama"] || "-",
+                "NIP KEPSEK": school["kepsek_nip"] || "-",
+                "WHATSAPP KEPSEK": school["kepsek_wa"] || "-",
+                "TANGGAL LAHIR KEPSEK": school["kepsek_tgl_lahir"] || "-",
+                "NAMA GURU": school["guru_nama"] || "-",
+                "NIP GURU": school["guru_nip"] || "-",
+                "WHATSAPP GURU": school["guru_wa"] || "-",
+                "TANGGAL LAHIR GURU": school["guru_tgl_lahir"] || "-"
+              };
+            });
+            const ws = XLSX.utils.json_to_sheet(exportRows);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Data Pengguna");
+            XLSX.writeFile(wb, `Data_Pengguna_E_Rapor_${getTimestamp().replace(/[:\s]/g, "_")}.xlsx`);
+            showToast("Data Pengguna berhasil diekspor ke Excel!");
+          });
+        }
 
         const toast = document.getElementById("toast-notification");
         function showToast(message, isSuccess = true) {
@@ -2021,6 +2321,12 @@
           const tagihanTableBody =
             document.getElementById("tagihan-table-body");
           if (tagihanTableBody) tagihanTableBody.innerHTML = "";
+          const aksesTableBody =
+            document.getElementById("akses-table-body");
+          if (aksesTableBody) aksesTableBody.innerHTML = "";
+          const penggunaTableBody =
+            document.getElementById("pengguna-table-body");
+          if (penggunaTableBody) penggunaTableBody.innerHTML = "";
           let totalBTagihan = 0;
 
           // Build unique schools for Tab 1 (Data Pokok)
@@ -2054,6 +2360,7 @@
             }
           });
           const uniqueSchools = Array.from(uniqueSchoolsMap.values());
+          window.latestUniqueSchools = uniqueSchools;
           schoolCount.textContent = uniqueSchools.length;
 
           if (dataToDisplay.length === 0) {
@@ -2067,6 +2374,12 @@
             if (tagihanTableBody)
               tagihanTableBody.innerHTML =
                 '<tr><td colspan="6" class="text-center py-10 text-slate-400">Tidak ada data pesanan</td></tr>';
+            if (aksesTableBody)
+              aksesTableBody.innerHTML =
+                '<tr><td colspan="5" class="text-center py-10 text-slate-400">Tidak ada data sekolah</td></tr>';
+            if (penggunaTableBody)
+              penggunaTableBody.innerHTML =
+                '<tr><td colspan="13" class="text-center py-10 text-slate-400">Tidak ada data pengguna</td></tr>';
           } else {
             // Render Tagihan Table
             let tagihanIndex = 1;
@@ -2185,6 +2498,115 @@
             if (document.getElementById("tagihan-total")) {
               document.getElementById("tagihan-total").textContent =
                 "Rp " + totalBTagihan.toLocaleString("id-ID");
+            }
+
+            // Render Akses Table
+            if (aksesTableBody) {
+              uniqueSchools.forEach((school, index) => {
+                const isPassActive = Boolean(school.akses_password_active);
+                const passVal = school.akses_password || "";
+                const isMapelKustom = Boolean(school.akses_mapel_kustom);
+                const isBukuInduk = Boolean(school.akses_buku_induk);
+
+                let passContent = "";
+                if (isPassActive) {
+                  const displayPass = passVal ? passVal : "(Belum diset)";
+                  passContent = `
+                    <div class="flex items-center justify-center gap-2">
+                      <span class="font-mono font-bold text-slate-800 bg-slate-100 px-2.5 py-1 rounded-md text-xs border border-slate-200 select-all shadow-sm">${displayPass}</span>
+                      <div class="flex items-center gap-1">
+                        <!-- Edit Password -->
+                        <div class="tooltip-container">
+                          <button onclick="window.openEditPasswordModalById('${school.id}')" class="p-1.5 text-teal-600 hover:bg-teal-50 hover:text-teal-700 rounded-lg transition-colors border border-teal-200 shadow-sm">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                          </button>
+                          <span class="tooltip-text">Edit Password</span>
+                        </div>
+                        <!-- Reset Password -->
+                        <div class="tooltip-container">
+                          <button onclick="window.resetAksesPassById('${school.id}')" class="p-1.5 text-indigo-600 hover:bg-indigo-50 hover:text-indigo-700 rounded-lg transition-colors border border-indigo-200 shadow-sm">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                          </button>
+                          <span class="tooltip-text">Reset Password Otomatis</span>
+                        </div>
+                        <!-- Hapus Password -->
+                        <div class="tooltip-container">
+                          <button onclick="window.deleteAksesPassById('${school.id}')" class="p-1.5 text-rose-600 hover:bg-rose-50 hover:text-rose-700 rounded-lg transition-colors border border-rose-200 shadow-sm">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                          </button>
+                          <span class="tooltip-text">Hapus Password</span>
+                        </div>
+                      </div>
+                    </div>
+                  `;
+                } else {
+                  passContent = `<span class="text-slate-400 italic text-[11px]">Nonaktif</span>`;
+                }
+
+                const aksesRow = document.createElement("tr");
+                aksesRow.innerHTML = `
+                  <td class="px-4 py-2.5 text-center text-slate-400 sticky left-0 bg-white border-r border-slate-100">${index + 1}</td>
+                  <td class="px-4 py-2.5 sticky left-[50px] bg-white border-r border-slate-200/80 shadow-[4px_0_12px_-4px_rgba(0,0,0,0.05)]">
+                    <div class="font-bold text-slate-800">${school["nama-sekolah"] || "-"}</div>
+                    <div class="text-[10px] text-slate-400 font-mono">NPSN: ${school["npsn"] || "-"}</div>
+                  </td>
+                  <td class="px-4 py-2.5 text-center">
+                    <div class="flex items-center justify-center gap-3">
+                      <label class="relative inline-flex items-center cursor-pointer select-none">
+                        <input type="checkbox" class="sr-only peer" ${isPassActive ? "checked" : ""} onchange="window.toggleAksesPassActiveById('${school.id}', this.checked)">
+                        <div class="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-teal-600"></div>
+                        <span class="ml-2 text-[11px] font-bold ${isPassActive ? 'text-teal-700' : 'text-slate-400'}">${isPassActive ? 'ON' : 'OFF'}</span>
+                      </label>
+                      ${passContent}
+                    </div>
+                  </td>
+                  <td class="px-4 py-2.5 text-center">
+                    <label class="relative inline-flex items-center cursor-pointer select-none">
+                      <input type="checkbox" class="sr-only peer" ${isMapelKustom ? "checked" : ""} onchange="window.toggleAksesMapelKustomById('${school.id}', this.checked)">
+                      <div class="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-teal-600"></div>
+                      <span class="ml-2 text-[11px] font-bold ${isMapelKustom ? 'text-teal-700' : 'text-slate-400'}">${isMapelKustom ? 'ON' : 'OFF'}</span>
+                    </label>
+                  </td>
+                  <td class="px-4 py-2.5 text-center">
+                    <label class="relative inline-flex items-center cursor-pointer select-none">
+                      <input type="checkbox" class="sr-only peer" ${isBukuInduk ? "checked" : ""} onchange="window.toggleAksesBukuIndukById('${school.id}', this.checked)">
+                      <div class="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-teal-600"></div>
+                      <span class="ml-2 text-[11px] font-bold ${isBukuInduk ? 'text-teal-700' : 'text-slate-400'}">${isBukuInduk ? 'ON' : 'OFF'}</span>
+                    </label>
+                  </td>
+                `;
+                aksesTableBody.appendChild(aksesRow);
+              });
+            }
+
+            // Render Pengguna Table
+            if (penggunaTableBody) {
+              uniqueSchools.forEach((school, index) => {
+                const kabKota = (school["kabupaten-kota-jenis"] ? school["kabupaten-kota-jenis"] + " " : "") + (school["kabupaten-kota-nama"] || "");
+
+                const kepsekWA = school["kepsek_wa"] ? `<a href="https://wa.me/${school["kepsek_wa"].replace(/[^0-9]/g, "")}" target="_blank" class="text-teal-600 hover:text-teal-700 font-bold inline-flex items-center gap-1 hover:underline"><svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M12.031 0C5.385 0 0 5.385 0 12.031c0 2.124.553 4.197 1.604 6.01L0 24l6.126-1.607a11.986 11.986 0 005.905 1.547h.005c6.645 0 12.03-5.385 12.03-12.031A11.97 11.97 0 0012.031 0z"/></svg>${school["kepsek_wa"]}</a>` : "-";
+
+                const guruWA = school["guru_wa"] ? `<a href="https://wa.me/${school["guru_wa"].replace(/[^0-9]/g, "")}" target="_blank" class="text-indigo-600 hover:text-indigo-700 font-bold inline-flex items-center gap-1 hover:underline"><svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M12.031 0C5.385 0 0 5.385 0 12.031c0 2.124.553 4.197 1.604 6.01L0 24l6.126-1.607a11.986 11.986 0 005.905 1.547h.005c6.645 0 12.03-5.385 12.03-12.031A11.97 11.97 0 0012.031 0z"/></svg>${school["guru_wa"]}</a>` : "-";
+
+                const row = document.createElement("tr");
+                row.className = "hover:bg-slate-50/80 transition-colors";
+                row.innerHTML = `
+                  <td class="px-3 py-2.5 text-center text-slate-400 sticky left-0 bg-white border-r border-slate-100">${index + 1}</td>
+                  <td class="px-3 py-2.5 font-bold text-slate-800 sticky left-[45px] bg-white border-r border-slate-200/80 shadow-[4px_0_12px_-4px_rgba(0,0,0,0.05)] cursor-pointer hover:text-teal-600" onclick="window.openEditTypeModalById('${school.id}')">${school["nama-sekolah"] || "-"}</td>
+                  <td class="px-3 py-2.5 text-slate-600">${school["kecamatan"] || "-"}</td>
+                  <td class="px-3 py-2.5 text-slate-600">${kabKota || "-"}</td>
+                  <td class="px-3 py-2.5 text-slate-600">${school["provinsi"] || "-"}</td>
+                  <td class="px-3 py-2.5 font-semibold text-teal-900 bg-teal-50/30 border-l border-teal-100">${school["kepsek_nama"] || "-"}</td>
+                  <td class="px-3 py-2.5 text-center font-mono text-slate-600 bg-teal-50/30">${school["kepsek_nip"] || "-"}</td>
+                  <td class="px-3 py-2.5 text-center font-mono bg-teal-50/30">${kepsekWA}</td>
+                  <td class="px-3 py-2.5 text-center font-mono text-slate-600 bg-teal-50/30">${school["kepsek_tgl_lahir"] || "-"}</td>
+                  <td class="px-3 py-2.5 font-semibold text-indigo-900 bg-indigo-50/30 border-l border-indigo-100">${school["guru_nama"] || "-"}</td>
+                  <td class="px-3 py-2.5 text-center font-mono text-slate-600 bg-indigo-50/30">${school["guru_nip"] || "-"}</td>
+                  <td class="px-3 py-2.5 text-center font-mono bg-indigo-50/30">${guruWA}</td>
+                  <td class="px-3 py-2.5 text-center font-mono text-slate-600 bg-indigo-50/30">${school["guru_tgl_lahir"] || "-"}</td>
+                `;
+                penggunaTableBody.appendChild(row);
+              });
             }
 
             // Render Data Pokok Table
@@ -2312,6 +2734,11 @@
             }
           };
         });
+
+        window.openEditTypeModalById = (id) => {
+          window.currentEditId = id;
+          document.getElementById("edit-type-modal").classList.add("active");
+        };
 
         window.openActionModalObj = (id, editModeType) => {
           document.getElementById("edit-type-modal").classList.remove("active");
@@ -2520,18 +2947,27 @@
           // Hide elements based on mode
           const dataFields = document.getElementById("data-sekolah-fields");
           const pesananFields = document.getElementById("pesanan-fields");
+          const penggunaFields = document.getElementById("pengguna-fields");
 
           if (editModeType === "data") {
             if (dataFields) dataFields.style.display = "block";
             if (pesananFields) pesananFields.style.display = "none";
+            if (penggunaFields) penggunaFields.style.display = "none";
             title.textContent = "Edit Data Profil Sekolah";
           } else if (editModeType === "pesanan") {
             if (dataFields) dataFields.style.display = "none";
             if (pesananFields) pesananFields.style.display = "block";
+            if (penggunaFields) penggunaFields.style.display = "none";
             title.textContent = "Edit Pesanan Kelas";
+          } else if (editModeType === "pengguna") {
+            if (dataFields) dataFields.style.display = "none";
+            if (pesananFields) pesananFields.style.display = "none";
+            if (penggunaFields) penggunaFields.style.display = "block";
+            title.textContent = "Edit Data Pengguna Sekolah";
           } else {
             if (dataFields) dataFields.style.display = "block";
             if (pesananFields) pesananFields.style.display = "block";
+            if (penggunaFields) penggunaFields.style.display = "block";
           }
 
           updateKelasUI();
@@ -3026,8 +3462,11 @@
           const aggregatedExport = Array.from(uniqueExportMap.values());
 
           const tabData = document.getElementById("tab-data");
+          const tabAkses = document.getElementById("tab-akses");
           const isDataPokokActive =
             tabData && tabData.classList.contains("text-teal-600");
+          const isAksesActive =
+            tabAkses && tabAkses.classList.contains("text-teal-600");
 
           let headers = [];
           let rows = [];
@@ -3054,6 +3493,18 @@
                 return item[col.id] || "";
               }),
             );
+          } else if (isAksesActive) {
+            // Export Akses
+            headers = ["NO", "NAMA SEKOLAH", "NPSN", "PASSWORD AKTIF", "PASSWORD", "MAPEL KUSTOM", "BUKU INDUK"];
+            rows = aggregatedExport.map((item, idx) => [
+              idx + 1,
+              item["nama-sekolah"] || "",
+              item["npsn"] || "",
+              item.akses_password_active ? "ON" : "OFF",
+              item.akses_password || "",
+              item.akses_mapel_kustom ? "ON" : "OFF",
+              item.akses_buku_induk ? "ON" : "OFF"
+            ]);
           } else {
             // Export Tagihan
             const tagihanCols = [
@@ -3107,7 +3558,7 @@
           XLSX.utils.book_append_sheet(wb, ws, "Database");
           XLSX.writeFile(
             wb,
-            `Ekspor Data ${isDataPokokActive ? "Pokok" : "Tagihan"} Aplikasi Rapor Edi Brata ${getTimestamp()}.xlsx`,
+            `Ekspor Data ${isDataPokokActive ? "Pokok" : isAksesActive ? "Akses" : "Tagihan"} Aplikasi Rapor Edi Brata ${getTimestamp()}.xlsx`,
           );
           showToast(
             selectedIds.size > 0
@@ -3212,6 +3663,110 @@
             e.target.value = "";
           };
           reader.readAsText(file);
+        };
+
+        // --- AKSES FUNCTIONS ---
+        async function updateSchoolAksesData(id, updateFields) {
+          if (id.startsWith("draft-")) {
+            const index = drafts.findIndex(d => d.id === id);
+            if (index !== -1) {
+              drafts[index] = { ...drafts[index], ...updateFields };
+              try {
+                localStorage.setItem("aplikasi-rapor-drafts", JSON.stringify(drafts));
+              } catch(e) {}
+              refreshFilterAndRender();
+            }
+            return;
+          }
+
+          try {
+            const { doc, updateDoc, db, appId, collectionName } = window.fbComponents;
+            await updateDoc(
+              doc(db, "artifacts", appId, "public", "data", collectionName, id),
+              updateFields
+            );
+          } catch (e) {
+            console.error("Gagal memperbarui data akses", e);
+            showToast("Gagal menyimpan perubahan akses.", false);
+          }
+        }
+
+        function findSchoolById(id) {
+          return [...drafts, ...allData].find(s => s.id === id);
+        }
+
+        window.toggleAksesPassActiveById = async (id, isActive) => {
+          const school = findSchoolById(id);
+          let passToSet = school ? (school.akses_password || "") : "";
+          if (isActive && !passToSet) {
+            passToSet = 'RPR' + Math.floor(1000 + Math.random() * 9000);
+          }
+          await updateSchoolAksesData(id, {
+            akses_password_active: isActive,
+            akses_password: passToSet
+          });
+          showToast(isActive ? "Akses Password diaktifkan" : "Akses Password dinonaktifkan");
+        };
+
+        window.openEditPasswordModalById = (id) => {
+          const school = findSchoolById(id);
+          if (!school) return;
+          document.getElementById("edit-password-doc-id").value = id;
+          document.getElementById("edit-password-school-name").textContent = school["nama-sekolah"] || "-";
+          document.getElementById("edit-password-input").value = school.akses_password || "";
+          document.getElementById("edit-password-modal").classList.add("active");
+        };
+
+        const savePassBtn = document.getElementById("save-password-btn");
+        if (savePassBtn) {
+          savePassBtn.onclick = async () => {
+            const id = document.getElementById("edit-password-doc-id").value;
+            const pass = document.getElementById("edit-password-input").value.trim();
+            if (!pass) {
+              showToast("Password tidak boleh kosong.", false);
+              return;
+            }
+            await updateSchoolAksesData(id, {
+              akses_password: pass,
+              akses_password_active: true
+            });
+            document.getElementById("edit-password-modal").classList.remove("active");
+            showToast("Password berhasil disimpan!");
+          };
+        }
+
+        window.resetAksesPassById = async (id) => {
+          const newPass = 'RPR' + Math.floor(1000 + Math.random() * 9000);
+          await updateSchoolAksesData(id, {
+            akses_password: newPass,
+            akses_password_active: true
+          });
+          showToast(`Password di-reset otomatis: ${newPass}`);
+        };
+
+        window.deleteAksesPassById = async (id) => {
+          const isConfirmed = await window.customConfirm("Hapus password untuk sekolah ini?");
+          if (isConfirmed) {
+            await updateSchoolAksesData(id, {
+              akses_password: "",
+              akses_password_active: false
+            });
+            showToast("Password berhasil dihapus!");
+          }
+        };
+
+        window.toggleAksesMapelKustomById = async (id, isChecked) => {
+          await updateSchoolAksesData(id, {
+            akses_mapel_kustom: isChecked
+          });
+          showToast(isChecked ? "Mapel Kustom diaktifkan" : "Mapel Kustom dinonaktifkan");
+        };
+
+        window.toggleAksesBukuIndukById = async (id, isChecked) => {
+          await updateSchoolAksesData(id, {
+            akses_buku_induk: isChecked
+          });
+          showToast(isChecked ? "Buku Induk diaktifkan" : "Buku Induk dinonaktifkan");
         };
       }
     </script>

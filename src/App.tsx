@@ -206,7 +206,7 @@ function Dashboard() {
                 <BookOpen className="w-5 h-5" />
               </div>
               <div>
-                <h1 className="text-xl md:text-2xl font-bold text-slate-900 dark:text-white tracking-tight">Database Registrasi Aplikasi Rapor Edi Brata</h1>
+                <h1 className="text-xl md:text-2xl font-bold text-slate-900 dark:text-white tracking-tight">E-Rapor Edi Brata Registrasi</h1>
                 <div className="flex items-center gap-3 mt-1.5">
                   {user ? (
                     <span className="flex items-center gap-2 px-2.5 py-1 bg-teal-500/10 text-teal-400 text-[10px] font-bold rounded-md border border-teal-500/20 uppercase tracking-widest">

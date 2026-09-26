@@ -1,6 +1,6 @@
 {
-  "name": "Registrasi Aplikasi Rapor Edi Brata",
-  "description": "Registrasi Pengguna Aplikasi Rapor Edi Brata",
+  "name": "E-Rapor Edi Brata Registrasi",
+  "description": "Registrasi Pengguna E-Rapor Edi Brata",
   "requestFramePermissions": [],
   "majorCapabilities": [
     "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
