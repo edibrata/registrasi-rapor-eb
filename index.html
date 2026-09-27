@@ -875,6 +875,31 @@
             </button>
           </div>
         </div>
+
+        <!-- Master Switch Akses (Pill Sejajar Tab - Tampil Saat Tab Akses Aktif) -->
+        <div
+          id="tab-akses-master-container"
+          class="hidden items-center pb-2 transition-all duration-200"
+        >
+          <div
+            class="inline-flex items-center gap-2 bg-white px-2.5 py-1.5 rounded-lg border border-slate-200/90 shadow-2xs select-none cursor-pointer hover:border-teal-300 hover:shadow-xs transition-all"
+            data-tooltip="Saklar Master: Nyalakan / Matikan seluruh fitur semua sekolah"
+          >
+            <span class="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+              <svg class="w-3.5 h-3.5 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+              Master Semua Sekolah
+            </span>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                id="master-all-schools-toggle"
+                class="sr-only peer"
+                onchange="window.handleMasterAllSchoolsToggle(this.checked)"
+              />
+              <div class="w-7 h-3.5 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[1px] after:left-[1px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-2.5 after:w-2.5 after:transition-all peer-checked:bg-teal-600"></div>
+            </label>
+          </div>
+        </div>
       </div>
 
       <!-- Wadah Tabel Data Pokok -->
@@ -991,32 +1016,92 @@
       <!-- Wadah Tabel Akses -->
       <div id="view-akses" class="hidden flex-col gap-3 w-full">
         <div
-          class="overflow-x-auto overflow-y-auto rounded-xl border border-slate-200/60 shadow-sm relative group bg-white custom-scrollbar w-full"
-          style="max-height: 60vh"
+          class="overflow-x-auto overflow-y-auto rounded-xl border border-slate-200/60 shadow-sm relative bg-white custom-scrollbar w-full"
+          style="max-height: 65vh"
         >
           <table
-            class="w-full text-left text-sm border-collapse whitespace-nowrap min-w-max"
+            class="w-full text-left text-xs border-collapse whitespace-nowrap"
           >
             <thead
-              class="bg-slate-50 border-b border-slate-200/60 text-[10px] text-slate-500 font-bold uppercase tracking-wider sticky top-0 z-20"
+              class="bg-slate-50 border-b border-slate-200/60 text-[10px] text-slate-500 font-bold uppercase tracking-wider sticky top-0 z-20 select-none"
             >
               <tr>
                 <th
-                  class="px-4 py-3 text-center sticky left-0 z-30 bg-slate-50 border-r border-slate-100 min-w-[50px]"
+                  class="px-2 py-2.5 text-center sticky left-0 z-30 bg-slate-50 border-r border-slate-100 w-[55px]"
                 >
-                  NO
+                  <div class="flex items-center justify-center gap-1">
+                    <input
+                      type="checkbox"
+                      id="akses-select-all-checkbox"
+                      onchange="window.toggleSelectAllAkses(this.checked)"
+                      class="rounded border-slate-300 text-teal-600 focus:ring-teal-500 cursor-pointer w-3.5 h-3.5"
+                      data-tooltip="Pilih Semua Sekolah"
+                    />
+                    <span>NO</span>
+                  </div>
                 </th>
                 <th
-                  class="px-4 py-3 sticky left-[50px] z-30 bg-slate-50 border-r border-slate-200/80 shadow-[4px_0_12px_-4px_rgba(0,0,0,0.05)] min-w-[220px]"
+                  class="px-3 py-2.5 sticky left-[55px] z-30 bg-slate-50 border-r border-slate-200/80 shadow-[4px_0_12px_-4px_rgba(0,0,0,0.05)] min-w-[200px]"
                 >
-                  NAMA SEKOLAH
+                  <div class="flex items-center justify-between">
+                    <span>NAMA SEKOLAH</span>
+                    <span class="text-[9px] text-slate-400 font-normal">MASTER</span>
+                  </div>
                 </th>
-                <th class="px-4 py-3 text-center min-w-[320px]">PASSWORD</th>
-                <th class="px-4 py-3 text-center min-w-[140px]">MAPEL KUSTOM</th>
-                <th class="px-4 py-3 text-center min-w-[140px]">BUKU INDUK</th>
-                <th class="px-4 py-3 text-center min-w-[140px]">UNGGAH FOTO</th>
-                <th class="px-4 py-3 text-center min-w-[140px]">GANTI LOGO</th>
-                <th class="px-4 py-3 text-center min-w-[170px]">TANDA TANGAN DIGITAL</th>
+                <th class="px-2 py-2.5 text-center w-[210px]">
+                  <div class="flex items-center justify-center gap-1.5 cursor-pointer" data-tooltip="Saklar Password seluruh sekolah">
+                    <span>PASSWORD</span>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                      <input type="checkbox" id="header-switch-password" class="sr-only peer" onchange="window.handleHeaderColumnToggle('akses_password_active', this.checked, 'Password')">
+                      <div class="w-6 h-3 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[1px] after:left-[1px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-2.5 after:w-2.5 after:transition-all peer-checked:bg-teal-600"></div>
+                    </label>
+                  </div>
+                </th>
+                <th class="px-2 py-2.5 text-center w-[85px]">
+                  <div class="flex items-center justify-center gap-1.5 cursor-pointer" data-tooltip="Saklar Mapel Kustom seluruh sekolah">
+                    <span>MAPEL</span>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                      <input type="checkbox" id="header-switch-mapel" class="sr-only peer" onchange="window.handleHeaderColumnToggle('akses_mapel_kustom', this.checked, 'Mapel Kustom')">
+                      <div class="w-6 h-3 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[1px] after:left-[1px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-2.5 after:w-2.5 after:transition-all peer-checked:bg-teal-600"></div>
+                    </label>
+                  </div>
+                </th>
+                <th class="px-2 py-2.5 text-center w-[95px]">
+                  <div class="flex items-center justify-center gap-1.5 cursor-pointer" data-tooltip="Saklar Buku Induk seluruh sekolah">
+                    <span>BUKU INDUK</span>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                      <input type="checkbox" id="header-switch-buku-induk" class="sr-only peer" onchange="window.handleHeaderColumnToggle('akses_buku_induk', this.checked, 'Buku Induk')">
+                      <div class="w-6 h-3 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[1px] after:left-[1px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-2.5 after:w-2.5 after:transition-all peer-checked:bg-teal-600"></div>
+                    </label>
+                  </div>
+                </th>
+                <th class="px-2 py-2.5 text-center w-[80px]">
+                  <div class="flex items-center justify-center gap-1.5 cursor-pointer" data-tooltip="Saklar Unggah Foto seluruh sekolah">
+                    <span>FOTO</span>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                      <input type="checkbox" id="header-switch-foto" class="sr-only peer" onchange="window.handleHeaderColumnToggle('akses_unggah_foto', this.checked, 'Unggah Foto')">
+                      <div class="w-6 h-3 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[1px] after:left-[1px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-2.5 after:w-2.5 after:transition-all peer-checked:bg-teal-600"></div>
+                    </label>
+                  </div>
+                </th>
+                <th class="px-2 py-2.5 text-center w-[80px]">
+                  <div class="flex items-center justify-center gap-1.5 cursor-pointer" data-tooltip="Saklar Ganti Logo seluruh sekolah">
+                    <span>LOGO</span>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                      <input type="checkbox" id="header-switch-logo" class="sr-only peer" onchange="window.handleHeaderColumnToggle('akses_ganti_logo', this.checked, 'Ganti Logo')">
+                      <div class="w-6 h-3 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[1px] after:left-[1px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-2.5 after:w-2.5 after:transition-all peer-checked:bg-teal-600"></div>
+                    </label>
+                  </div>
+                </th>
+                <th class="px-2 py-2.5 text-center w-[95px]">
+                  <div class="flex items-center justify-center gap-1.5 cursor-pointer" data-tooltip="Saklar Tanda Tangan seluruh sekolah">
+                    <span>TTD</span>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                      <input type="checkbox" id="header-switch-ttd" class="sr-only peer" onchange="window.handleHeaderColumnToggle('akses_tanda_tangan_digital', this.checked, 'Tanda Tangan Digital')">
+                      <div class="w-6 h-3 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[1px] after:left-[1px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-2.5 after:w-2.5 after:transition-all peer-checked:bg-teal-600"></div>
+                    </label>
+                  </div>
+                </th>
               </tr>
             </thead>
             <tbody
@@ -1886,6 +1971,39 @@
       </div>
     </div>
 
+    <!-- Floating Bulk Action Bar for Tab Akses -->
+    <div
+      id="akses-floating-bar"
+      class="hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-slate-900/95 backdrop-blur-md text-white px-4 py-2 rounded-2xl shadow-2xl border border-slate-700/80 items-center gap-3.5 transition-all duration-300"
+    >
+      <div class="flex items-center gap-2 pr-3 border-r border-slate-700/80">
+        <span class="flex h-2 w-2 relative">
+          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-400 opacity-75"></span>
+          <span class="relative inline-flex rounded-full h-2 w-2 bg-teal-500"></span>
+        </span>
+        <span class="text-xs font-bold font-mono text-teal-300 whitespace-nowrap" id="akses-floating-count">0 sekolah dipilih</span>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <!-- Master Switch for Selected Schools -->
+        <div class="inline-flex items-center gap-2 bg-slate-800/90 px-3 py-1.5 rounded-xl border border-slate-700/60 select-none cursor-pointer" data-tooltip="Nyalakan / Matikan semua fitur untuk sekolah yang dicentang">
+          <span class="text-[11px] font-bold text-slate-200">Semua Fitur:</span>
+          <label class="relative inline-flex items-center cursor-pointer">
+            <input type="checkbox" id="floating-selected-master-toggle" class="sr-only peer" onchange="window.bulkUpdateSelectedSchools(this.checked)">
+            <div class="w-7 h-3.5 bg-slate-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[1px] after:left-[1px] after:bg-white after:border-slate-400 after:border after:rounded-full after:h-2.5 after:w-2.5 after:transition-all peer-checked:bg-teal-500"></div>
+          </label>
+        </div>
+
+        <button
+          type="button"
+          onclick="window.deselectAllAksesCheckboxes()"
+          class="text-slate-400 hover:text-white text-xs px-2 py-1 transition-colors font-medium whitespace-nowrap"
+        >
+          Batal
+        </button>
+      </div>
+    </div>
+
     <div id="toast-notification"></div>
 
     <script>
@@ -1989,6 +2107,31 @@
             if (viewAkses) { viewAkses.classList.add("hidden"); viewAkses.classList.remove("flex"); }
             const fContainer = document.getElementById("filter-tagihan-container");
             if (fContainer) { fContainer.classList.add("hidden"); fContainer.classList.remove("flex"); }
+          }
+
+          const floatBar = document.getElementById("akses-floating-bar");
+          if (floatBar) {
+            if (activeTab === tabAkses && window.selectedAksesSchoolIds && window.selectedAksesSchoolIds.size > 0) {
+              floatBar.classList.remove("hidden");
+              floatBar.classList.add("flex");
+            } else {
+              floatBar.classList.add("hidden");
+              floatBar.classList.remove("flex");
+            }
+          }
+
+          const aksesMasterContainer = document.getElementById("tab-akses-master-container");
+          if (aksesMasterContainer) {
+            if (activeTab === tabAkses) {
+              aksesMasterContainer.classList.remove("hidden");
+              aksesMasterContainer.classList.add("flex");
+              if (window.syncAksesHeaderSwitches && window.latestUniqueSchools) {
+                window.syncAksesHeaderSwitches(window.latestUniqueSchools);
+              }
+            } else {
+              aksesMasterContainer.classList.add("hidden");
+              aksesMasterContainer.classList.remove("flex");
+            }
           }
         }
 
@@ -2505,105 +2648,105 @@
 
             // Render Akses Table
             if (aksesTableBody) {
+              window.selectedAksesSchoolIds = window.selectedAksesSchoolIds || new Set();
               uniqueSchools.forEach((school, index) => {
-                const isPassActive = Boolean(school.akses_password_active);
-                const passVal = school.akses_password || "";
-                const isMapelKustom = Boolean(school.akses_mapel_kustom);
-                const isBukuInduk = Boolean(school.akses_buku_induk);
-                const isUnggahFoto = Boolean(school.akses_unggah_foto);
-                const isGantiLogo = Boolean(school.akses_ganti_logo);
-                const isTandaTanganDigital = Boolean(school.akses_tanda_tangan_digital);
+                const isSelected = window.selectedAksesSchoolIds.has(school.id);
+                const isPassActive = school.akses_password_active !== false;
+                const passVal = school.akses_password || (school["npsn"] ? "rapor" + school["npsn"] : "rapor123");
+                const isMapelKustom = school.akses_mapel_kustom !== false;
+                const isBukuInduk = school.akses_buku_induk !== false;
+                const isUnggahFoto = school.akses_unggah_foto !== false;
+                const isGantiLogo = school.akses_ganti_logo !== false;
+                const isTandaTanganDigital = school.akses_tanda_tangan_digital !== false;
+                const isSchoolAllOn = isPassActive && isMapelKustom && isBukuInduk && isUnggahFoto && isGantiLogo && isTandaTanganDigital;
 
                 let passContent = "";
                 if (isPassActive) {
-                  const displayPass = passVal ? passVal : "(Belum diset)";
+                  const displayPass = passVal;
                   passContent = `
-                    <div class="flex items-center justify-center gap-2">
-                      <span class="font-mono font-bold text-slate-800 bg-slate-100 px-2.5 py-1 rounded-md text-xs border border-slate-200 select-all shadow-sm">${displayPass}</span>
-                      <div class="flex items-center gap-1">
-                        <!-- Edit Password -->
-                        <div class="tooltip-container">
-                          <button onclick="window.openEditPasswordModalById('${school.id}')" class="p-1.5 text-teal-600 hover:bg-teal-50 hover:text-teal-700 rounded-lg transition-colors border border-teal-200 shadow-sm">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
-                          </button>
-                          <span class="tooltip-text">Edit Password</span>
-                        </div>
-                        <!-- Reset Password -->
-                        <div class="tooltip-container">
-                          <button onclick="window.resetAksesPassById('${school.id}')" class="p-1.5 text-indigo-600 hover:bg-indigo-50 hover:text-indigo-700 rounded-lg transition-colors border border-indigo-200 shadow-sm">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-                          </button>
-                          <span class="tooltip-text">Reset Password Otomatis</span>
-                        </div>
-                        <!-- Hapus Password -->
-                        <div class="tooltip-container">
-                          <button onclick="window.deleteAksesPassById('${school.id}')" class="p-1.5 text-rose-600 hover:bg-rose-50 hover:text-rose-700 rounded-lg transition-colors border border-rose-200 shadow-sm">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                          </button>
-                          <span class="tooltip-text">Hapus Password</span>
-                        </div>
-                      </div>
+                    <div class="flex items-center gap-1 shrink-0">
+                      <span class="font-mono font-bold text-slate-700 bg-slate-100 px-1.5 py-0.5 rounded text-[11px] border border-slate-200 select-all" data-tooltip="Password">${displayPass}</span>
+                      <button onclick="window.openEditPasswordModalById('${school.id}')" data-tooltip="Edit Password" class="p-1 text-teal-600 hover:bg-teal-50 rounded transition-colors border border-teal-200">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                      </button>
+                      <button onclick="window.resetAksesPassById('${school.id}')" data-tooltip="Reset Password Otomatis" class="p-1 text-indigo-600 hover:bg-indigo-50 rounded transition-colors border border-indigo-200">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                      </button>
+                      <button onclick="window.deleteAksesPassById('${school.id}')" data-tooltip="Hapus Password" class="p-1 text-rose-600 hover:bg-rose-50 rounded transition-colors border border-rose-200">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                      </button>
                     </div>
                   `;
                 } else {
-                  passContent = `<span class="text-slate-400 italic text-[11px]">Nonaktif</span>`;
+                  passContent = `<span class="text-slate-400 italic text-[10px]">Nonaktif</span>`;
                 }
 
                 const aksesRow = document.createElement("tr");
+                aksesRow.className = "hover:bg-slate-50/70 transition-colors";
                 aksesRow.innerHTML = `
-                  <td class="px-4 py-2.5 text-center text-slate-400 sticky left-0 bg-white border-r border-slate-100">${index + 1}</td>
-                  <td class="px-4 py-2.5 sticky left-[50px] bg-white border-r border-slate-200/80 shadow-[4px_0_12px_-4px_rgba(0,0,0,0.05)]">
-                    <div class="font-bold text-slate-800">${school["nama-sekolah"] || "-"}</div>
-                    <div class="text-[10px] text-slate-400 font-mono">NPSN: ${school["npsn"] || "-"}</div>
+                  <td class="px-2 py-2 text-center text-slate-400 sticky left-0 bg-white border-r border-slate-100 w-[55px]">
+                    <div class="flex items-center justify-center gap-1">
+                      <input type="checkbox" class="akses-row-checkbox rounded border-slate-300 text-teal-600 focus:ring-teal-500 cursor-pointer w-3.5 h-3.5" data-id="${school.id}" ${isSelected ? 'checked' : ''} onchange="window.handleAksesRowCheckboxChange(this, '${school.id}')">
+                      <span>${index + 1}</span>
+                    </div>
                   </td>
-                  <td class="px-4 py-2.5 text-center">
-                    <div class="flex items-center justify-center gap-3">
-                      <label class="relative inline-flex items-center cursor-pointer select-none">
+                  <td class="px-3 py-2 sticky left-[55px] bg-white border-r border-slate-200/80 shadow-[4px_0_12px_-4px_rgba(0,0,0,0.05)] min-w-[200px] max-w-[250px]">
+                    <div class="flex items-center justify-between gap-2">
+                      <div class="min-w-0 pr-1 truncate">
+                        <div class="font-bold text-slate-800 text-xs truncate" title="${school["nama-sekolah"] || "-"}">${school["nama-sekolah"] || "-"}</div>
+                        <div class="text-[10px] text-slate-400 font-mono">NPSN: ${school["npsn"] || "-"}</div>
+                      </div>
+                      <label class="relative inline-flex items-center cursor-pointer select-none shrink-0" data-tooltip="Saklar Master Sekolah: ${isSchoolAllOn ? 'Matikan Semua' : 'Nyalakan Semua'}">
+                        <input type="checkbox" class="sr-only peer" ${isSchoolAllOn ? 'checked' : ''} onchange="window.toggleAllAksesSingleSchool('${school.id}', this.checked)">
+                        <div class="w-7 h-3.5 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[1px] after:left-[1px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-2.5 after:w-2.5 after:transition-all peer-checked:bg-teal-600"></div>
+                      </label>
+                    </div>
+                  </td>
+                  <td class="px-2 py-2 text-center w-[210px]">
+                    <div class="flex items-center justify-center gap-1.5">
+                      <label class="relative inline-flex items-center cursor-pointer select-none" data-tooltip="${isPassActive ? 'Matikan Password' : 'Aktifkan Password'}">
                         <input type="checkbox" class="sr-only peer" ${isPassActive ? "checked" : ""} onchange="window.toggleAksesPassActiveById('${school.id}', this.checked)">
-                        <div class="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-teal-600"></div>
-                        <span class="ml-2 text-[11px] font-bold ${isPassActive ? 'text-teal-700' : 'text-slate-400'}">${isPassActive ? 'ON' : 'OFF'}</span>
+                        <div class="w-7 h-3.5 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[1px] after:left-[1px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-2.5 after:w-2.5 after:transition-all peer-checked:bg-teal-600"></div>
                       </label>
                       ${passContent}
                     </div>
                   </td>
-                  <td class="px-4 py-2.5 text-center">
-                    <label class="relative inline-flex items-center cursor-pointer select-none">
+                  <td class="px-2 py-2 text-center w-[85px]">
+                    <label class="relative inline-flex items-center cursor-pointer select-none" data-tooltip="${isMapelKustom ? 'Matikan Mapel Kustom' : 'Aktifkan Mapel Kustom'}">
                       <input type="checkbox" class="sr-only peer" ${isMapelKustom ? "checked" : ""} onchange="window.toggleAksesMapelKustomById('${school.id}', this.checked)">
-                      <div class="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-teal-600"></div>
-                      <span class="ml-2 text-[11px] font-bold ${isMapelKustom ? 'text-teal-700' : 'text-slate-400'}">${isMapelKustom ? 'ON' : 'OFF'}</span>
+                      <div class="w-7 h-3.5 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[1px] after:left-[1px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-2.5 after:w-2.5 after:transition-all peer-checked:bg-teal-600"></div>
                     </label>
                   </td>
-                  <td class="px-4 py-2.5 text-center">
-                    <label class="relative inline-flex items-center cursor-pointer select-none">
+                  <td class="px-2 py-2 text-center w-[95px]">
+                    <label class="relative inline-flex items-center cursor-pointer select-none" data-tooltip="${isBukuInduk ? 'Matikan Buku Induk' : 'Aktifkan Buku Induk'}">
                       <input type="checkbox" class="sr-only peer" ${isBukuInduk ? "checked" : ""} onchange="window.toggleAksesBukuIndukById('${school.id}', this.checked)">
-                      <div class="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-teal-600"></div>
-                      <span class="ml-2 text-[11px] font-bold ${isBukuInduk ? 'text-teal-700' : 'text-slate-400'}">${isBukuInduk ? 'ON' : 'OFF'}</span>
+                      <div class="w-7 h-3.5 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[1px] after:left-[1px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-2.5 after:w-2.5 after:transition-all peer-checked:bg-teal-600"></div>
                     </label>
                   </td>
-                  <td class="px-4 py-2.5 text-center">
-                    <label class="relative inline-flex items-center cursor-pointer select-none">
+                  <td class="px-2 py-2 text-center w-[80px]">
+                    <label class="relative inline-flex items-center cursor-pointer select-none" data-tooltip="${isUnggahFoto ? 'Matikan Unggah Foto' : 'Aktifkan Unggah Foto'}">
                       <input type="checkbox" class="sr-only peer" ${isUnggahFoto ? "checked" : ""} onchange="window.toggleAksesUnggahFotoById('${school.id}', this.checked)">
-                      <div class="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-teal-600"></div>
-                      <span class="ml-2 text-[11px] font-bold ${isUnggahFoto ? 'text-teal-700' : 'text-slate-400'}">${isUnggahFoto ? 'ON' : 'OFF'}</span>
+                      <div class="w-7 h-3.5 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[1px] after:left-[1px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-2.5 after:w-2.5 after:transition-all peer-checked:bg-teal-600"></div>
                     </label>
                   </td>
-                  <td class="px-4 py-2.5 text-center">
-                    <label class="relative inline-flex items-center cursor-pointer select-none">
+                  <td class="px-2 py-2 text-center w-[80px]">
+                    <label class="relative inline-flex items-center cursor-pointer select-none" data-tooltip="${isGantiLogo ? 'Matikan Ganti Logo' : 'Aktifkan Ganti Logo'}">
                       <input type="checkbox" class="sr-only peer" ${isGantiLogo ? "checked" : ""} onchange="window.toggleAksesGantiLogoById('${school.id}', this.checked)">
-                      <div class="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-teal-600"></div>
-                      <span class="ml-2 text-[11px] font-bold ${isGantiLogo ? 'text-teal-700' : 'text-slate-400'}">${isGantiLogo ? 'ON' : 'OFF'}</span>
+                      <div class="w-7 h-3.5 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[1px] after:left-[1px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-2.5 after:w-2.5 after:transition-all peer-checked:bg-teal-600"></div>
                     </label>
                   </td>
-                  <td class="px-4 py-2.5 text-center">
-                    <label class="relative inline-flex items-center cursor-pointer select-none">
+                  <td class="px-2 py-2 text-center w-[95px]">
+                    <label class="relative inline-flex items-center cursor-pointer select-none" data-tooltip="${isTandaTanganDigital ? 'Matikan Tanda Tangan Digital' : 'Aktifkan Tanda Tangan Digital'}">
                       <input type="checkbox" class="sr-only peer" ${isTandaTanganDigital ? "checked" : ""} onchange="window.toggleAksesTandaTanganDigitalById('${school.id}', this.checked)">
-                      <div class="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-teal-600"></div>
-                      <span class="ml-2 text-[11px] font-bold ${isTandaTanganDigital ? 'text-teal-700' : 'text-slate-400'}">${isTandaTanganDigital ? 'ON' : 'OFF'}</span>
+                      <div class="w-7 h-3.5 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[1px] after:left-[1px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-2.5 after:w-2.5 after:transition-all peer-checked:bg-teal-600"></div>
                     </label>
                   </td>
                 `;
                 aksesTableBody.appendChild(aksesRow);
               });
+              if (window.updateAksesSelectionUI) {
+                window.updateAksesSelectionUI();
+              }
             }
 
             // Render Pengguna Table
@@ -3019,11 +3162,19 @@
           openActionModal();
 
         document.getElementById("save-draft-btn").onclick = () => {
+          const rawNpsn = document.getElementById("edit-npsn")?.value?.trim() || "";
           const formData = {
             timestamp: Date.now(),
             isDraft: true,
             kelas: window.currentSelectedKelas || [],
-            'sekolah-gratis': document.getElementById('edit-sekolah-gratis').checked
+            'sekolah-gratis': document.getElementById('edit-sekolah-gratis').checked,
+            akses_password_active: true,
+            akses_password: rawNpsn ? 'rapor' + rawNpsn : ('RPR' + Math.floor(1000 + Math.random() * 9000)),
+            akses_mapel_kustom: true,
+            akses_buku_induk: true,
+            akses_unggah_foto: true,
+            akses_ganti_logo: true,
+            akses_tanda_tangan_digital: true
           };
           const isLanjutan = document.getElementById(
             "jenis-pesanan-lanjut",
@@ -3167,7 +3318,17 @@
                     "NPSN harus berisi tepat 8 digit angka.",
                     false,
                   );
+                const defaultAkses = {
+                  akses_password_active: true,
+                  akses_password: textUpdates["npsn"] ? 'rapor' + textUpdates["npsn"] : ('RPR' + Math.floor(1000 + Math.random() * 9000)),
+                  akses_mapel_kustom: true,
+                  akses_buku_induk: true,
+                  akses_unggah_foto: true,
+                  akses_ganti_logo: true,
+                  akses_tanda_tangan_digital: true
+                };
                 const formData = {
+                  ...defaultAkses,
                   timestamp: Date.now(),
                   kelas: window.currentSelectedKelas,
                   "jenis-pesanan": chosenJenis,
@@ -3200,7 +3361,17 @@
                   "NPSN harus berisi tepat 8 digit angka.",
                   false,
                 );
+              const defaultAkses = {
+                akses_password_active: true,
+                akses_password: textUpdates["npsn"] ? 'rapor' + textUpdates["npsn"] : ('RPR' + Math.floor(1000 + Math.random() * 9000)),
+                akses_mapel_kustom: true,
+                akses_buku_induk: true,
+                akses_unggah_foto: true,
+                akses_ganti_logo: true,
+                akses_tanda_tangan_digital: true
+              };
               const formData = {
+                ...defaultAkses,
                 timestamp: Date.now(),
                 kelas: window.currentSelectedKelas || [],
                 "jenis-pesanan": chosenJenis,
@@ -3260,7 +3431,14 @@
           const formData = {
             timestamp: Date.now(),
             kelas: window.currentSelectedKelas || [],
-            'sekolah-gratis': document.getElementById('edit-sekolah-gratis').checked
+            'sekolah-gratis': document.getElementById('edit-sekolah-gratis').checked,
+            akses_password_active: true,
+            akses_password: 'RPR' + Math.floor(1000 + Math.random() * 9000),
+            akses_mapel_kustom: true,
+            akses_buku_induk: true,
+            akses_unggah_foto: true,
+            akses_ganti_logo: true,
+            akses_tanda_tangan_digital: true
           };
           fieldIds.forEach((fid) => {
             const el = document.getElementById(`edit-${fid}`);
@@ -3522,15 +3700,18 @@
             );
           } else if (isAksesActive) {
             // Export Akses
-            headers = ["NO", "NAMA SEKOLAH", "NPSN", "PASSWORD AKTIF", "PASSWORD", "MAPEL KUSTOM", "BUKU INDUK"];
+            headers = ["NO", "NAMA SEKOLAH", "NPSN", "PASSWORD AKTIF", "PASSWORD", "MAPEL KUSTOM", "BUKU INDUK", "UNGGAH FOTO", "GANTI LOGO", "TANDA TANGAN DIGITAL"];
             rows = aggregatedExport.map((item, idx) => [
               idx + 1,
               item["nama-sekolah"] || "",
               item["npsn"] || "",
-              item.akses_password_active ? "ON" : "OFF",
-              item.akses_password || "",
-              item.akses_mapel_kustom ? "ON" : "OFF",
-              item.akses_buku_induk ? "ON" : "OFF"
+              item.akses_password_active !== false ? "ON" : "OFF",
+              item.akses_password || (item["npsn"] ? 'rapor' + item["npsn"] : "rapor123"),
+              item.akses_mapel_kustom !== false ? "ON" : "OFF",
+              item.akses_buku_induk !== false ? "ON" : "OFF",
+              item.akses_unggah_foto !== false ? "ON" : "OFF",
+              item.akses_ganti_logo !== false ? "ON" : "OFF",
+              item.akses_tanda_tangan_digital !== false ? "ON" : "OFF"
             ]);
           } else {
             // Export Tagihan
@@ -3625,7 +3806,14 @@
                   item[col.id] = row[col.label] || row[col.id] || "";
                 }
               });
-              if (item["nama-sekolah"])
+              if (item["nama-sekolah"]) {
+                if (item.akses_password_active === undefined) item.akses_password_active = true;
+                if (!item.akses_password) item.akses_password = item["npsn"] ? 'rapor' + item["npsn"] : ('RPR' + Math.floor(1000 + Math.random() * 9000));
+                if (item.akses_mapel_kustom === undefined) item.akses_mapel_kustom = true;
+                if (item.akses_buku_induk === undefined) item.akses_buku_induk = true;
+                if (item.akses_unggah_foto === undefined) item.akses_unggah_foto = true;
+                if (item.akses_ganti_logo === undefined) item.akses_ganti_logo = true;
+                if (item.akses_tanda_tangan_digital === undefined) item.akses_tanda_tangan_digital = true;
                 await addDoc(
                   collection(
                     db,
@@ -3637,6 +3825,7 @@
                   ),
                   item,
                 );
+              }
             }
             showToast("Proses Impor Excel Berhasil!");
             e.target.value = "";
@@ -3726,7 +3915,7 @@
           const school = findSchoolById(id);
           let passToSet = school ? (school.akses_password || "") : "";
           if (isActive && !passToSet) {
-            passToSet = 'RPR' + Math.floor(1000 + Math.random() * 9000);
+            passToSet = school && school["npsn"] ? 'rapor' + school["npsn"] : ('RPR' + Math.floor(1000 + Math.random() * 9000));
           }
           await updateSchoolAksesData(id, {
             akses_password_active: isActive,
@@ -3740,7 +3929,7 @@
           if (!school) return;
           document.getElementById("edit-password-doc-id").value = id;
           document.getElementById("edit-password-school-name").textContent = school["nama-sekolah"] || "-";
-          document.getElementById("edit-password-input").value = school.akses_password || "";
+          document.getElementById("edit-password-input").value = school.akses_password || (school["npsn"] ? 'rapor' + school["npsn"] : "rapor123");
           document.getElementById("edit-password-modal").classList.add("active");
         };
 
@@ -3816,7 +4005,303 @@
           });
           showToast(isChecked ? "Tanda Tangan Digital diaktifkan" : "Tanda Tangan Digital dinonaktifkan");
         };
+
+        // --- BULK TOGGLE & HEADER SWITCHES FOR TAB AKSES ---
+        window.selectedAksesSchoolIds = window.selectedAksesSchoolIds || new Set();
+
+        window.syncAksesHeaderSwitches = (schools) => {
+          if (!schools || schools.length === 0) return;
+          const allMapel = schools.every(s => s.akses_mapel_kustom !== false);
+          const allBuku = schools.every(s => s.akses_buku_induk !== false);
+          const allFoto = schools.every(s => s.akses_unggah_foto !== false);
+          const allLogo = schools.every(s => s.akses_ganti_logo !== false);
+          const allTtd = schools.every(s => s.akses_tanda_tangan_digital !== false);
+          const allPass = schools.every(s => s.akses_password_active !== false);
+
+          const swMapel = document.getElementById("header-switch-mapel");
+          if (swMapel) swMapel.checked = allMapel;
+
+          const swBuku = document.getElementById("header-switch-buku-induk");
+          if (swBuku) swBuku.checked = allBuku;
+
+          const swFoto = document.getElementById("header-switch-foto");
+          if (swFoto) swFoto.checked = allFoto;
+
+          const swLogo = document.getElementById("header-switch-logo");
+          if (swLogo) swLogo.checked = allLogo;
+
+          const swTtd = document.getElementById("header-switch-ttd");
+          if (swTtd) swTtd.checked = allTtd;
+
+          const swPass = document.getElementById("header-switch-password");
+          if (swPass) swPass.checked = allPass;
+
+          const masterAll = allMapel && allBuku && allFoto && allLogo && allTtd && allPass;
+          const masterSw = document.getElementById("master-all-schools-toggle");
+          if (masterSw) masterSw.checked = masterAll;
+
+          const floatSw = document.getElementById("floating-selected-master-toggle");
+          if (floatSw && window.selectedAksesSchoolIds && window.selectedAksesSchoolIds.size > 0) {
+            const selectedSchools = schools.filter(s => window.selectedAksesSchoolIds.has(s.id));
+            if (selectedSchools.length > 0) {
+              floatSw.checked = selectedSchools.every(s =>
+                s.akses_mapel_kustom !== false &&
+                s.akses_buku_induk !== false &&
+                s.akses_unggah_foto !== false &&
+                s.akses_ganti_logo !== false &&
+                s.akses_tanda_tangan_digital !== false &&
+                s.akses_password_active !== false
+              );
+            }
+          }
+        };
+
+        window.updateAksesSelectionUI = () => {
+          const count = window.selectedAksesSchoolIds ? window.selectedAksesSchoolIds.size : 0;
+          const badge = document.getElementById("akses-selected-badge");
+          const countSpan = document.getElementById("akses-selected-count");
+          const floatingBar = document.getElementById("akses-floating-bar");
+          const floatingCount = document.getElementById("akses-floating-count");
+          const selectAllCb = document.getElementById("akses-select-all-checkbox");
+
+          if (badge && countSpan) {
+            if (count > 0) {
+              countSpan.textContent = count;
+              badge.classList.remove("hidden");
+            } else {
+              badge.classList.add("hidden");
+            }
+          }
+
+          if (floatingBar && floatingCount) {
+            const isTabAksesActive = document.getElementById("tab-akses")?.classList.contains("border-teal-500");
+            if (count > 0 && isTabAksesActive) {
+              floatingCount.textContent = `${count} sekolah dipilih`;
+              floatingBar.classList.remove("hidden");
+              floatingBar.classList.add("flex");
+            } else {
+              floatingBar.classList.add("hidden");
+              floatingBar.classList.remove("flex");
+            }
+          }
+
+          if (selectAllCb) {
+            const totalVisible = window.latestUniqueSchools ? window.latestUniqueSchools.length : 0;
+            if (totalVisible > 0 && count === totalVisible) {
+              selectAllCb.checked = true;
+              selectAllCb.indeterminate = false;
+            } else if (count > 0) {
+              selectAllCb.checked = false;
+              selectAllCb.indeterminate = true;
+            } else {
+              selectAllCb.checked = false;
+              selectAllCb.indeterminate = false;
+            }
+          }
+
+          if (window.syncAksesHeaderSwitches && window.latestUniqueSchools) {
+            window.syncAksesHeaderSwitches(window.latestUniqueSchools);
+          }
+        };
+
+        window.toggleSelectAllAkses = (isChecked) => {
+          window.selectedAksesSchoolIds = window.selectedAksesSchoolIds || new Set();
+          const schools = window.latestUniqueSchools || [];
+          if (isChecked) {
+            schools.forEach(s => window.selectedAksesSchoolIds.add(s.id));
+          } else {
+            window.selectedAksesSchoolIds.clear();
+          }
+
+          document.querySelectorAll(".akses-row-checkbox").forEach(cb => {
+            cb.checked = isChecked;
+          });
+
+          window.updateAksesSelectionUI();
+        };
+
+        window.handleAksesRowCheckboxChange = (cb, id) => {
+          window.selectedAksesSchoolIds = window.selectedAksesSchoolIds || new Set();
+          if (cb.checked) {
+            window.selectedAksesSchoolIds.add(id);
+          } else {
+            window.selectedAksesSchoolIds.delete(id);
+          }
+          window.updateAksesSelectionUI();
+        };
+
+        window.deselectAllAksesCheckboxes = () => {
+          if (window.selectedAksesSchoolIds) {
+            window.selectedAksesSchoolIds.clear();
+          }
+          document.querySelectorAll(".akses-row-checkbox").forEach(cb => {
+            cb.checked = false;
+          });
+          const selectAllCb = document.getElementById("akses-select-all-checkbox");
+          if (selectAllCb) {
+            selectAllCb.checked = false;
+            selectAllCb.indeterminate = false;
+          }
+          window.updateAksesSelectionUI();
+        };
+
+        // Quick row bulk toggle for a single school
+        window.toggleAllAksesSingleSchool = async (id, turnOn) => {
+          const school = findSchoolById(id);
+          let passVal = school ? school.akses_password : "";
+          if (turnOn && !passVal) {
+            passVal = school && school["npsn"] ? "rapor" + school["npsn"] : ("RPR" + Math.floor(1000 + Math.random() * 9000));
+          }
+          const updateFields = {
+            akses_password_active: turnOn,
+            akses_password: turnOn ? passVal : "",
+            akses_mapel_kustom: turnOn,
+            akses_buku_induk: turnOn,
+            akses_unggah_foto: turnOn,
+            akses_ganti_logo: turnOn,
+            akses_tanda_tangan_digital: turnOn
+          };
+          await updateSchoolAksesData(id, updateFields);
+          showToast(`Semua saklar sekolah ${turnOn ? 'diaktifkan (ON)' : 'dinonaktifkan (OFF)'}`);
+        };
+
+        // Master switch toggle for all schools
+        window.handleMasterAllSchoolsToggle = async (turnOn) => {
+          const schools = window.latestUniqueSchools || [];
+          if (schools.length === 0) return showToast("Tidak ada data sekolah.", false);
+
+          showToast(`Sedang me-${turnOn ? 'ngaktifkan' : 'nonaktifkan'} seluruh saklar sekolah...`);
+          try {
+            const updates = schools.map(s => {
+              let passVal = s.akses_password;
+              if (turnOn && !passVal) {
+                passVal = s["npsn"] ? "rapor" + s["npsn"] : ("RPR" + Math.floor(1000 + Math.random() * 9000));
+              }
+              return updateSchoolAksesData(s.id, {
+                akses_password_active: turnOn,
+                akses_password: turnOn ? passVal : "",
+                akses_mapel_kustom: turnOn,
+                akses_buku_induk: turnOn,
+                akses_unggah_foto: turnOn,
+                akses_ganti_logo: turnOn,
+                akses_tanda_tangan_digital: turnOn
+              });
+            });
+            await Promise.all(updates);
+            showToast(`Semua saklar berhasil di-${turnOn ? 'aktifkan (ON)' : 'nonaktifkan (OFF)'} untuk seluruh sekolah.`);
+          } catch(e) {
+            console.error(e);
+            showToast("Gagal mengubah status saklar master.", false);
+          }
+        };
+
+        // Header column toggle switch
+        window.handleHeaderColumnToggle = async (featureKey, turnOn, featureName) => {
+          const schools = window.latestUniqueSchools || [];
+          if (schools.length === 0) return showToast("Tidak ada data sekolah.", false);
+
+          showToast(`Mengubah saklar ${featureName} seluruh sekolah...`);
+          try {
+            const updates = schools.map(s => {
+              const payload = { [featureKey]: turnOn };
+              if (featureKey === 'akses_password_active' && turnOn && !s.akses_password) {
+                payload.akses_password = s["npsn"] ? "rapor" + s["npsn"] : ("RPR" + Math.floor(1000 + Math.random() * 9000));
+              }
+              return updateSchoolAksesData(s.id, payload);
+            });
+            await Promise.all(updates);
+            showToast(`Saklar ${featureName} berhasil di-${turnOn ? 'aktifkan (ON)' : 'nonaktifkan (OFF)'} untuk seluruh sekolah.`);
+          } catch(e) {
+            console.error(e);
+            showToast(`Gagal mengubah saklar ${featureName}.`, false);
+          }
+        };
+
+        // Bulk update selected schools from floating bar
+        window.bulkUpdateSelectedSchools = async (turnOn) => {
+          const selectedIds = Array.from(window.selectedAksesSchoolIds || []);
+          if (selectedIds.length === 0) return showToast("Pilih minimal satu sekolah.", false);
+
+          showToast(`Memproses ${selectedIds.length} sekolah terpilih...`);
+          try {
+            const updates = selectedIds.map(id => {
+              const s = findSchoolById(id);
+              let passVal = s ? s.akses_password : "";
+              if (turnOn && !passVal) {
+                passVal = s && s["npsn"] ? "rapor" + s["npsn"] : ("RPR" + Math.floor(1000 + Math.random() * 9000));
+              }
+              return updateSchoolAksesData(id, {
+                akses_password_active: turnOn,
+                akses_password: turnOn ? passVal : "",
+                akses_mapel_kustom: turnOn,
+                akses_buku_induk: turnOn,
+                akses_unggah_foto: turnOn,
+                akses_ganti_logo: turnOn,
+                akses_tanda_tangan_digital: turnOn
+              });
+            });
+            await Promise.all(updates);
+            showToast(`Semua saklar berhasil di-${turnOn ? 'aktifkan' : 'nonaktifkan'} untuk ${selectedIds.length} sekolah terpilih.`);
+          } catch(e) {
+            console.error(e);
+            showToast("Gagal memperbarui sekolah terpilih.", false);
+          }
+        };
+
+        // --- GLOBAL SMART FLOATING TOOLTIP (Topmost, no clipping, singular instance) ---
+        (function initFloatingTooltip() {
+          const tip = document.getElementById("app-floating-tooltip");
+          if (!tip) return;
+          let currentTarget = null;
+
+          document.addEventListener("mouseover", (e) => {
+            const el = e.target.closest("[data-tooltip]");
+            if (!el || el === currentTarget) return;
+            currentTarget = el;
+            const text = el.getAttribute("data-tooltip");
+            if (!text) return;
+
+            tip.textContent = text;
+            tip.classList.remove("opacity-0", "pointer-events-none");
+            tip.classList.add("opacity-100");
+
+            const rect = el.getBoundingClientRect();
+            const tipRect = tip.getBoundingClientRect();
+
+            let top = rect.top - tipRect.height - 6;
+            let left = rect.left + (rect.width - tipRect.width) / 2;
+
+            if (top < 6) {
+              top = rect.bottom + 6;
+            }
+            if (left < 8) left = 8;
+            if (left + tipRect.width > window.innerWidth - 8) {
+              left = window.innerWidth - tipRect.width - 8;
+            }
+
+            tip.style.top = `${Math.round(top)}px`;
+            tip.style.left = `${Math.round(left)}px`;
+          });
+
+          document.addEventListener("mouseout", (e) => {
+            if (!currentTarget) return;
+            if (!currentTarget.contains(e.relatedTarget)) {
+              currentTarget = null;
+              tip.classList.add("opacity-0", "pointer-events-none");
+              tip.classList.remove("opacity-100");
+            }
+          });
+
+          window.addEventListener("scroll", () => {
+            if (currentTarget) {
+              currentTarget = null;
+              tip.classList.add("opacity-0", "pointer-events-none");
+              tip.classList.remove("opacity-100");
+            }
+          }, { passive: true });
+        })();
       }
     </script>
+    <div id="app-floating-tooltip" class="pointer-events-none fixed z-[99999] opacity-0 transition-opacity duration-150 px-2.5 py-1 bg-slate-900/95 backdrop-blur-xs text-white text-[10px] font-medium rounded-md shadow-2xl border border-slate-700/80 whitespace-nowrap"></div>
   </body>
 </html>
