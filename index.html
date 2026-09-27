@@ -315,8 +315,8 @@
       thead th.main-header {
         position: sticky;
         top: 0;
-        z-index: 40;
-        background-color: #f9fafb;
+        z-index: 30;
+        background-color: #f8fafc;
         height: 40px;
         padding: 0 0.6rem;
         font-weight: 700;
@@ -329,7 +329,7 @@
         text-align: center;
       }
       thead th.main-header:hover {
-        background-color: #e5e7eb;
+        background-color: #e2e8f0;
       }
 
       td {
@@ -342,13 +342,19 @@
         transition: all 0.2s;
       }
       tr:hover {
-        background-color: #eef2ff;
+        background-color: #f8fafc;
       }
       tr:hover td {
         color: #1e1b4b;
       }
       tr.selected {
         background-color: #eff6ff;
+      }
+      tr:hover td[class*="sticky"] {
+        background-color: #f1f5f9 !important;
+      }
+      tr.selected td[class*="sticky"] {
+        background-color: #eff6ff !important;
       }
 
       input[type="text"],
@@ -651,10 +657,10 @@
         </div>
 
         <div
-          class="flex flex-wrap items-center gap-2 w-full lg:w-auto justify-between lg:justify-end mt-4 lg:mt-0"
+          class="flex flex-col sm:flex-row flex-wrap items-center justify-center lg:justify-end gap-3 w-full lg:w-auto mt-4 lg:mt-0"
         >
-          <div class="flex gap-2 w-full md:w-auto lg:mr-2">
-            <div class="relative w-full md:w-56 group">
+          <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto items-center justify-center">
+            <div class="relative w-full sm:w-56 group">
               <div
                 class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-teal-500 transition-colors"
               >
@@ -667,11 +673,11 @@
                 type="search"
                 id="search-input"
                 placeholder="Cari Data..."
-                class="shadow-sm placeholder:text-slate-400"
+                class="shadow-sm placeholder:text-slate-400 w-full"
               />
             </div>
-            <div class="w-full md:w-40 relative group">
-              <select id="filter-status" class="shadow-sm">
+            <div class="w-full sm:w-40 relative group">
+              <select id="filter-status" class="shadow-sm w-full">
                 <option value="all">Semua Status</option>
                 <option value="valid">Data Valid</option>
                 <option value="draft">Hanya Draft</option>
@@ -679,11 +685,11 @@
             </div>
           </div>
 
-          <div class="flex gap-1.5 items-center">
+          <div class="flex flex-wrap gap-1.5 items-center justify-center">
             <div class="tooltip-container">
               <button
                 id="add-school-btn"
-                class="icon-btn bg-gradient-to-br from-teal-600 to-teal-700 text-white shadow-md mr-1 border border-teal-500 hover:shadow-teal-300"
+                class="icon-btn bg-gradient-to-br from-teal-600 to-teal-700 text-white shadow-md border border-teal-500 hover:shadow-teal-300"
               >
                 <svg viewBox="0 0 24 24" stroke="currentColor">
                   <line x1="12" y1="5" x2="12" y2="19"></line>
@@ -812,28 +818,28 @@
 
       <!-- Tabs Navigasi & Filter -->
       <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-4 border-b border-slate-200 gap-3">
-        <div class="flex items-center gap-6">
+        <div class="flex items-center gap-4 sm:gap-6 overflow-x-auto custom-scrollbar no-scrollbar py-1 w-full sm:w-auto">
           <button
             id="tab-data"
-            class="pb-3 text-sm font-bold border-b-[3px] border-teal-500 text-teal-600 transition-colors"
+            class="pb-3 text-sm font-bold border-b-[3px] border-teal-500 text-teal-600 transition-colors whitespace-nowrap cursor-pointer"
           >
             Data Pokok
           </button>
           <button
             id="tab-tagihan"
-            class="pb-3 text-sm font-bold border-b-[3px] border-transparent text-slate-500 hover:text-slate-700 transition-colors"
+            class="pb-3 text-sm font-bold border-b-[3px] border-transparent text-slate-500 hover:text-slate-700 transition-colors whitespace-nowrap cursor-pointer"
           >
             Pesanan & Tagihan
           </button>
           <button
             id="tab-akses"
-            class="pb-3 text-sm font-bold border-b-[3px] border-transparent text-slate-500 hover:text-slate-700 transition-colors"
+            class="pb-3 text-sm font-bold border-b-[3px] border-transparent text-slate-500 hover:text-slate-700 transition-colors whitespace-nowrap cursor-pointer"
           >
             Akses
           </button>
           <button
             id="tab-pengguna"
-            class="pb-3 text-sm font-bold border-b-[3px] border-transparent text-slate-500 hover:text-slate-700 transition-colors flex items-center gap-1.5"
+            class="pb-3 text-sm font-bold border-b-[3px] border-transparent text-slate-500 hover:text-slate-700 transition-colors flex items-center gap-1.5 whitespace-nowrap cursor-pointer"
           >
             <span>Data Pengguna</span>
           </button>
@@ -842,10 +848,10 @@
         <!-- Filter Container (Compact Inline) -->
         <div
           id="filter-tagihan-container"
-          class="hidden w-full sm:w-auto flex-col sm:flex-row items-center gap-1.5 pb-2"
+          class="hidden w-full sm:w-auto flex-col sm:flex-row items-center justify-center sm:justify-end gap-1.5 pb-2"
         >
           <div
-            class="flex items-center gap-1 bg-white border border-slate-200/60 rounded-lg p-1 shadow-sm w-full sm:w-auto"
+            class="flex items-center gap-1 bg-white border border-slate-200/60 rounded-lg p-1 shadow-sm w-full sm:w-auto justify-center"
           >
             <input
               type="date"
@@ -859,18 +865,18 @@
               class="w-full sm:w-auto text-xs font-medium py-1 px-1.5 hover:bg-slate-50 focus:bg-slate-50 rounded outline-none text-slate-600 transition-all font-mono"
             />
           </div>
-          <div class="flex items-center gap-1.5 w-full sm:w-auto justify-end">
+          <div class="flex items-center gap-1.5 w-full sm:w-auto justify-center sm:justify-end">
             <button
               id="btn-filter-tagihan"
               title="Terapkan"
-              class="group relative bg-teal-600 hover:bg-teal-700 text-white p-1.5 rounded-lg transition-colors shadow-sm flex items-center justify-center h-[28px] w-[28px]"
+              class="group relative bg-teal-600 hover:bg-teal-700 text-white p-1.5 rounded-lg transition-colors shadow-sm flex items-center justify-center h-[28px] w-[28px] cursor-pointer"
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
             </button>
             <button
               id="btn-reset-tagihan"
               title="Reset"
-              class="group relative bg-slate-50 hover:bg-slate-100 text-slate-600 p-1.5 rounded-lg border border-slate-200/60 transition-colors shadow-sm h-[28px] w-[28px] flex items-center justify-center"
+              class="group relative bg-slate-50 hover:bg-slate-100 text-slate-600 p-1.5 rounded-lg border border-slate-200/60 transition-colors shadow-sm h-[28px] w-[28px] flex items-center justify-center cursor-pointer"
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
             </button>
@@ -883,46 +889,46 @@
         <table id="main-table">
           <thead class="bg-slate-50/80 backdrop-blur-sm text-center">
             <tr>
-              <th width="30" class="main-header text-center">
+              <th width="35" class="main-header text-center sticky left-0 z-30 bg-slate-50 border-r border-slate-100 w-[35px] min-w-[35px]">
                 <input type="checkbox" id="select-all-checkbox" />
               </th>
-              <th width="40" class="main-header text-center" data-sort="id">
+              <th width="45" class="main-header text-center sticky left-[35px] z-30 bg-slate-50 border-r border-slate-100 w-[45px] min-w-[45px]" data-sort="id">
                 NO
               </th>
               <th
-                width="100"
-                class="main-header text-center"
+                width="140"
+                class="main-header text-center sticky left-[80px] z-30 bg-slate-50 border-r border-slate-100 w-[140px] min-w-[140px]"
                 data-sort="timestamp"
               >
                 TIMESTAMP
               </th>
-              <th class="main-header text-center" data-sort="nama-sekolah">NAMA SEKOLAH</th>
-              <th width="100" class="main-header text-center" data-sort="npsn">
+              <th class="main-header text-center sticky left-[220px] z-30 bg-slate-50 border-r border-slate-200/80 shadow-[4px_0_12px_-4px_rgba(0,0,0,0.08)] w-[200px] min-w-[200px]" data-sort="nama-sekolah">NAMA SEKOLAH</th>
+              <th width="100" class="main-header text-center min-w-[100px]" data-sort="npsn">
                 NPSN
               </th>
-              <th class="main-header text-center" data-sort="alamat">ALAMAT LENGKAP</th>
+              <th class="main-header text-center min-w-[180px]" data-sort="alamat">ALAMAT LENGKAP</th>
               <th
                 width="110"
-                class="main-header text-center"
+                class="main-header text-center min-w-[110px]"
                 data-sort="desa-kelurahan-jenis"
               >
                 JENIS WILAYAH
               </th>
-              <th class="main-header text-center" data-sort="desa-kelurahan-nama">
+              <th class="main-header text-center min-w-[130px]" data-sort="desa-kelurahan-nama">
                 NAMA DESA/KEL.
               </th>
-              <th class="main-header text-center" data-sort="kecamatan">KECAMATAN</th>
+              <th class="main-header text-center min-w-[130px]" data-sort="kecamatan">KECAMATAN</th>
               <th
                 width="110"
-                class="main-header text-center"
+                class="main-header text-center min-w-[110px]"
                 data-sort="kabupaten-kota-jenis"
               >
                 TIPE DAERAH
               </th>
-              <th class="main-header text-center" data-sort="kabupaten-kota-nama">
+              <th class="main-header text-center min-w-[140px]" data-sort="kabupaten-kota-nama">
                 NAMA KAB./KOTA
               </th>
-              <th class="main-header text-center" data-sort="provinsi">PROVINSI</th>
+              <th class="main-header text-center min-w-[120px]" data-sort="provinsi">PROVINSI</th>
             </tr>
           </thead>
           <tbody id="table-body">
@@ -946,23 +952,23 @@
             >
               <tr>
                 <th
-                  class="px-4 py-3 text-center sticky left-0 z-30 bg-slate-50 border-r border-slate-100 min-w-[50px]"
+                  class="px-3 py-3 text-center sticky left-0 z-30 bg-slate-50 border-r border-slate-200 w-[50px] min-w-[50px]"
                 >
                   NO
                 </th>
                 <th
-                  class="px-4 py-3 text-center sticky left-[50px] z-30 bg-slate-50 border-r border-slate-100 min-w-[130px]"
+                  class="px-3 py-3 text-center sticky left-[50px] z-30 bg-slate-50 border-r border-slate-200 w-[150px] min-w-[150px] whitespace-nowrap"
                 >
-                  TRANSAKSI TERAKHIR
+                  TRANSAKSI
                 </th>
                 <th
-                  class="px-4 py-3 text-center sticky left-[180px] z-30 bg-slate-50 border-r border-slate-200/80 shadow-[4px_0_12px_-4px_rgba(0,0,0,0.05)] min-w-[200px]"
+                  class="px-3 py-3 text-center sticky left-[200px] z-30 bg-slate-50 border-r border-slate-200 shadow-[4px_0_12px_-4px_rgba(0,0,0,0.08)] w-[220px] min-w-[220px]"
                 >
                   NAMA SEKOLAH
                 </th>
-                <th class="px-4 py-3 text-center">NPSN</th>
-                <th class="px-4 py-3 text-center">PENAMBAHAN KELAS</th>
-                <th class="px-4 py-3 text-center">PEMASUKAN PERIODE INI (RP)</th>
+                <th class="px-4 py-3 text-center min-w-[110px]">NPSN</th>
+                <th class="px-4 py-3 text-center min-w-[160px]">PENAMBAHAN KELAS</th>
+                <th class="px-4 py-3 text-center min-w-[190px]">PEMASUKAN PERIODE INI (RP)</th>
               </tr>
             </thead>
             <tbody
@@ -979,7 +985,7 @@
                 </td>
                 <td
                   id="tagihan-total"
-                  class="px-4 py-3 text-right text-teal-700 text-xs"
+                  class="px-4 py-3 text-right text-teal-700 text-xs font-mono font-bold"
                 >
                   Rp 0
                 </td>
@@ -1021,7 +1027,7 @@
                   <span>NO</span>
                 </th>
                 <th
-                  class="px-3 py-2.5 text-center sticky left-[85px] z-30 bg-slate-50 border-r border-slate-200/80 shadow-[4px_0_12px_-4px_rgba(0,0,0,0.05)] w-[160px] max-w-[170px]"
+                  class="px-3 py-2.5 text-center sticky left-[85px] z-30 bg-slate-50 border-r border-slate-200/80 shadow-[4px_0_12px_-4px_rgba(0,0,0,0.08)] w-[175px] min-w-[175px]"
                 >
                   <span>NAMA SEKOLAH</span>
                 </th>
@@ -2529,10 +2535,11 @@
                   (a, b) => a - b,
                 );
 
+                tagihanRow.className = "hover:bg-slate-50/80 transition-colors";
                 tagihanRow.innerHTML = `
-                            <td class="px-4 py-2 text-center text-slate-400 sticky left-0 bg-white border-r border-slate-100">${tagihanIndex++}</td>
-                            <td class="px-4 py-2 text-center text-slate-500 font-mono sticky left-[50px] bg-white border-r border-slate-100">${tsStr}</td>
-                            <td class="px-4 py-2 font-bold text-slate-800 sticky left-[180px] bg-white border-r border-slate-200/80 shadow-[4px_0_12px_-4px_rgba(0,0,0,0.05)]">${school["nama-sekolah"] || "-"}</td>
+                            <td class="px-3 py-2 text-center text-slate-400 sticky left-0 z-20 bg-white border-r border-slate-100 w-[50px] min-w-[50px]">${tagihanIndex++}</td>
+                            <td class="px-3 py-2 text-center text-slate-600 font-mono sticky left-[50px] z-20 bg-white border-r border-slate-100 w-[150px] min-w-[150px] whitespace-nowrap font-medium text-[11px]">${tsStr}</td>
+                            <td class="px-3 py-2 font-bold text-slate-800 sticky left-[200px] z-20 bg-white border-r border-slate-200/80 shadow-[4px_0_12px_-4px_rgba(0,0,0,0.08)] w-[220px] min-w-[220px]">${school["nama-sekolah"] || "-"}</td>
                             <td class="px-4 py-2 text-center font-mono text-slate-500">${school["npsn"] || "-"}</td>
                             <td class="px-4 py-2 text-center">
                                 <div class="flex flex-wrap items-center justify-center gap-1">
@@ -2574,15 +2581,15 @@
                 const aksesRow = document.createElement("tr");
                 aksesRow.className = "hover:bg-slate-50/70 transition-colors";
                 aksesRow.innerHTML = `
-                  <td class="px-2 py-2 text-center sticky left-0 bg-white border-r border-slate-100 w-[40px] min-w-[40px]">
+                  <td class="px-2 py-2 text-center sticky left-0 z-20 bg-white border-r border-slate-100 w-[40px] min-w-[40px]">
                     <div class="flex items-center justify-center">
                       <input type="checkbox" class="akses-row-checkbox rounded border-slate-300 text-teal-600 focus:ring-teal-500 cursor-pointer w-3.5 h-3.5" data-id="${school.id}" ${isSelected ? 'checked' : ''} onchange="window.handleAksesRowCheckboxChange(this, '${school.id}')">
                     </div>
                   </td>
-                  <td class="px-2 py-2 text-center text-slate-400 sticky left-[40px] bg-white border-r border-slate-100 w-[45px] min-w-[45px]">
+                  <td class="px-2 py-2 text-center text-slate-400 sticky left-[40px] z-20 bg-white border-r border-slate-100 w-[45px] min-w-[45px]">
                     ${index + 1}
                   </td>
-                  <td class="px-3 py-2 sticky left-[85px] bg-white border-r border-slate-200/80 shadow-[4px_0_12px_-4px_rgba(0,0,0,0.05)] w-[160px] max-w-[170px]">
+                  <td class="px-3 py-2 sticky left-[85px] z-20 bg-white border-r border-slate-200/80 shadow-[4px_0_12px_-4px_rgba(0,0,0,0.08)] w-[175px] min-w-[175px]">
                     <div class="min-w-0 pr-1 truncate">
                       <div class="font-bold text-slate-800 text-xs truncate" title="${school["nama-sekolah"] || "-"}">${school["nama-sekolah"] || "-"}</div>
                       <div class="text-[10px] text-slate-400 font-mono">NPSN: ${school["npsn"] || "-"}</div>
@@ -2647,19 +2654,19 @@
                 const row = document.createElement("tr");
                 row.className = "hover:bg-slate-50/80 transition-colors";
                 row.innerHTML = `
-                  <td class="px-3 py-2.5 text-center text-slate-400 sticky left-0 bg-white border-r border-slate-100">${index + 1}</td>
-                  <td class="px-3 py-2.5 font-bold text-slate-800 sticky left-[45px] bg-white border-r border-slate-200/80 shadow-[4px_0_12px_-4px_rgba(0,0,0,0.05)] cursor-pointer hover:text-teal-600" onclick="window.openEditTypeModalById('${school.id}')">${school["nama-sekolah"] || "-"}</td>
-                  <td class="px-3 py-2.5 text-slate-600">${school["kecamatan"] || "-"}</td>
-                  <td class="px-3 py-2.5 text-slate-600">${kabKota || "-"}</td>
-                  <td class="px-3 py-2.5 text-slate-600">${school["provinsi"] || "-"}</td>
-                  <td class="px-3 py-2.5 font-semibold text-teal-900 bg-teal-50/30 border-l border-teal-100">${school["kepsek_nama"] || "-"}</td>
-                  <td class="px-3 py-2.5 text-center font-mono text-slate-600 bg-teal-50/30">${school["kepsek_nip"] || "-"}</td>
-                  <td class="px-3 py-2.5 text-center font-mono bg-teal-50/30">${kepsekWA}</td>
-                  <td class="px-3 py-2.5 text-center font-mono text-slate-600 bg-teal-50/30">${school["kepsek_tgl_lahir"] || "-"}</td>
-                  <td class="px-3 py-2.5 font-semibold text-indigo-900 bg-indigo-50/30 border-l border-indigo-100">${school["guru_nama"] || "-"}</td>
-                  <td class="px-3 py-2.5 text-center font-mono text-slate-600 bg-indigo-50/30">${school["guru_nip"] || "-"}</td>
-                  <td class="px-3 py-2.5 text-center font-mono bg-indigo-50/30">${guruWA}</td>
-                  <td class="px-3 py-2.5 text-center font-mono text-slate-600 bg-indigo-50/30">${school["guru_tgl_lahir"] || "-"}</td>
+                  <td class="px-3 py-2.5 text-center text-slate-400 sticky left-0 z-20 bg-white border-r border-slate-100 w-[45px] min-w-[45px]">${index + 1}</td>
+                  <td class="px-3 py-2.5 font-bold text-slate-800 sticky left-[45px] z-20 bg-white border-r border-slate-200/80 shadow-[4px_0_12px_-4px_rgba(0,0,0,0.08)] w-[200px] min-w-[200px] cursor-pointer hover:text-teal-600" onclick="window.openEditTypeModalById('${school.id}')">${school["nama-sekolah"] || "-"}</td>
+                  <td class="px-3 py-2.5 text-slate-600 min-w-[120px]">${school["kecamatan"] || "-"}</td>
+                  <td class="px-3 py-2.5 text-slate-600 min-w-[140px]">${kabKota || "-"}</td>
+                  <td class="px-3 py-2.5 text-slate-600 min-w-[120px]">${school["provinsi"] || "-"}</td>
+                  <td class="px-3 py-2.5 font-semibold text-teal-900 bg-teal-50/30 border-l border-teal-100 min-w-[160px]">${school["kepsek_nama"] || "-"}</td>
+                  <td class="px-3 py-2.5 text-center font-mono text-slate-600 bg-teal-50/30 min-w-[130px]">${school["kepsek_nip"] || "-"}</td>
+                  <td class="px-3 py-2.5 text-center font-mono bg-teal-50/30 min-w-[130px]">${kepsekWA}</td>
+                  <td class="px-3 py-2.5 text-center font-mono text-slate-600 bg-teal-50/30 min-w-[140px]">${school["kepsek_tgl_lahir"] || "-"}</td>
+                  <td class="px-3 py-2.5 font-semibold text-indigo-900 bg-indigo-50/30 border-l border-indigo-100 min-w-[160px]">${school["guru_nama"] || "-"}</td>
+                  <td class="px-3 py-2.5 text-center font-mono text-slate-600 bg-indigo-50/30 min-w-[130px]">${school["guru_nip"] || "-"}</td>
+                  <td class="px-3 py-2.5 text-center font-mono bg-indigo-50/30 min-w-[130px]">${guruWA}</td>
+                  <td class="px-3 py-2.5 text-center font-mono text-slate-600 bg-indigo-50/30 min-w-[140px]">${school["guru_tgl_lahir"] || "-"}</td>
                 `;
                 penggunaTableBody.appendChild(row);
               });
@@ -2704,25 +2711,25 @@
               })();
 
               row.innerHTML = `
-                        <td class="text-center align-middle py-2"><input type="checkbox" ${isSelected ? "checked" : ""} onchange="toggleRowSelection('${item.id}')"></td>
-                        <td class="text-center font-bold text-slate-400 border-r border-slate-100 align-middle py-2">${index + 1}</td>
-                        <td class="text-[9.5px] text-slate-500 font-mono text-center align-middle py-2">
+                        <td class="text-center align-middle py-2 sticky left-0 z-20 bg-white border-r border-slate-100 w-[35px] min-w-[35px]"><input type="checkbox" ${isSelected ? "checked" : ""} onchange="toggleRowSelection('${item.id}')"></td>
+                        <td class="text-center font-bold text-slate-400 border-r border-slate-100 align-middle py-2 sticky left-[35px] z-20 bg-white w-[45px] min-w-[45px]">${index + 1}</td>
+                        <td class="text-[9.5px] text-slate-500 font-mono text-center align-middle py-2 sticky left-[80px] z-20 bg-white border-r border-slate-100 w-[140px] min-w-[140px] whitespace-nowrap">
                             ${tsHtml}
                         </td>
-                        <td class="font-bold text-teal-700 cursor-pointer transition-all hover:underline hover:text-teal-900 underline-offset-4 decoration-teal-300 decoration-2 align-middle py-2">${highlightText(item["nama-sekolah"], searchVal)}</td>
-                        <td class="font-mono text-slate-500 text-center align-middle py-2">${highlightText(item["npsn"], searchVal)}</td>
-                        <td class="max-w-[150px] align-middle py-2 group relative">
+                        <td class="font-bold text-teal-700 cursor-pointer transition-all hover:underline hover:text-teal-900 underline-offset-4 decoration-teal-300 decoration-2 align-middle py-2 sticky left-[220px] z-20 bg-white border-r border-slate-200/80 shadow-[4px_0_12px_-4px_rgba(0,0,0,0.08)] w-[200px] min-w-[200px]">${highlightText(item["nama-sekolah"], searchVal)}</td>
+                        <td class="font-mono text-slate-500 text-center align-middle py-2 min-w-[100px]">${highlightText(item["npsn"], searchVal)}</td>
+                        <td class="max-w-[150px] min-w-[180px] align-middle py-2 group relative">
                             <span class="block truncate">${highlightText(item["alamat"], searchVal)}</span>
                             <div class="invisible group-hover:visible absolute z-50 mb-2 bottom-full left-1/2 -translate-x-1/2 px-2.5 py-1.5 bg-slate-800 text-white text-[11px] font-normal leading-relaxed rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-normal w-max max-w-xs break-words pointer-events-none text-left">
                                 ${item["alamat"] || ""}
                             </div>
                         </td>
-                        <td class="text-[10px] text-slate-500 capitalize text-center align-middle py-2">${highlightText(item["desa-kelurahan-jenis"], searchVal) || "-"}</td>
-                        <td class="align-middle py-2">${highlightText(item["desa-kelurahan-nama"], searchVal)}</td>
-                        <td class="align-middle py-2">${highlightText(item["kecamatan"], searchVal)}</td>
-                        <td class="text-[10px] text-slate-500 capitalize text-center align-middle py-2">${highlightText(item["kabupaten-kota-jenis"], searchVal) || "-"}</td>
-                        <td class="align-middle py-2">${highlightText(item["kabupaten-kota-nama"], searchVal)}</td>
-                        <td class="align-middle py-2">${highlightText(item["provinsi"], searchVal)}</td>
+                        <td class="text-[10px] text-slate-500 capitalize text-center align-middle py-2 min-w-[110px]">${highlightText(item["desa-kelurahan-jenis"], searchVal) || "-"}</td>
+                        <td class="align-middle py-2 min-w-[130px]">${highlightText(item["desa-kelurahan-nama"], searchVal)}</td>
+                        <td class="align-middle py-2 min-w-[130px]">${highlightText(item["kecamatan"], searchVal)}</td>
+                        <td class="text-[10px] text-slate-500 capitalize text-center align-middle py-2 min-w-[110px]">${highlightText(item["kabupaten-kota-jenis"], searchVal) || "-"}</td>
+                        <td class="align-middle py-2 min-w-[140px]">${highlightText(item["kabupaten-kota-nama"], searchVal)}</td>
+                        <td class="align-middle py-2 min-w-[120px]">${highlightText(item["provinsi"], searchVal)}</td>
                     `;
               row.querySelector("td:nth-child(4)").onclick = () => {
                 window.currentEditId = item.id;
