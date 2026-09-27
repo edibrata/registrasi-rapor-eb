@@ -326,6 +326,7 @@
         cursor: pointer;
         user-select: none;
         transition: background-color 0.2s;
+        text-align: center;
       }
       thead th.main-header:hover {
         background-color: #e5e7eb;
@@ -875,37 +876,12 @@
             </button>
           </div>
         </div>
-
-        <!-- Master Switch Akses (Pill Sejajar Tab - Tampil Saat Tab Akses Aktif) -->
-        <div
-          id="tab-akses-master-container"
-          class="hidden items-center pb-2 transition-all duration-200"
-        >
-          <div
-            class="inline-flex items-center gap-2 bg-white px-2.5 py-1.5 rounded-lg border border-slate-200/90 shadow-2xs select-none cursor-pointer hover:border-teal-300 hover:shadow-xs transition-all"
-            data-tooltip="Saklar Master: Nyalakan / Matikan seluruh fitur semua sekolah"
-          >
-            <span class="text-xs font-bold text-slate-700 flex items-center gap-1.5">
-              <svg class="w-3.5 h-3.5 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-              Master Semua Sekolah
-            </span>
-            <label class="relative inline-flex items-center cursor-pointer">
-              <input
-                type="checkbox"
-                id="master-all-schools-toggle"
-                class="sr-only peer"
-                onchange="window.handleMasterAllSchoolsToggle(this.checked)"
-              />
-              <div class="w-7 h-3.5 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[1px] after:left-[1px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-2.5 after:w-2.5 after:transition-all peer-checked:bg-teal-600"></div>
-            </label>
-          </div>
-        </div>
       </div>
 
       <!-- Wadah Tabel Data Pokok -->
       <div id="view-data" class="table-wrapper shadow-sm ring-1 ring-slate-200">
         <table id="main-table">
-          <thead class="bg-slate-50/80 backdrop-blur-sm">
+          <thead class="bg-slate-50/80 backdrop-blur-sm text-center">
             <tr>
               <th width="30" class="main-header text-center">
                 <input type="checkbox" id="select-all-checkbox" />
@@ -920,11 +896,11 @@
               >
                 TIMESTAMP
               </th>
-              <th class="main-header" data-sort="nama-sekolah">NAMA SEKOLAH</th>
+              <th class="main-header text-center" data-sort="nama-sekolah">NAMA SEKOLAH</th>
               <th width="100" class="main-header text-center" data-sort="npsn">
                 NPSN
               </th>
-              <th class="main-header" data-sort="alamat">ALAMAT LENGKAP</th>
+              <th class="main-header text-center" data-sort="alamat">ALAMAT LENGKAP</th>
               <th
                 width="110"
                 class="main-header text-center"
@@ -932,10 +908,10 @@
               >
                 JENIS WILAYAH
               </th>
-              <th class="main-header" data-sort="desa-kelurahan-nama">
+              <th class="main-header text-center" data-sort="desa-kelurahan-nama">
                 NAMA DESA/KEL.
               </th>
-              <th class="main-header" data-sort="kecamatan">KECAMATAN</th>
+              <th class="main-header text-center" data-sort="kecamatan">KECAMATAN</th>
               <th
                 width="110"
                 class="main-header text-center"
@@ -943,10 +919,10 @@
               >
                 TIPE DAERAH
               </th>
-              <th class="main-header" data-sort="kabupaten-kota-nama">
+              <th class="main-header text-center" data-sort="kabupaten-kota-nama">
                 NAMA KAB./KOTA
               </th>
-              <th class="main-header" data-sort="provinsi">PROVINSI</th>
+              <th class="main-header text-center" data-sort="provinsi">PROVINSI</th>
             </tr>
           </thead>
           <tbody id="table-body">
@@ -966,7 +942,7 @@
             class="w-full text-left text-sm border-collapse whitespace-nowrap min-w-max"
           >
             <thead
-              class="bg-slate-50 border-b border-slate-200/60 text-[10px] text-slate-500 font-bold uppercase tracking-wider sticky top-0 z-20"
+              class="bg-slate-50 border-b border-slate-200/60 text-[10px] text-slate-500 font-bold uppercase tracking-wider sticky top-0 z-20 text-center"
             >
               <tr>
                 <th
@@ -980,13 +956,13 @@
                   TRANSAKSI TERAKHIR
                 </th>
                 <th
-                  class="px-4 py-3 sticky left-[180px] z-30 bg-slate-50 border-r border-slate-200/80 shadow-[4px_0_12px_-4px_rgba(0,0,0,0.05)] min-w-[200px]"
+                  class="px-4 py-3 text-center sticky left-[180px] z-30 bg-slate-50 border-r border-slate-200/80 shadow-[4px_0_12px_-4px_rgba(0,0,0,0.05)] min-w-[200px]"
                 >
                   NAMA SEKOLAH
                 </th>
                 <th class="px-4 py-3 text-center">NPSN</th>
                 <th class="px-4 py-3 text-center">PENAMBAHAN KELAS</th>
-                <th class="px-4 py-3 text-right">PEMASUKAN PERIODE INI (RP)</th>
+                <th class="px-4 py-3 text-center">PEMASUKAN PERIODE INI (RP)</th>
               </tr>
             </thead>
             <tbody
@@ -1023,13 +999,13 @@
             class="w-full text-left text-xs border-collapse whitespace-nowrap"
           >
             <thead
-              class="bg-slate-50 border-b border-slate-200/60 text-[10px] text-slate-500 font-bold uppercase tracking-wider sticky top-0 z-20 select-none"
+              class="bg-slate-50 border-b border-slate-200/60 text-[10px] text-slate-500 font-bold uppercase tracking-wider sticky top-0 z-20 select-none text-center"
             >
               <tr>
                 <th
-                  class="px-2 py-2.5 text-center sticky left-0 z-30 bg-slate-50 border-r border-slate-100 w-[55px]"
+                  class="px-2 py-2.5 text-center sticky left-0 z-30 bg-slate-50 border-r border-slate-100 w-[40px] min-w-[40px]"
                 >
-                  <div class="flex items-center justify-center gap-1">
+                  <div class="flex items-center justify-center">
                     <input
                       type="checkbox"
                       id="akses-select-all-checkbox"
@@ -1037,23 +1013,24 @@
                       class="rounded border-slate-300 text-teal-600 focus:ring-teal-500 cursor-pointer w-3.5 h-3.5"
                       data-tooltip="Pilih Semua Sekolah"
                     />
-                    <span>NO</span>
                   </div>
                 </th>
                 <th
-                  class="px-3 py-2.5 sticky left-[55px] z-30 bg-slate-50 border-r border-slate-200/80 shadow-[4px_0_12px_-4px_rgba(0,0,0,0.05)] min-w-[200px]"
+                  class="px-2 py-2.5 text-center sticky left-[40px] z-30 bg-slate-50 border-r border-slate-100 w-[45px] min-w-[45px]"
                 >
-                  <div class="flex items-center justify-between">
-                    <span>NAMA SEKOLAH</span>
-                    <span class="text-[9px] text-slate-400 font-normal">MASTER</span>
-                  </div>
+                  <span>NO</span>
                 </th>
-                <th class="px-2 py-2.5 text-center w-[210px]">
+                <th
+                  class="px-3 py-2.5 text-center sticky left-[85px] z-30 bg-slate-50 border-r border-slate-200/80 shadow-[4px_0_12px_-4px_rgba(0,0,0,0.05)] w-[160px] max-w-[170px]"
+                >
+                  <span>NAMA SEKOLAH</span>
+                </th>
+                <th class="px-2 py-2.5 text-center w-[140px]">
                   <div class="flex items-center justify-center gap-1.5 cursor-pointer" data-tooltip="Saklar Password seluruh sekolah">
                     <span>PASSWORD</span>
                     <label class="relative inline-flex items-center cursor-pointer">
                       <input type="checkbox" id="header-switch-password" class="sr-only peer" onchange="window.handleHeaderColumnToggle('akses_password_active', this.checked, 'Password')">
-                      <div class="w-6 h-3 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[1px] after:left-[1px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-2.5 after:w-2.5 after:transition-all peer-checked:bg-teal-600"></div>
+                      <div class="w-6 h-3 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-[12px] peer-checked:after:border-white after:content-[''] after:absolute after:top-[1px] after:left-[1px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-2.5 after:w-2.5 after:transition-all peer-checked:bg-teal-600"></div>
                     </label>
                   </div>
                 </th>
@@ -1062,7 +1039,7 @@
                     <span>MAPEL</span>
                     <label class="relative inline-flex items-center cursor-pointer">
                       <input type="checkbox" id="header-switch-mapel" class="sr-only peer" onchange="window.handleHeaderColumnToggle('akses_mapel_kustom', this.checked, 'Mapel Kustom')">
-                      <div class="w-6 h-3 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[1px] after:left-[1px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-2.5 after:w-2.5 after:transition-all peer-checked:bg-teal-600"></div>
+                      <div class="w-6 h-3 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-[12px] peer-checked:after:border-white after:content-[''] after:absolute after:top-[1px] after:left-[1px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-2.5 after:w-2.5 after:transition-all peer-checked:bg-teal-600"></div>
                     </label>
                   </div>
                 </th>
@@ -1071,7 +1048,7 @@
                     <span>BUKU INDUK</span>
                     <label class="relative inline-flex items-center cursor-pointer">
                       <input type="checkbox" id="header-switch-buku-induk" class="sr-only peer" onchange="window.handleHeaderColumnToggle('akses_buku_induk', this.checked, 'Buku Induk')">
-                      <div class="w-6 h-3 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[1px] after:left-[1px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-2.5 after:w-2.5 after:transition-all peer-checked:bg-teal-600"></div>
+                      <div class="w-6 h-3 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-[12px] peer-checked:after:border-white after:content-[''] after:absolute after:top-[1px] after:left-[1px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-2.5 after:w-2.5 after:transition-all peer-checked:bg-teal-600"></div>
                     </label>
                   </div>
                 </th>
@@ -1080,7 +1057,7 @@
                     <span>FOTO</span>
                     <label class="relative inline-flex items-center cursor-pointer">
                       <input type="checkbox" id="header-switch-foto" class="sr-only peer" onchange="window.handleHeaderColumnToggle('akses_unggah_foto', this.checked, 'Unggah Foto')">
-                      <div class="w-6 h-3 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[1px] after:left-[1px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-2.5 after:w-2.5 after:transition-all peer-checked:bg-teal-600"></div>
+                      <div class="w-6 h-3 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-[12px] peer-checked:after:border-white after:content-[''] after:absolute after:top-[1px] after:left-[1px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-2.5 after:w-2.5 after:transition-all peer-checked:bg-teal-600"></div>
                     </label>
                   </div>
                 </th>
@@ -1089,7 +1066,7 @@
                     <span>LOGO</span>
                     <label class="relative inline-flex items-center cursor-pointer">
                       <input type="checkbox" id="header-switch-logo" class="sr-only peer" onchange="window.handleHeaderColumnToggle('akses_ganti_logo', this.checked, 'Ganti Logo')">
-                      <div class="w-6 h-3 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[1px] after:left-[1px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-2.5 after:w-2.5 after:transition-all peer-checked:bg-teal-600"></div>
+                      <div class="w-6 h-3 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-[12px] peer-checked:after:border-white after:content-[''] after:absolute after:top-[1px] after:left-[1px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-2.5 after:w-2.5 after:transition-all peer-checked:bg-teal-600"></div>
                     </label>
                   </div>
                 </th>
@@ -1098,7 +1075,7 @@
                     <span>TTD</span>
                     <label class="relative inline-flex items-center cursor-pointer">
                       <input type="checkbox" id="header-switch-ttd" class="sr-only peer" onchange="window.handleHeaderColumnToggle('akses_tanda_tangan_digital', this.checked, 'Tanda Tangan Digital')">
-                      <div class="w-6 h-3 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[1px] after:left-[1px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-2.5 after:w-2.5 after:transition-all peer-checked:bg-teal-600"></div>
+                      <div class="w-6 h-3 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-[12px] peer-checked:after:border-white after:content-[''] after:absolute after:top-[1px] after:left-[1px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-2.5 after:w-2.5 after:transition-all peer-checked:bg-teal-600"></div>
                     </label>
                   </div>
                 </th>
@@ -1155,19 +1132,19 @@
             class="w-full text-left text-sm border-collapse whitespace-nowrap min-w-max"
           >
             <thead
-              class="bg-slate-50 border-b border-slate-200/60 text-[10px] text-slate-500 font-bold uppercase tracking-wider sticky top-0 z-20"
+              class="bg-slate-50 border-b border-slate-200/60 text-[10px] text-slate-500 font-bold uppercase tracking-wider sticky top-0 z-20 text-center"
             >
               <tr>
                 <th class="px-3 py-3 text-center sticky left-0 z-30 bg-slate-50 border-r border-slate-100 min-w-[45px]">NO</th>
-                <th class="px-3 py-3 sticky left-[45px] z-30 bg-slate-50 border-r border-slate-200/80 shadow-[4px_0_12px_-4px_rgba(0,0,0,0.05)] min-w-[200px]">NAMA SEKOLAH</th>
-                <th class="px-3 py-3 text-left min-w-[120px]">KECAMATAN</th>
-                <th class="px-3 py-3 text-left min-w-[140px]">KABUPATEN/KOTA</th>
-                <th class="px-3 py-3 text-left min-w-[120px]">PROVINSI</th>
-                <th class="px-3 py-3 text-left bg-teal-50/70 text-teal-800 border-l border-teal-100 min-w-[160px]">NAMA KEPSEK</th>
+                <th class="px-3 py-3 text-center sticky left-[45px] z-30 bg-slate-50 border-r border-slate-200/80 shadow-[4px_0_12px_-4px_rgba(0,0,0,0.05)] min-w-[200px]">NAMA SEKOLAH</th>
+                <th class="px-3 py-3 text-center min-w-[120px]">KECAMATAN</th>
+                <th class="px-3 py-3 text-center min-w-[140px]">KABUPATEN/KOTA</th>
+                <th class="px-3 py-3 text-center min-w-[120px]">PROVINSI</th>
+                <th class="px-3 py-3 text-center bg-teal-50/70 text-teal-800 border-l border-teal-100 min-w-[160px]">NAMA KEPSEK</th>
                 <th class="px-3 py-3 text-center bg-teal-50/70 text-teal-800 min-w-[130px]">NIP KEPSEK</th>
                 <th class="px-3 py-3 text-center bg-teal-50/70 text-teal-800 min-w-[130px]">WHATSAPP KEPSEK</th>
                 <th class="px-3 py-3 text-center bg-teal-50/70 text-teal-800 min-w-[140px]">TANGGAL LAHIR KEPSEK</th>
-                <th class="px-3 py-3 text-left bg-indigo-50/70 text-indigo-800 border-l border-indigo-100 min-w-[160px]">NAMA GURU</th>
+                <th class="px-3 py-3 text-center bg-indigo-50/70 text-indigo-800 border-l border-indigo-100 min-w-[160px]">NAMA GURU</th>
                 <th class="px-3 py-3 text-center bg-indigo-50/70 text-indigo-800 min-w-[130px]">NIP GURU</th>
                 <th class="px-3 py-3 text-center bg-indigo-50/70 text-indigo-800 min-w-[130px]">WHATSAPP GURU</th>
                 <th class="px-3 py-3 text-center bg-indigo-50/70 text-indigo-800 min-w-[140px]">TANGGAL LAHIR GURU</th>
@@ -1356,38 +1333,6 @@
               </h4>
               <p class="text-[10px] sm:text-[11px] text-slate-500 mt-0.5">
                 Ubah daftar kelas, hapus,/tambah.
-              </p>
-            </div>
-          </button>
-          <button
-            onclick="openActionModalObj(window.currentEditId, 'pengguna')"
-            class="group flex items-center p-3 sm:p-4 text-left bg-slate-50 border border-slate-200 rounded-xl hover:border-teal-400 hover:shadow-md transition-all"
-          >
-            <div
-              class="w-8 h-8 rounded bg-white text-slate-400 flex items-center justify-center mr-3 sm:mr-4 group-hover:text-teal-600 group-hover:bg-teal-50"
-            >
-              <svg
-                class="w-4 h-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
-                ></path>
-              </svg>
-            </div>
-            <div>
-              <h4
-                class="font-bold text-slate-700 text-sm group-hover:text-teal-700"
-              >
-                Edit Data Pengguna (Kepsek & Guru)
-              </h4>
-              <p class="text-[10px] sm:text-[11px] text-slate-500 mt-0.5">
-                Ubah nama, NIP, WhatsApp, dan Tgl Lahir Kepsek & Guru.
               </p>
             </div>
           </button>
@@ -1811,60 +1756,6 @@
               </div>
             </div>
           </div>
-
-          <div id="pengguna-fields" class="space-y-3 sm:space-y-4">
-            <!-- Kepsek Section -->
-            <div class="bg-teal-50/50 p-3 rounded-xl border border-teal-100/80">
-              <h4 class="font-bold text-teal-800 text-xs mb-2.5 flex items-center gap-1.5 uppercase tracking-wider">
-                <svg class="w-4 h-4 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
-                Data Kepala Sekolah
-              </h4>
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label class="block font-bold text-slate-500 mb-1 uppercase tracking-tight">Nama Kepsek</label>
-                  <input type="text" id="edit-kepsek_nama" class="py-1.5 px-3 w-full" placeholder="Nama Lengkap & Gelar Kepsek" />
-                </div>
-                <div>
-                  <label class="block font-bold text-slate-500 mb-1 uppercase tracking-tight">NIP Kepsek</label>
-                  <input type="text" id="edit-kepsek_nip" class="py-1.5 px-3 w-full" placeholder="NIP (18 Digit Angka / -)" />
-                </div>
-                <div>
-                  <label class="block font-bold text-slate-500 mb-1 uppercase tracking-tight">WhatsApp Kepsek</label>
-                  <input type="text" id="edit-kepsek_wa" class="py-1.5 px-3 w-full" placeholder="Contoh: 08123456789" />
-                </div>
-                <div>
-                  <label class="block font-bold text-slate-500 mb-1 uppercase tracking-tight">Tanggal Lahir Kepsek</label>
-                  <input type="date" id="edit-kepsek_tgl_lahir" class="py-1.5 px-3 w-full" />
-                </div>
-              </div>
-            </div>
-
-            <!-- Guru Section -->
-            <div class="bg-indigo-50/50 p-3 rounded-xl border border-indigo-100/80">
-              <h4 class="font-bold text-indigo-800 text-xs mb-2.5 flex items-center gap-1.5 uppercase tracking-wider">
-                <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0112 20.055a11.952 11.952 0 01-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"></path></svg>
-                Data Guru Operator / Penanggung Jawab
-              </h4>
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label class="block font-bold text-slate-500 mb-1 uppercase tracking-tight">Nama Guru</label>
-                  <input type="text" id="edit-guru_nama" class="py-1.5 px-3 w-full" placeholder="Nama Lengkap & Gelar Guru" />
-                </div>
-                <div>
-                  <label class="block font-bold text-slate-500 mb-1 uppercase tracking-tight">NIP Guru</label>
-                  <input type="text" id="edit-guru_nip" class="py-1.5 px-3 w-full" placeholder="NIP Guru / -" />
-                </div>
-                <div>
-                  <label class="block font-bold text-slate-500 mb-1 uppercase tracking-tight">WhatsApp Guru</label>
-                  <input type="text" id="edit-guru_wa" class="py-1.5 px-3 w-full" placeholder="Contoh: 08123456789" />
-                </div>
-                <div>
-                  <label class="block font-bold text-slate-500 mb-1 uppercase tracking-tight">Tanggal Lahir Guru</label>
-                  <input type="date" id="edit-guru_tgl_lahir" class="py-1.5 px-3 w-full" />
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
 
         <div
@@ -1951,22 +1842,53 @@
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
             </div>
             <div>
-              <h3 class="font-bold text-slate-800 text-sm">Edit Password Akses</h3>
+              <h3 class="font-bold text-slate-800 text-sm">Kelola Password Akses</h3>
               <p id="edit-password-school-name" class="text-[10px] text-slate-500 font-medium truncate max-w-[200px]"></p>
             </div>
           </div>
-          <button onclick="document.getElementById('edit-password-modal').classList.remove('active')" class="text-slate-400 hover:text-slate-600 p-1">
+          <button onclick="document.getElementById('edit-password-modal').classList.remove('active')" class="text-slate-400 hover:text-slate-600 p-1 cursor-pointer">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
           </button>
         </div>
         <input type="hidden" id="edit-password-doc-id" />
-        <div class="mb-4">
-          <label class="block text-[11px] font-bold text-slate-600 mb-1">PASSWORD KUSTOM</label>
-          <input type="text" id="edit-password-input" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs font-mono font-bold focus:ring-2 focus:ring-teal-500 focus:border-teal-500" placeholder="Masukkan password..." />
+        <div class="space-y-3 mb-4">
+          <div>
+            <div class="flex items-center justify-between mb-1.5">
+              <label class="block text-[11px] font-bold text-slate-600 uppercase tracking-tight">Password Akses</label>
+              <button type="button" id="copy-password-btn" class="text-[10px] text-teal-600 hover:text-teal-700 font-bold flex items-center gap-1 hover:underline cursor-pointer">
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path></svg>
+                <span>Salin Password</span>
+              </button>
+            </div>
+            <input type="text" id="edit-password-input" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs font-mono font-bold focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-center tracking-wide" placeholder="Masukkan password..." />
+          </div>
+
+          <!-- Pilihan Reset & Generator -->
+          <div class="bg-slate-50 border border-slate-200/80 rounded-lg p-2.5 space-y-2">
+            <div class="text-[10px] font-bold text-slate-500 uppercase tracking-wider text-center">Pilihan Reset Password</div>
+            <div class="grid grid-cols-2 gap-2">
+              <button type="button" id="reset-default-password-btn" class="flex flex-col items-center justify-center p-2.5 bg-white hover:bg-teal-50/60 border border-slate-200 hover:border-teal-300 rounded-md transition-all text-center cursor-pointer group shadow-2xs">
+                <div class="flex items-center justify-center gap-1.5 text-xs font-bold text-slate-700 group-hover:text-teal-700 w-full">
+                  <svg class="w-3.5 h-3.5 text-teal-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                  <span>Format Awal</span>
+                </div>
+                <span class="text-[9.5px] text-slate-400 group-hover:text-slate-600 font-mono mt-0.5 truncate w-full text-center" id="reset-default-preview">rapor[NPSN]</span>
+              </button>
+
+              <button type="button" id="generate-random-password-btn" class="flex flex-col items-center justify-center p-2.5 bg-white hover:bg-indigo-50/60 border border-slate-200 hover:border-indigo-300 rounded-md transition-all text-center cursor-pointer group shadow-2xs">
+                <div class="flex items-center justify-center gap-1.5 text-xs font-bold text-slate-700 group-hover:text-indigo-700 w-full">
+                  <svg class="w-3.5 h-3.5 text-indigo-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
+                  <span>Acak Baru</span>
+                </div>
+                <span class="text-[9.5px] text-slate-400 group-hover:text-slate-600 font-mono mt-0.5 text-center w-full">Oleh Sistem</span>
+              </button>
+            </div>
+          </div>
         </div>
-        <div class="flex gap-2 justify-end">
-          <button onclick="document.getElementById('edit-password-modal').classList.remove('active')" class="px-4 py-1.5 text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors">BATAL</button>
-          <button id="save-password-btn" class="px-4 py-1.5 text-xs font-bold text-white bg-teal-600 hover:bg-teal-700 rounded-lg transition-colors shadow-sm">SIMPAN</button>
+
+        <div class="flex gap-2 justify-end pt-2 border-t border-slate-100">
+          <button onclick="document.getElementById('edit-password-modal').classList.remove('active')" class="px-4 py-1.5 text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors cursor-pointer">BATAL</button>
+          <button id="save-password-btn" class="px-4 py-1.5 text-xs font-bold text-white bg-teal-600 hover:bg-teal-700 rounded-lg transition-colors shadow-sm cursor-pointer">SIMPAN</button>
         </div>
       </div>
     </div>
@@ -1990,7 +1912,7 @@
           <span class="text-[11px] font-bold text-slate-200">Semua Fitur:</span>
           <label class="relative inline-flex items-center cursor-pointer">
             <input type="checkbox" id="floating-selected-master-toggle" class="sr-only peer" onchange="window.bulkUpdateSelectedSchools(this.checked)">
-            <div class="w-7 h-3.5 bg-slate-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[1px] after:left-[1px] after:bg-white after:border-slate-400 after:border after:rounded-full after:h-2.5 after:w-2.5 after:transition-all peer-checked:bg-teal-500"></div>
+            <div class="w-7 h-3.5 bg-slate-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-[16px] peer-checked:after:border-white after:content-[''] after:absolute after:top-[1px] after:left-[1px] after:bg-white after:border-slate-400 after:border after:rounded-full after:h-2.5 after:w-2.5 after:transition-all peer-checked:bg-teal-500"></div>
           </label>
         </div>
 
@@ -2120,18 +2042,8 @@
             }
           }
 
-          const aksesMasterContainer = document.getElementById("tab-akses-master-container");
-          if (aksesMasterContainer) {
-            if (activeTab === tabAkses) {
-              aksesMasterContainer.classList.remove("hidden");
-              aksesMasterContainer.classList.add("flex");
-              if (window.syncAksesHeaderSwitches && window.latestUniqueSchools) {
-                window.syncAksesHeaderSwitches(window.latestUniqueSchools);
-              }
-            } else {
-              aksesMasterContainer.classList.add("hidden");
-              aksesMasterContainer.classList.remove("flex");
-            }
+          if (activeTab === tabAkses && window.syncAksesHeaderSwitches && window.latestUniqueSchools) {
+            window.syncAksesHeaderSwitches(window.latestUniqueSchools);
           }
         }
 
@@ -2189,14 +2101,6 @@
           "kabupaten-kota-jenis",
           "kabupaten-kota-nama",
           "provinsi",
-          "kepsek_nama",
-          "kepsek_nip",
-          "kepsek_wa",
-          "kepsek_tgl_lahir",
-          "guru_nama",
-          "guru_nip",
-          "guru_wa",
-          "guru_tgl_lahir",
         ];
 
         const excelColumns = [
@@ -2632,7 +2536,7 @@
                             <td class="px-4 py-2 text-center font-mono text-slate-500">${school["npsn"] || "-"}</td>
                             <td class="px-4 py-2 text-center">
                                 <div class="flex flex-wrap items-center justify-center gap-1">
-                                    ${(combinedClasses.length > 0 ? combinedClasses : []).map((k) => `<div class="w-4 h-4 bg-teal-100 text-teal-800 rounded font-bold text-[9px] flex items-center justify-center shadow-sm">${k}</div>`).join("") || '<span class="text-slate-300 italic text-xs">Belum ada</span>'}
+                                    ${(combinedClasses.length > 0 ? combinedClasses : []).map((k) => `<div class="w-4 h-4 bg-teal-100 text-teal-800 rounded font-bold text-[9px] flex items-center justify-center shadow-sm">${k}</div>`).join("") || '<span class="text-slate-300 text-xs">Belum ada</span>'}
                                 </div>
                             </td>
                             <td class="px-4 py-2 text-right font-mono font-bold text-slate-700">Rp ${totalSchoolBiaya.toLocaleString("id-ID")}</td>
@@ -2658,55 +2562,37 @@
                 const isUnggahFoto = school.akses_unggah_foto !== false;
                 const isGantiLogo = school.akses_ganti_logo !== false;
                 const isTandaTanganDigital = school.akses_tanda_tangan_digital !== false;
-                const isSchoolAllOn = isPassActive && isMapelKustom && isBukuInduk && isUnggahFoto && isGantiLogo && isTandaTanganDigital;
 
                 let passContent = "";
                 if (isPassActive) {
                   const displayPass = passVal;
                   passContent = `
-                    <div class="flex items-center gap-1 shrink-0">
-                      <span class="font-mono font-bold text-slate-700 bg-slate-100 px-1.5 py-0.5 rounded text-[11px] border border-slate-200 select-all" data-tooltip="Password">${displayPass}</span>
-                      <button onclick="window.openEditPasswordModalById('${school.id}')" data-tooltip="Edit Password" class="p-1 text-teal-600 hover:bg-teal-50 rounded transition-colors border border-teal-200">
-                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
-                      </button>
-                      <button onclick="window.resetAksesPassById('${school.id}')" data-tooltip="Reset Password Otomatis" class="p-1 text-indigo-600 hover:bg-indigo-50 rounded transition-colors border border-indigo-200">
-                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-                      </button>
-                      <button onclick="window.deleteAksesPassById('${school.id}')" data-tooltip="Hapus Password" class="p-1 text-rose-600 hover:bg-rose-50 rounded transition-colors border border-rose-200">
-                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                      </button>
-                    </div>
+                    <span class="font-mono font-bold text-slate-700 text-[11px] select-all tracking-tight cursor-pointer hover:text-teal-600 transition-colors" data-tooltip="Klik untuk kelola password" onclick="window.openEditPasswordModalById('${school.id}')">${displayPass}</span>
                   `;
-                } else {
-                  passContent = `<span class="text-slate-400 italic text-[10px]">Nonaktif</span>`;
                 }
 
                 const aksesRow = document.createElement("tr");
                 aksesRow.className = "hover:bg-slate-50/70 transition-colors";
                 aksesRow.innerHTML = `
-                  <td class="px-2 py-2 text-center text-slate-400 sticky left-0 bg-white border-r border-slate-100 w-[55px]">
-                    <div class="flex items-center justify-center gap-1">
+                  <td class="px-2 py-2 text-center sticky left-0 bg-white border-r border-slate-100 w-[40px] min-w-[40px]">
+                    <div class="flex items-center justify-center">
                       <input type="checkbox" class="akses-row-checkbox rounded border-slate-300 text-teal-600 focus:ring-teal-500 cursor-pointer w-3.5 h-3.5" data-id="${school.id}" ${isSelected ? 'checked' : ''} onchange="window.handleAksesRowCheckboxChange(this, '${school.id}')">
-                      <span>${index + 1}</span>
                     </div>
                   </td>
-                  <td class="px-3 py-2 sticky left-[55px] bg-white border-r border-slate-200/80 shadow-[4px_0_12px_-4px_rgba(0,0,0,0.05)] min-w-[200px] max-w-[250px]">
-                    <div class="flex items-center justify-between gap-2">
-                      <div class="min-w-0 pr-1 truncate">
-                        <div class="font-bold text-slate-800 text-xs truncate" title="${school["nama-sekolah"] || "-"}">${school["nama-sekolah"] || "-"}</div>
-                        <div class="text-[10px] text-slate-400 font-mono">NPSN: ${school["npsn"] || "-"}</div>
-                      </div>
-                      <label class="relative inline-flex items-center cursor-pointer select-none shrink-0" data-tooltip="Saklar Master Sekolah: ${isSchoolAllOn ? 'Matikan Semua' : 'Nyalakan Semua'}">
-                        <input type="checkbox" class="sr-only peer" ${isSchoolAllOn ? 'checked' : ''} onchange="window.toggleAllAksesSingleSchool('${school.id}', this.checked)">
-                        <div class="w-7 h-3.5 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[1px] after:left-[1px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-2.5 after:w-2.5 after:transition-all peer-checked:bg-teal-600"></div>
-                      </label>
+                  <td class="px-2 py-2 text-center text-slate-400 sticky left-[40px] bg-white border-r border-slate-100 w-[45px] min-w-[45px]">
+                    ${index + 1}
+                  </td>
+                  <td class="px-3 py-2 sticky left-[85px] bg-white border-r border-slate-200/80 shadow-[4px_0_12px_-4px_rgba(0,0,0,0.05)] w-[160px] max-w-[170px]">
+                    <div class="min-w-0 pr-1 truncate">
+                      <div class="font-bold text-slate-800 text-xs truncate" title="${school["nama-sekolah"] || "-"}">${school["nama-sekolah"] || "-"}</div>
+                      <div class="text-[10px] text-slate-400 font-mono">NPSN: ${school["npsn"] || "-"}</div>
                     </div>
                   </td>
-                  <td class="px-2 py-2 text-center w-[210px]">
+                  <td class="px-2 py-2 text-center w-[140px]">
                     <div class="flex items-center justify-center gap-1.5">
-                      <label class="relative inline-flex items-center cursor-pointer select-none" data-tooltip="${isPassActive ? 'Matikan Password' : 'Aktifkan Password'}">
+                      <label class="relative inline-flex items-center cursor-pointer select-none shrink-0" data-tooltip="${isPassActive ? 'Matikan Password' : 'Aktifkan Password'}">
                         <input type="checkbox" class="sr-only peer" ${isPassActive ? "checked" : ""} onchange="window.toggleAksesPassActiveById('${school.id}', this.checked)">
-                        <div class="w-7 h-3.5 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[1px] after:left-[1px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-2.5 after:w-2.5 after:transition-all peer-checked:bg-teal-600"></div>
+                        <div class="w-7 h-3.5 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-[16px] peer-checked:after:border-white after:content-[''] after:absolute after:top-[1px] after:left-[1px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-2.5 after:w-2.5 after:transition-all peer-checked:bg-teal-600"></div>
                       </label>
                       ${passContent}
                     </div>
@@ -2714,31 +2600,31 @@
                   <td class="px-2 py-2 text-center w-[85px]">
                     <label class="relative inline-flex items-center cursor-pointer select-none" data-tooltip="${isMapelKustom ? 'Matikan Mapel Kustom' : 'Aktifkan Mapel Kustom'}">
                       <input type="checkbox" class="sr-only peer" ${isMapelKustom ? "checked" : ""} onchange="window.toggleAksesMapelKustomById('${school.id}', this.checked)">
-                      <div class="w-7 h-3.5 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[1px] after:left-[1px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-2.5 after:w-2.5 after:transition-all peer-checked:bg-teal-600"></div>
+                      <div class="w-7 h-3.5 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-[16px] peer-checked:after:border-white after:content-[''] after:absolute after:top-[1px] after:left-[1px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-2.5 after:w-2.5 after:transition-all peer-checked:bg-teal-600"></div>
                     </label>
                   </td>
                   <td class="px-2 py-2 text-center w-[95px]">
                     <label class="relative inline-flex items-center cursor-pointer select-none" data-tooltip="${isBukuInduk ? 'Matikan Buku Induk' : 'Aktifkan Buku Induk'}">
                       <input type="checkbox" class="sr-only peer" ${isBukuInduk ? "checked" : ""} onchange="window.toggleAksesBukuIndukById('${school.id}', this.checked)">
-                      <div class="w-7 h-3.5 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[1px] after:left-[1px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-2.5 after:w-2.5 after:transition-all peer-checked:bg-teal-600"></div>
+                      <div class="w-7 h-3.5 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-[16px] peer-checked:after:border-white after:content-[''] after:absolute after:top-[1px] after:left-[1px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-2.5 after:w-2.5 after:transition-all peer-checked:bg-teal-600"></div>
                     </label>
                   </td>
                   <td class="px-2 py-2 text-center w-[80px]">
                     <label class="relative inline-flex items-center cursor-pointer select-none" data-tooltip="${isUnggahFoto ? 'Matikan Unggah Foto' : 'Aktifkan Unggah Foto'}">
                       <input type="checkbox" class="sr-only peer" ${isUnggahFoto ? "checked" : ""} onchange="window.toggleAksesUnggahFotoById('${school.id}', this.checked)">
-                      <div class="w-7 h-3.5 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[1px] after:left-[1px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-2.5 after:w-2.5 after:transition-all peer-checked:bg-teal-600"></div>
+                      <div class="w-7 h-3.5 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-[16px] peer-checked:after:border-white after:content-[''] after:absolute after:top-[1px] after:left-[1px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-2.5 after:w-2.5 after:transition-all peer-checked:bg-teal-600"></div>
                     </label>
                   </td>
                   <td class="px-2 py-2 text-center w-[80px]">
                     <label class="relative inline-flex items-center cursor-pointer select-none" data-tooltip="${isGantiLogo ? 'Matikan Ganti Logo' : 'Aktifkan Ganti Logo'}">
                       <input type="checkbox" class="sr-only peer" ${isGantiLogo ? "checked" : ""} onchange="window.toggleAksesGantiLogoById('${school.id}', this.checked)">
-                      <div class="w-7 h-3.5 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[1px] after:left-[1px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-2.5 after:w-2.5 after:transition-all peer-checked:bg-teal-600"></div>
+                      <div class="w-7 h-3.5 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-[16px] peer-checked:after:border-white after:content-[''] after:absolute after:top-[1px] after:left-[1px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-2.5 after:w-2.5 after:transition-all peer-checked:bg-teal-600"></div>
                     </label>
                   </td>
                   <td class="px-2 py-2 text-center w-[95px]">
                     <label class="relative inline-flex items-center cursor-pointer select-none" data-tooltip="${isTandaTanganDigital ? 'Matikan Tanda Tangan Digital' : 'Aktifkan Tanda Tangan Digital'}">
                       <input type="checkbox" class="sr-only peer" ${isTandaTanganDigital ? "checked" : ""} onchange="window.toggleAksesTandaTanganDigitalById('${school.id}', this.checked)">
-                      <div class="w-7 h-3.5 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[1px] after:left-[1px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-2.5 after:w-2.5 after:transition-all peer-checked:bg-teal-600"></div>
+                      <div class="w-7 h-3.5 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-[16px] peer-checked:after:border-white after:content-[''] after:absolute after:top-[1px] after:left-[1px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-2.5 after:w-2.5 after:transition-all peer-checked:bg-teal-600"></div>
                     </label>
                   </td>
                 `;
@@ -3117,27 +3003,18 @@
           // Hide elements based on mode
           const dataFields = document.getElementById("data-sekolah-fields");
           const pesananFields = document.getElementById("pesanan-fields");
-          const penggunaFields = document.getElementById("pengguna-fields");
 
           if (editModeType === "data") {
             if (dataFields) dataFields.style.display = "block";
             if (pesananFields) pesananFields.style.display = "none";
-            if (penggunaFields) penggunaFields.style.display = "none";
             title.textContent = "Edit Data Profil Sekolah";
           } else if (editModeType === "pesanan") {
             if (dataFields) dataFields.style.display = "none";
             if (pesananFields) pesananFields.style.display = "block";
-            if (penggunaFields) penggunaFields.style.display = "none";
             title.textContent = "Edit Pesanan Kelas";
-          } else if (editModeType === "pengguna") {
-            if (dataFields) dataFields.style.display = "none";
-            if (pesananFields) pesananFields.style.display = "none";
-            if (penggunaFields) penggunaFields.style.display = "block";
-            title.textContent = "Edit Data Pengguna Sekolah";
           } else {
             if (dataFields) dataFields.style.display = "block";
             if (pesananFields) pesananFields.style.display = "block";
-            if (penggunaFields) penggunaFields.style.display = "block";
           }
 
           updateKelasUI();
@@ -3591,15 +3468,51 @@
         }
 
         document.getElementById("download-template-btn").onclick = () => {
-          const headers = excelColumns.map((col) => col.label);
-          const ws = XLSX.utils.aoa_to_sheet([headers]);
+          const templateCols = [
+            { id: "nama-sekolah", label: "Nama Sekolah" },
+            { id: "npsn", label: "NPSN" },
+            { id: "alamat", label: "Alamat Lengkap" },
+            { id: "desa-kelurahan-jenis", label: "Jenis Desa/Kel" },
+            { id: "desa-kelurahan-nama", label: "Nama Desa/Kel" },
+            { id: "kecamatan", label: "Kecamatan" },
+            { id: "kabupaten-kota-jenis", label: "Jenis Kab/Kota" },
+            { id: "kabupaten-kota-nama", label: "Nama Kab/Kota" },
+            { id: "provinsi", label: "Provinsi" },
+            { id: "kelas", label: "Kelas (Pisahkan koma, cth: 1, 2, 3, 4, 5, 6)" },
+          ];
+          const headers = templateCols.map((col) => col.label);
+          const sampleRow = [
+            "SD Negeri 1 Contoh",
+            "12345678",
+            "Jl. Pendidikan No. 10",
+            "Desa",
+            "Mekar Jaya",
+            "Kecamatan Contoh",
+            "Kabupaten",
+            "Serang",
+            "Banten",
+            "1, 2, 3, 4, 5, 6",
+          ];
+          const ws = XLSX.utils.aoa_to_sheet([headers, sampleRow]);
+          ws["!cols"] = [
+            { wch: 25 },
+            { wch: 14 },
+            { wch: 30 },
+            { wch: 16 },
+            { wch: 20 },
+            { wch: 20 },
+            { wch: 16 },
+            { wch: 20 },
+            { wch: 18 },
+            { wch: 45 },
+          ];
           const wb = XLSX.utils.book_new();
-          XLSX.utils.book_append_sheet(wb, ws, "Database");
+          XLSX.utils.book_append_sheet(wb, ws, "Template Sekolah");
           XLSX.writeFile(
             wb,
-            `Template Data Registrasi Aplikasi Rapor Edi Brata ${getTimestamp()}.xlsx`,
+            `Template_Impor_Sekolah_E_Rapor_${getTimestamp().replace(/[:\s]/g, "_")}.xlsx`,
           );
-          showToast("Template berhasil diunduh.");
+          showToast("Template Excel berhasil diunduh.");
         };
 
         document.getElementById("export-excel-btn").onclick = () => {
@@ -3668,16 +3581,23 @@
 
           const tabData = document.getElementById("tab-data");
           const tabAkses = document.getElementById("tab-akses");
+          const tabPengguna = document.getElementById("tab-pengguna");
           const isDataPokokActive =
             tabData && tabData.classList.contains("text-teal-600");
           const isAksesActive =
             tabAkses && tabAkses.classList.contains("text-teal-600");
+          const isPenggunaActive =
+            tabPengguna && tabPengguna.classList.contains("text-teal-600");
 
           let headers = [];
           let rows = [];
+          let sheetName = "Database";
+          let filenamePrefix = "Data_Pokok";
 
           if (isDataPokokActive) {
             // Export Data Pokok (Agregat)
+            filenamePrefix = "Data_Pokok";
+            sheetName = "Data Pokok Sekolah";
             headers = excelColumns.map((col) => col.label);
             rows = aggregatedExport.map((item) =>
               excelColumns.map((col) => {
@@ -3692,7 +3612,7 @@
                     .join("\n");
                 }
                 if (col.id === "kelas") {
-                  const uniqueKelas = Array.from(new Set(item.allKelas)).sort();
+                  const uniqueKelas = Array.from(new Set(item.allKelas)).sort((a, b) => a - b);
                   return uniqueKelas.join(", ");
                 }
                 return item[col.id] || "";
@@ -3700,6 +3620,8 @@
             );
           } else if (isAksesActive) {
             // Export Akses
+            filenamePrefix = "Hak_Akses";
+            sheetName = "Hak Akses Sekolah";
             headers = ["NO", "NAMA SEKOLAH", "NPSN", "PASSWORD AKTIF", "PASSWORD", "MAPEL KUSTOM", "BUKU INDUK", "UNGGAH FOTO", "GANTI LOGO", "TANDA TANGAN DIGITAL"];
             rows = aggregatedExport.map((item, idx) => [
               idx + 1,
@@ -3713,8 +3635,33 @@
               item.akses_ganti_logo !== false ? "ON" : "OFF",
               item.akses_tanda_tangan_digital !== false ? "ON" : "OFF"
             ]);
+          } else if (isPenggunaActive) {
+            // Export Data Pengguna
+            filenamePrefix = "Data_Pengguna";
+            sheetName = "Data Pengguna";
+            headers = ["NO", "NAMA SEKOLAH", "KECAMATAN", "KABUPATEN/KOTA", "PROVINSI", "NAMA KEPSEK", "NIP KEPSEK", "WHATSAPP KEPSEK", "TANGGAL LAHIR KEPSEK", "NAMA GURU", "NIP GURU", "WHATSAPP GURU", "TANGGAL LAHIR GURU"];
+            rows = aggregatedExport.map((school, idx) => {
+              const kabKota = (school["kabupaten-kota-jenis"] ? school["kabupaten-kota-jenis"] + " " : "") + (school["kabupaten-kota-nama"] || "");
+              return [
+                idx + 1,
+                school["nama-sekolah"] || "-",
+                school["kecamatan"] || "-",
+                kabKota || "-",
+                school["provinsi"] || "-",
+                school["kepsek_nama"] || "-",
+                school["kepsek_nip"] || "-",
+                school["kepsek_wa"] || "-",
+                school["kepsek_tgl_lahir"] || "-",
+                school["guru_nama"] || "-",
+                school["guru_nip"] || "-",
+                school["guru_wa"] || "-",
+                school["guru_tgl_lahir"] || "-"
+              ];
+            });
           } else {
             // Export Tagihan
+            filenamePrefix = "Tagihan_Pesanan";
+            sheetName = "Tagihan Pesanan";
             const tagihanCols = [
               ...excelColumns,
               { id: "jenis-pesanan", label: "Jenis Pesanan" },
@@ -3761,17 +3708,17 @@
           }
 
           const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
-          ws["!cols"] = headers.map((h) => ({ wch: 20 }));
+          ws["!cols"] = headers.map(() => ({ wch: 22 }));
           const wb = XLSX.utils.book_new();
-          XLSX.utils.book_append_sheet(wb, ws, "Database");
+          XLSX.utils.book_append_sheet(wb, ws, sheetName);
           XLSX.writeFile(
             wb,
-            `Ekspor Data ${isDataPokokActive ? "Pokok" : isAksesActive ? "Akses" : "Tagihan"} Aplikasi Rapor Edi Brata ${getTimestamp()}.xlsx`,
+            `Ekspor_${filenamePrefix}_Aplikasi_Rapor_Edi_Brata_${getTimestamp().replace(/[:\s]/g, "_")}.xlsx`,
           );
           showToast(
             selectedIds.size > 0
-              ? "Data yang dipilih berhasil diekspor."
-              : "Seluruh database berhasil diekspor.",
+              ? `${rows.length} data yang dipilih berhasil diekspor.`
+              : `Seluruh database (${rows.length} baris) berhasil diekspor.`,
           );
         };
 
@@ -3782,84 +3729,102 @@
           if (!file) return;
           const reader = new FileReader();
           reader.onload = async (evt) => {
-            const wb = XLSX.read(new Uint8Array(evt.target.result), {
-              type: "array",
-            });
-            const data = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
-            showToast(`Memulai proses impor ${data.length} baris...`);
-            for (const row of data) {
-              const item = { timestamp: Date.now() };
-              excelColumns.forEach((col) => {
-                if (col.id === "kelas") {
-                  const val = row[col.label] || row[col.id];
-                  if (typeof val === "string") {
-                    item[col.id] = val
-                      .split(",")
-                      .map((v) => parseInt(v.trim()))
-                      .filter((v) => !isNaN(v));
-                  } else if (typeof val === "number") {
-                    item[col.id] = [val];
-                  } else {
-                    item[col.id] = [];
-                  }
-                } else if (col.id !== "timestamp") {
-                  item[col.id] = row[col.label] || row[col.id] || "";
-                }
-              });
-              if (item["nama-sekolah"]) {
-                if (item.akses_password_active === undefined) item.akses_password_active = true;
-                if (!item.akses_password) item.akses_password = item["npsn"] ? 'rapor' + item["npsn"] : ('RPR' + Math.floor(1000 + Math.random() * 9000));
-                if (item.akses_mapel_kustom === undefined) item.akses_mapel_kustom = true;
-                if (item.akses_buku_induk === undefined) item.akses_buku_induk = true;
-                if (item.akses_unggah_foto === undefined) item.akses_unggah_foto = true;
-                if (item.akses_ganti_logo === undefined) item.akses_ganti_logo = true;
-                if (item.akses_tanda_tangan_digital === undefined) item.akses_tanda_tangan_digital = true;
-                await addDoc(
-                  collection(
-                    db,
-                    "artifacts",
-                    appId,
-                    "public",
-                    "data",
-                    collectionName,
-                  ),
-                  item,
-                );
-              }
-            }
-            showToast("Proses Impor Excel Berhasil!");
-            e.target.value = "";
-          };
-          reader.readAsArrayBuffer(file);
-        };
-
-        document.getElementById("backup-btn").onclick = () => {
-          const dataStr = JSON.stringify(
-            [...drafts, ...allData].map(({ id, isDraft, ...r }) => r),
-            null,
-            2,
-          );
-          const blob = new Blob([dataStr], { type: "application/json" });
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement("a");
-          a.href = url;
-          a.download = `Backup Data Registrasi Aplikasi Rapor Edi Brata ${getTimestamp()}.json`;
-          a.click();
-          showToast("File Backup JSON berhasil diunduh.");
-        };
-
-        document.getElementById("restore-btn").onclick = () =>
-          document.getElementById("json-file-input").click();
-        document.getElementById("json-file-input").onchange = (e) => {
-          const file = e.target.files[0];
-          if (!file) return;
-          const reader = new FileReader();
-          reader.onload = async (evt) => {
             try {
-              const data = JSON.parse(evt.target.result);
-              showToast(`Memulai pemulihan ${data.length} data...`);
-              for (const item of data) {
-                if (item["nama-sekolah"])
+              const wb = XLSX.read(new Uint8Array(evt.target.result), {
+                type: "array",
+              });
+              const sheet = wb.Sheets[wb.SheetNames[0]];
+              const rawData = XLSX.utils.sheet_to_json(sheet, { defval: "" });
+              if (!rawData || rawData.length === 0) {
+                showToast("File Excel kosong atau tidak terbaca.", false);
+                return;
+              }
+              showToast(`Memproses ${rawData.length} baris data Excel...`);
+
+              // Key cleaner helper
+              const cleanKey = (k) => String(k || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+
+              let successCount = 0;
+              for (const rawRow of rawData) {
+                // Map raw keys to normalized keys
+                const rowNormalized = {};
+                for (const k in rawRow) {
+                  rowNormalized[cleanKey(k)] = rawRow[k];
+                }
+
+                // Flexible value lookup
+                const findVal = (possibleKeys) => {
+                  for (const pk of possibleKeys) {
+                    const c = cleanKey(pk);
+                    if (rowNormalized[c] !== undefined && rowNormalized[c] !== null && String(rowNormalized[c]).trim() !== "") {
+                      return String(rawRow[pk] !== undefined ? rawRow[pk] : rowNormalized[c]).trim();
+                    }
+                  }
+                  return "";
+                };
+
+                const schoolName = findVal(["Nama Sekolah", "NAMA SEKOLAH", "Sekolah", "nama-sekolah", "nama_sekolah"]);
+                if (!schoolName || schoolName.toLowerCase().includes("contoh pengisian")) continue;
+
+                let npsn = findVal(["NPSN", "npsn", "Nomor Pokok Sekolah"]);
+                if (npsn && typeof npsn === "number") npsn = String(npsn);
+                if (npsn) npsn = String(npsn).replace(/\D/g, "").slice(0, 8);
+
+                const alamat = findVal(["Alamat Lengkap", "Alamat", "ALAMAT", "Jalan"]);
+                const desaJenis = findVal(["Jenis Desa/Kel", "Jenis Desa", "Desa/Kelurahan Jenis"]) || "Desa";
+                const desaNama = findVal(["Nama Desa/Kel", "Desa/Kelurahan", "Nama Desa", "Desa", "Kelurahan"]);
+                const kecamatan = findVal(["Kecamatan", "KECAMATAN", "Kec"]);
+                const kabJenis = findVal(["Jenis Kab/Kota", "Jenis Kabupaten", "Kabupaten/Kota Jenis"]) || "Kabupaten";
+                const kabNama = findVal(["Nama Kab/Kota", "Kabupaten/Kota", "Kabupaten", "Kota", "KABUPATEN/KOTA"]);
+                const provinsi = findVal(["Provinsi", "PROVINSI", "Propinsi"]);
+
+                // Parse kelas
+                const kelasRaw = findVal(["Kelas", "KELAS", "Daftar Kelas", "Pesanan Kelas"]);
+                let parsedKelas = [];
+                if (kelasRaw) {
+                  const parts = String(kelasRaw).split(/[,\s+]+/);
+                  parts.forEach(p => {
+                    const num = parseInt(p.trim(), 10);
+                    if (!isNaN(num) && num >= 1 && num <= 12 && !parsedKelas.includes(num)) {
+                      parsedKelas.push(num);
+                    }
+                  });
+                  parsedKelas.sort((a, b) => a - b);
+                }
+
+                const item = {
+                  timestamp: Date.now(),
+                  "nama-sekolah": schoolName,
+                  "npsn": npsn || "",
+                  "alamat": alamat || "",
+                  "desa-kelurahan-jenis": desaJenis,
+                  "desa-kelurahan-nama": desaNama || "",
+                  "kecamatan": kecamatan || "",
+                  "kabupaten-kota-jenis": kabJenis,
+                  "kabupaten-kota-nama": kabNama || "",
+                  "provinsi": provinsi || "",
+                  "kelas": parsedKelas,
+                  "jenis-pesanan": "pesanan_baru",
+                  "sekolah-gratis": false,
+                  "akses_password_active": true,
+                  "akses_password": npsn ? 'rapor' + npsn : ('RPR' + Math.floor(1000 + Math.random() * 9000)),
+                  "akses_mapel_kustom": true,
+                  "akses_buku_induk": true,
+                  "akses_unggah_foto": true,
+                  "akses_ganti_logo": true,
+                  "akses_tanda_tangan_digital": true,
+                  "kepsek_nama": findVal(["Nama Kepsek", "NAMA KEPSEK", "Kepala Sekolah"]),
+                  "kepsek_nip": findVal(["NIP Kepsek", "NIP KEPSEK"]),
+                  "kepsek_wa": findVal(["WhatsApp Kepsek", "WA Kepsek", "WHATSAPP KEPSEK"]),
+                  "kepsek_tgl_lahir": findVal(["Tanggal Lahir Kepsek", "TGL LAHIR KEPSEK"]),
+                  "guru_nama": findVal(["Nama Guru", "NAMA GURU"]),
+                  "guru_nip": findVal(["NIP Guru", "NIP GURU"]),
+                  "guru_wa": findVal(["WhatsApp Guru", "WA Guru", "WHATSAPP GURU"]),
+                  "guru_tgl_lahir": findVal(["Tanggal Lahir Guru", "TGL LAHIR GURU"])
+                };
+
+                let savedToCloud = false;
+                try {
                   await addDoc(
                     collection(
                       db,
@@ -3871,10 +3836,147 @@
                     ),
                     item,
                   );
+                  savedToCloud = true;
+                } catch(dbErr) {
+                  console.warn("Cloud save failed, falling back to local draft:", dbErr);
+                }
+
+                if (!savedToCloud) {
+                  item.id = "draft-" + Date.now() + "-" + Math.random().toString(36).substr(2, 5);
+                  item.isDraft = true;
+                  drafts.unshift(item);
+                }
+                successCount++;
               }
-              showToast("Proses Restorasi Selesai!");
+
+              if (drafts.length > 0) {
+                try {
+                  localStorage.setItem("aplikasi-rapor-drafts", JSON.stringify(drafts));
+                } catch(e) {}
+              }
+              refreshFilterAndRender();
+              showToast(`Berhasil mengimpor ${successCount} data sekolah!`);
             } catch (err) {
-              showToast("Gagal! File JSON tidak valid.", false);
+              console.error("Import error:", err);
+              showToast("Gagal mengimpor file Excel: " + (err.message || "Format tidak sesuai"), false);
+            }
+            e.target.value = "";
+          };
+          reader.readAsArrayBuffer(file);
+        };
+
+        document.getElementById("backup-btn").onclick = () => {
+          const expData = [...drafts, ...allData];
+          if (expData.length === 0) {
+            return showToast("Tidak ada data untuk dicadangkan.", false);
+          }
+          const cleanData = expData.map(({ id, isDraft, ...r }) => ({
+            ...r,
+            akses_password_active: r.akses_password_active !== undefined ? r.akses_password_active : true,
+            akses_password: r.akses_password || (r.npsn ? 'rapor' + r.npsn : 'rapor123'),
+            akses_mapel_kustom: r.akses_mapel_kustom !== undefined ? r.akses_mapel_kustom : true,
+            akses_buku_induk: r.akses_buku_induk !== undefined ? r.akses_buku_induk : true,
+            akses_unggah_foto: r.akses_unggah_foto !== undefined ? r.akses_unggah_foto : true,
+            akses_ganti_logo: r.akses_ganti_logo !== undefined ? r.akses_ganti_logo : true,
+            akses_tanda_tangan_digital: r.akses_tanda_tangan_digital !== undefined ? r.akses_tanda_tangan_digital : true
+          }));
+
+          const backupPayload = {
+            app: "Aplikasi Rapor Edi Brata",
+            version: "2.0",
+            backup_date: new Date().toISOString(),
+            total_schools: cleanData.length,
+            schools: cleanData
+          };
+
+          const dataStr = JSON.stringify(backupPayload, null, 2);
+          const blob = new Blob([dataStr], { type: "application/json" });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = `Backup_Data_Registrasi_Aplikasi_Rapor_${getTimestamp().replace(/[:\s]/g, "_")}.json`;
+          a.click();
+          showToast(`File Backup JSON (${cleanData.length} sekolah) berhasil diunduh.`);
+        };
+
+        document.getElementById("restore-btn").onclick = () =>
+          document.getElementById("json-file-input").click();
+        document.getElementById("json-file-input").onchange = (e) => {
+          const file = e.target.files[0];
+          if (!file) return;
+          const reader = new FileReader();
+          reader.onload = async (evt) => {
+            try {
+              const parsed = JSON.parse(evt.target.result);
+              let items = [];
+              if (Array.isArray(parsed)) {
+                items = parsed;
+              } else if (parsed && Array.isArray(parsed.schools)) {
+                items = parsed.schools;
+              } else if (parsed && Array.isArray(parsed.data)) {
+                items = parsed.data;
+              } else {
+                throw new Error("Struktur JSON tidak mengandung array data sekolah.");
+              }
+
+              if (items.length === 0) {
+                showToast("File JSON tidak berisi data sekolah.", false);
+                return;
+              }
+
+              showToast(`Memulai pemulihan ${items.length} data sekolah...`);
+              let restoredCount = 0;
+              for (const rawItem of items) {
+                if (!rawItem || !rawItem["nama-sekolah"]) continue;
+                const npsn = rawItem["npsn"] ? String(rawItem["npsn"]).trim() : "";
+                const item = {
+                  ...rawItem,
+                  timestamp: rawItem.timestamp || Date.now(),
+                  akses_password_active: rawItem.akses_password_active !== undefined ? rawItem.akses_password_active : true,
+                  akses_password: rawItem.akses_password || (npsn ? 'rapor' + npsn : ('RPR' + Math.floor(1000 + Math.random() * 9000))),
+                  akses_mapel_kustom: rawItem.akses_mapel_kustom !== undefined ? rawItem.akses_mapel_kustom : true,
+                  akses_buku_induk: rawItem.akses_buku_induk !== undefined ? rawItem.akses_buku_induk : true,
+                  akses_unggah_foto: rawItem.akses_unggah_foto !== undefined ? rawItem.akses_unggah_foto : true,
+                  akses_ganti_logo: rawItem.akses_ganti_logo !== undefined ? rawItem.akses_ganti_logo : true,
+                  akses_tanda_tangan_digital: rawItem.akses_tanda_tangan_digital !== undefined ? rawItem.akses_tanda_tangan_digital : true
+                };
+
+                let savedToCloud = false;
+                try {
+                  await addDoc(
+                    collection(
+                      db,
+                      "artifacts",
+                      appId,
+                      "public",
+                      "data",
+                      collectionName,
+                    ),
+                    item,
+                  );
+                  savedToCloud = true;
+                } catch(dbErr) {
+                  console.warn("Cloud restore failed, saving to local draft:", dbErr);
+                }
+
+                if (!savedToCloud) {
+                  item.id = "draft-" + Date.now() + "-" + Math.random().toString(36).substr(2, 5);
+                  item.isDraft = true;
+                  drafts.unshift(item);
+                }
+                restoredCount++;
+              }
+
+              if (drafts.length > 0) {
+                try {
+                  localStorage.setItem("aplikasi-rapor-drafts", JSON.stringify(drafts));
+                } catch(e) {}
+              }
+              refreshFilterAndRender();
+              showToast(`Proses Restorasi Selesai! ${restoredCount} data berhasil dipulihkan.`);
+            } catch (err) {
+              console.error("Restore JSON error:", err);
+              showToast("Gagal memulihkan! File JSON tidak valid atau rusak.", false);
             }
             e.target.value = "";
           };
@@ -3929,9 +4031,50 @@
           if (!school) return;
           document.getElementById("edit-password-doc-id").value = id;
           document.getElementById("edit-password-school-name").textContent = school["nama-sekolah"] || "-";
-          document.getElementById("edit-password-input").value = school.akses_password || (school["npsn"] ? 'rapor' + school["npsn"] : "rapor123");
+          const defaultFormula = school["npsn"] ? 'rapor' + school["npsn"] : "rapor123";
+          const previewEl = document.getElementById("reset-default-preview");
+          if (previewEl) previewEl.textContent = defaultFormula;
+
+          document.getElementById("edit-password-input").value = school.akses_password || defaultFormula;
           document.getElementById("edit-password-modal").classList.add("active");
+          setTimeout(() => {
+            const input = document.getElementById("edit-password-input");
+            if (input) { input.focus(); input.select(); }
+          }, 80);
         };
+
+        const copyPassBtn = document.getElementById("copy-password-btn");
+        if (copyPassBtn) {
+          copyPassBtn.onclick = () => {
+            const pass = document.getElementById("edit-password-input").value.trim();
+            if (!pass) return showToast("Password kosong.", false);
+            navigator.clipboard.writeText(pass).then(() => {
+              showToast("Password berhasil disalin!");
+            }).catch(() => {
+              showToast("Password: " + pass);
+            });
+          };
+        }
+
+        const resetDefaultBtn = document.getElementById("reset-default-password-btn");
+        if (resetDefaultBtn) {
+          resetDefaultBtn.onclick = () => {
+            const id = document.getElementById("edit-password-doc-id").value;
+            const school = findSchoolById(id);
+            const defaultPass = school && school["npsn"] ? 'rapor' + school["npsn"] : "rapor123";
+            document.getElementById("edit-password-input").value = defaultPass;
+            showToast("Password diisi formula awal: " + defaultPass);
+          };
+        }
+
+        const genRandomBtn = document.getElementById("generate-random-password-btn");
+        if (genRandomBtn) {
+          genRandomBtn.onclick = () => {
+            const randomCode = 'RPR-' + Math.floor(1000 + Math.random() * 9000);
+            document.getElementById("edit-password-input").value = randomCode;
+            showToast("Password acak baru dibuat oleh sistem: " + randomCode);
+          };
+        }
 
         const savePassBtn = document.getElementById("save-password-btn");
         if (savePassBtn) {
@@ -3952,12 +4095,13 @@
         }
 
         window.resetAksesPassById = async (id) => {
-          const newPass = 'RPR' + Math.floor(1000 + Math.random() * 9000);
+          const school = findSchoolById(id);
+          const newPass = school && school["npsn"] ? 'rapor' + school["npsn"] : ('RPR' + Math.floor(1000 + Math.random() * 9000));
           await updateSchoolAksesData(id, {
             akses_password: newPass,
             akses_password_active: true
           });
-          showToast(`Password di-reset otomatis: ${newPass}`);
+          showToast(`Password di-reset ke: ${newPass}`);
         };
 
         window.deleteAksesPassById = async (id) => {
