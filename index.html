@@ -1016,6 +1016,7 @@
                 <th class="px-4 py-3 text-center min-w-[140px]">BUKU INDUK</th>
                 <th class="px-4 py-3 text-center min-w-[140px]">UNGGAH FOTO</th>
                 <th class="px-4 py-3 text-center min-w-[140px]">GANTI LOGO</th>
+                <th class="px-4 py-3 text-center min-w-[170px]">TANDA TANGAN DIGITAL</th>
               </tr>
             </thead>
             <tbody
@@ -2511,6 +2512,7 @@
                 const isBukuInduk = Boolean(school.akses_buku_induk);
                 const isUnggahFoto = Boolean(school.akses_unggah_foto);
                 const isGantiLogo = Boolean(school.akses_ganti_logo);
+                const isTandaTanganDigital = Boolean(school.akses_tanda_tangan_digital);
 
                 let passContent = "";
                 if (isPassActive) {
@@ -2590,6 +2592,13 @@
                       <input type="checkbox" class="sr-only peer" ${isGantiLogo ? "checked" : ""} onchange="window.toggleAksesGantiLogoById('${school.id}', this.checked)">
                       <div class="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-teal-600"></div>
                       <span class="ml-2 text-[11px] font-bold ${isGantiLogo ? 'text-teal-700' : 'text-slate-400'}">${isGantiLogo ? 'ON' : 'OFF'}</span>
+                    </label>
+                  </td>
+                  <td class="px-4 py-2.5 text-center">
+                    <label class="relative inline-flex items-center cursor-pointer select-none">
+                      <input type="checkbox" class="sr-only peer" ${isTandaTanganDigital ? "checked" : ""} onchange="window.toggleAksesTandaTanganDigitalById('${school.id}', this.checked)">
+                      <div class="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-teal-600"></div>
+                      <span class="ml-2 text-[11px] font-bold ${isTandaTanganDigital ? 'text-teal-700' : 'text-slate-400'}">${isTandaTanganDigital ? 'ON' : 'OFF'}</span>
                     </label>
                   </td>
                 `;
@@ -3799,6 +3808,13 @@
             akses_ganti_logo: isChecked
           });
           showToast(isChecked ? "Ganti Logo diaktifkan" : "Ganti Logo dinonaktifkan");
+        };
+
+        window.toggleAksesTandaTanganDigitalById = async (id, isChecked) => {
+          await updateSchoolAksesData(id, {
+            akses_tanda_tangan_digital: isChecked
+          });
+          showToast(isChecked ? "Tanda Tangan Digital diaktifkan" : "Tanda Tangan Digital dinonaktifkan");
         };
       }
     </script>
