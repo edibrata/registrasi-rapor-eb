@@ -1038,7 +1038,7 @@
                   <span>NAMA SEKOLAH</span>
                 </th>
                 <th class="px-2 py-2.5 text-center w-[140px]">
-                  <div class="flex items-center justify-center gap-1.5 cursor-pointer" data-tooltip="Saklar Password seluruh sekolah">
+                  <div class="flex items-center justify-center gap-1.5 cursor-pointer" data-tooltip="Semua Saklar Password">
                     <span>PASSWORD</span>
                     <label class="relative inline-flex items-center cursor-pointer">
                       <input type="checkbox" id="header-switch-password" class="sr-only peer" onchange="window.handleHeaderColumnToggle('akses_password_active', this.checked, 'Password')">
@@ -1047,7 +1047,7 @@
                   </div>
                 </th>
                 <th class="px-2 py-2.5 text-center min-w-[130px]">
-                  <div class="flex items-center justify-center gap-1.5 cursor-pointer" data-tooltip="Saklar Mapel Kustom seluruh sekolah">
+                  <div class="flex items-center justify-center gap-1.5 cursor-pointer" data-tooltip="Semua Saklar Mapel">
                     <span>MAPEL</span>
                     <label class="relative inline-flex items-center cursor-pointer">
                       <input type="checkbox" id="header-switch-mapel" class="sr-only peer" onchange="window.handleHeaderColumnToggle('akses_mapel_kustom', this.checked, 'Mapel Kustom')">
@@ -1056,7 +1056,7 @@
                   </div>
                 </th>
                 <th class="px-2 py-2.5 text-center min-w-[145px]">
-                  <div class="flex items-center justify-center gap-1.5 cursor-pointer" data-tooltip="Saklar Buku Induk seluruh sekolah">
+                  <div class="flex items-center justify-center gap-1.5 cursor-pointer" data-tooltip="Semua Saklar Buku Induk">
                     <span>BUKU INDUK</span>
                     <label class="relative inline-flex items-center cursor-pointer">
                       <input type="checkbox" id="header-switch-buku-induk" class="sr-only peer" onchange="window.handleHeaderColumnToggle('akses_buku_induk', this.checked, 'Buku Induk')">
@@ -1065,7 +1065,7 @@
                   </div>
                 </th>
                 <th class="px-2 py-2.5 text-center min-w-[130px]">
-                  <div class="flex items-center justify-center gap-1.5 cursor-pointer" data-tooltip="Saklar Unggah Foto seluruh sekolah">
+                  <div class="flex items-center justify-center gap-1.5 cursor-pointer" data-tooltip="Semua Saklar Foto">
                     <span>FOTO</span>
                     <label class="relative inline-flex items-center cursor-pointer">
                       <input type="checkbox" id="header-switch-foto" class="sr-only peer" onchange="window.handleHeaderColumnToggle('akses_unggah_foto', this.checked, 'Unggah Foto')">
@@ -1074,7 +1074,7 @@
                   </div>
                 </th>
                 <th class="px-2 py-2.5 text-center min-w-[130px]">
-                  <div class="flex items-center justify-center gap-1.5 cursor-pointer" data-tooltip="Saklar Ganti Logo seluruh sekolah">
+                  <div class="flex items-center justify-center gap-1.5 cursor-pointer" data-tooltip="Semua Saklar Logo">
                     <span>LOGO</span>
                     <label class="relative inline-flex items-center cursor-pointer">
                       <input type="checkbox" id="header-switch-logo" class="sr-only peer" onchange="window.handleHeaderColumnToggle('akses_ganti_logo', this.checked, 'Ganti Logo')">
@@ -1083,7 +1083,7 @@
                   </div>
                 </th>
                 <th class="px-2 py-2.5 text-center min-w-[130px]">
-                  <div class="flex items-center justify-center gap-1.5 cursor-pointer" data-tooltip="Saklar Tanda Tangan seluruh sekolah">
+                  <div class="flex items-center justify-center gap-1.5 cursor-pointer" data-tooltip="Semua Saklar TTD">
                     <span>TTD</span>
                     <label class="relative inline-flex items-center cursor-pointer">
                       <input type="checkbox" id="header-switch-ttd" class="sr-only peer" onchange="window.handleHeaderColumnToggle('akses_tanda_tangan_digital', this.checked, 'Tanda Tangan Digital')">
@@ -2635,13 +2635,20 @@
               uniqueSchools.forEach((school, index) => {
                 const isSelected = window.selectedAksesSchoolIds.has(school.id);
                 const isPassActive = school.akses_password_active !== false;
-                const passVal = school.akses_password || (school["npsn"] ? "rapor" + school["npsn"] : "rapor123");
 
                 let passContent = "";
                 if (isPassActive) {
-                  const displayPass = passVal;
                   passContent = `
-                    <span class="font-mono font-bold text-slate-700 text-[11px] select-all tracking-tight cursor-pointer hover:text-teal-600 transition-colors" data-tooltip="Klik untuk kelola password" onclick="window.openEditPasswordModalById('${school.id}')">${displayPass}</span>
+                    <button type="button" onclick="window.openEditPasswordModalById('${school.id}')" class="px-1.5 py-0.5 rounded text-[9.5px] font-bold border transition-colors cursor-pointer flex items-center justify-center gap-1 min-w-[46px] h-[20px] bg-teal-50 text-teal-700 border-teal-200 hover:bg-teal-100 active:scale-95" data-tooltip="Kelola Password">
+                      <span class="tracking-wider text-[9px] leading-none select-none">•••</span>
+                      <svg class="w-2.5 h-2.5 opacity-60 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                    </button>
+                  `;
+                } else {
+                  passContent = `
+                    <button type="button" onclick="window.openEditPasswordModalById('${school.id}')" class="px-1.5 py-0.5 rounded text-[9.5px] font-bold border transition-colors cursor-pointer flex items-center justify-center gap-1 min-w-[46px] h-[20px] bg-slate-100 text-slate-400 border-slate-200 hover:bg-slate-200 active:scale-95" data-tooltip="Password Nonaktif">
+                      <span>OFF</span>
+                    </button>
                   `;
                 }
 
@@ -2653,17 +2660,16 @@
                   const badgeClass = !isEnabled 
                     ? 'bg-slate-100 text-slate-400 border-slate-200 hover:bg-slate-200' 
                     : 'bg-teal-50 text-teal-700 border-teal-200 hover:bg-teal-100';
-                  const tooltip = isEnabled ? `Aktif untuk Kelas: ${acc.classes.join(', ')}` : 'Nonaktif';
 
                   return `
                     <div class="flex items-center justify-center gap-1.5">
-                      <label class="relative inline-flex items-center cursor-pointer select-none shrink-0" data-tooltip="${isEnabled ? 'Matikan fitur untuk sekolah ini' : 'Aktifkan fitur'}">
+                      <label class="relative inline-flex items-center cursor-pointer select-none shrink-0" data-tooltip="${isEnabled ? 'Matikan Fitur' : 'Aktifkan Fitur'}">
                         <input type="checkbox" class="sr-only peer" ${isEnabled ? "checked" : ""} onchange="window.toggleAksesFeatureMaster('${school.id}', '${featKey}', this.checked)">
                         <div class="w-7 h-3.5 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-[16px] peer-checked:after:border-white after:content-[''] after:absolute after:top-[1px] after:left-[1px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-2.5 after:w-2.5 after:transition-all peer-checked:bg-teal-600"></div>
                       </label>
-                      <button type="button" onclick="window.openAksesClassMatrixModal('${school.id}', '${featKey}')" class="px-1.5 py-0.5 rounded text-[9.5px] font-bold border transition-colors cursor-pointer flex items-center gap-1 ${badgeClass} active:scale-95" data-tooltip="${tooltip} (Atur per kelas)">
+                      <button type="button" onclick="window.openAksesClassMatrixModal('${school.id}', '${featKey}')" class="px-1.5 py-0.5 rounded text-[9.5px] font-bold border transition-colors cursor-pointer flex items-center justify-center gap-1 min-w-[46px] h-[20px] ${badgeClass} active:scale-95" data-tooltip="${isEnabled ? 'Kelas ' + acc.classes.join(', ') : 'Fitur Nonaktif'}">
                         <span>${badgeText}</span>
-                        <svg class="w-2.5 h-2.5 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
+                        <svg class="w-2.5 h-2.5 opacity-60 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
                       </button>
                     </div>
                   `;
@@ -4540,7 +4546,7 @@
                     </div>
                   </div>
 
-                  <!-- Quick Action Preset Icons (Hanya Pesanan & Semua) -->
+                  <!-- Quick Action Preset Icons (Hanya Pesanan & Semua & Saklar ON/OFF) -->
                   <div class="flex items-center gap-1.5 shrink-0 pl-0 sm:pl-3 border-t sm:border-t-0 sm:border-l border-slate-200 pt-2 sm:pt-0 w-full sm:w-auto justify-end">
                     <button
                       type="button"
@@ -4558,6 +4564,17 @@
                     >
                       <svg class="w-4 h-4 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                     </button>
+                    <button
+                      type="button"
+                      onclick="window.toggleAllMatrixFeaturesMaster()"
+                      class="w-8 h-8 rounded-lg ${isRowEnabled ? 'bg-teal-600 hover:bg-teal-700 text-white border-teal-600 shadow-sm' : 'bg-white hover:bg-slate-100 text-slate-400 border-slate-200 shadow-2xs hover:shadow-xs'} border transition-all cursor-pointer flex items-center justify-center select-none"
+                      data-tooltip="${isRowEnabled ? 'Matikan Saklar Fitur' : 'Aktifkan Saklar Fitur'}"
+                    >
+                      <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <rect x="2" y="6" width="20" height="12" rx="6" stroke-width="2"></rect>
+                        <circle cx="${isRowEnabled ? '16' : '8'}" cy="12" r="3" fill="currentColor"></circle>
+                      </svg>
+                    </button>
                   </div>
                 </div>
               </div>
@@ -4566,6 +4583,11 @@
           }
 
           // --- 2. FULL MATRIX MODE (5 FEATURES TABLE) ---
+          const isAllMasterActive = AKSES_FEATURES.every(f => {
+            const st = window.tempMatrixState[f.key];
+            return st && st.enabled;
+          });
+
           dynamicContainer.innerHTML = `
             <!-- Info Kelas Pesanan Bar & Global Preset Buttons -->
             <div class="flex items-center justify-between bg-slate-50/90 px-3 py-1.5 rounded-xl border border-slate-200/80 mb-2.5 gap-3">
@@ -4591,6 +4613,17 @@
                   data-tooltip="Semua (1-6)"
                 >
                   <svg class="w-3.5 h-3.5 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                </button>
+                <button
+                  type="button"
+                  onclick="window.toggleAllMatrixFeaturesMaster()"
+                  class="w-7 h-7 rounded-lg ${isAllMasterActive ? 'bg-teal-600 hover:bg-teal-700 text-white border-teal-600 shadow-sm' : 'bg-white hover:bg-slate-100 text-slate-400 border-slate-200 shadow-2xs hover:shadow-xs'} border transition-all cursor-pointer flex items-center justify-center select-none"
+                  data-tooltip="${isAllMasterActive ? 'Matikan Semua Saklar' : 'Aktifkan Semua Saklar'}"
+                >
+                  <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <rect x="2" y="6" width="20" height="12" rx="6" stroke-width="2"></rect>
+                    <circle cx="${isAllMasterActive ? '16' : '8'}" cy="12" r="3" fill="currentColor"></circle>
+                  </svg>
                 </button>
               </div>
             </div>
@@ -4741,6 +4774,35 @@
               window.tempMatrixState[feat.key] = { enabled: true, classes: [1, 2, 3, 4, 5, 6] };
             } else if (presetType === 'none') {
               window.tempMatrixState[feat.key] = { enabled: false, classes: [] };
+            }
+          });
+          window.renderMatrixModalBody();
+        };
+
+        window.toggleAllMatrixFeaturesMaster = () => {
+          const schoolId = document.getElementById("matrix-school-id").value;
+          const school = findSchoolById(schoolId);
+          const ordered = getSchoolOrderedClasses(school);
+
+          const targetFeatures = window.currentMatrixFocusKey 
+            ? AKSES_FEATURES.filter(f => f.key === window.currentMatrixFocusKey)
+            : AKSES_FEATURES;
+
+          const isAllActive = targetFeatures.every(f => {
+            const st = window.tempMatrixState[f.key];
+            return st && st.enabled;
+          });
+
+          const nextState = !isAllActive;
+
+          targetFeatures.forEach(feat => {
+            if (!window.tempMatrixState[feat.key]) {
+              window.tempMatrixState[feat.key] = { enabled: nextState, classes: nextState ? [...ordered] : [] };
+            } else {
+              window.tempMatrixState[feat.key].enabled = nextState;
+              if (nextState && (!window.tempMatrixState[feat.key].classes || window.tempMatrixState[feat.key].classes.length === 0)) {
+                window.tempMatrixState[feat.key].classes = (ordered && ordered.length > 0) ? [...ordered] : [1, 2, 3, 4, 5, 6];
+              }
             }
           });
           window.renderMatrixModalBody();
