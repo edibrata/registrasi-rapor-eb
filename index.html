@@ -309,25 +309,29 @@
       }
       #toast-notification {
         position: fixed;
-        bottom: 20px;
+        bottom: 24px;
         left: 50%;
-        transform: translateX(-50%);
-        padding: 12px 24px;
-        border-radius: 8px;
+        transform: translateX(-50%) translateY(20px);
+        padding: 10px 22px;
+        border-radius: 12px;
         color: white;
         font-weight: 600;
-        z-index: 6000;
+        font-size: 13px;
+        z-index: 999998 !important;
         opacity: 0;
         visibility: hidden;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        pointer-events: none;
+        transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
         max-width: 90%;
         text-align: center;
-        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.25), 0 8px 10px -6px rgba(0, 0, 0, 0.25);
+        border: 1px solid rgba(255, 255, 255, 0.18);
       }
       #toast-notification.show {
         opacity: 1;
         visibility: visible;
-        transform: translateX(-50%) translateY(-10px);
+        transform: translateX(-50%) translateY(0);
+        pointer-events: auto;
       }
 
       .table-wrapper {
@@ -503,14 +507,14 @@
       .modal-overlay {
         position: fixed;
         inset: 0;
-        background: rgba(15, 23, 42, 0.6);
+        background: rgba(15, 23, 42, 0.65);
         display: flex;
         align-items: center;
         justify-content: center;
-        z-index: 4000;
+        z-index: 90000;
         opacity: 0;
         visibility: hidden;
-        transition: all 0.3s ease;
+        transition: all 0.25s ease;
         backdrop-filter: blur(4px);
       }
       .modal-overlay.active {
@@ -543,7 +547,7 @@
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        z-index: 9999;
+        z-index: 92000;
         font-weight: bold;
         color: #4f46e5;
         backdrop-filter: blur(8px);
@@ -832,14 +836,14 @@
           <button
             id="tab-akses"
             class="pb-3 text-sm font-bold border-b-[3px] border-transparent text-slate-500 hover:text-teal-700 transition-colors whitespace-nowrap cursor-pointer"
-            data-tooltip="Buka Hak Akses Fitur"
+            data-tooltip="Hak Akses"
           >
             Akses
           </button>
           <button
             id="tab-pengguna"
             class="pb-3 text-sm font-bold border-b-[3px] border-transparent text-slate-500 hover:text-teal-700 transition-colors flex items-center gap-1.5 whitespace-nowrap cursor-pointer"
-            data-tooltip="Buka Data Pengguna (Kepsek & Guru)"
+            data-tooltip="Data Pengguna"
           >
             <span>Data Pengguna</span>
           </button>
@@ -857,28 +861,28 @@
               type="date"
               id="filter-tagihan-start"
               class="w-full sm:w-auto text-xs font-medium py-1 px-1.5 hover:bg-slate-50 focus:bg-slate-50 rounded outline-none text-slate-600 transition-all font-mono cursor-pointer"
-              data-tooltip="Tanggal Awal Periode"
+              data-tooltip="Tanggal Awal"
             />
             <span class="text-slate-300 font-bold text-xs">-</span>
             <input
               type="date"
               id="filter-tagihan-end"
               class="w-full sm:w-auto text-xs font-medium py-1 px-1.5 hover:bg-slate-50 focus:bg-slate-50 rounded outline-none text-slate-600 transition-all font-mono cursor-pointer"
-              data-tooltip="Tanggal Akhir Periode"
+              data-tooltip="Tanggal Akhir"
             />
           </div>
           <div class="flex items-center gap-1.5 w-full sm:w-auto justify-center sm:justify-end">
             <button
               id="btn-filter-tagihan"
               class="bg-teal-600 hover:bg-teal-700 text-white p-1.5 rounded-lg transition-all shadow-sm flex items-center justify-center h-[28px] w-[28px] cursor-pointer active:scale-95"
-              data-tooltip="Terapkan Filter Periode"
+              data-tooltip="Terapkan Filter"
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
             </button>
             <button
               id="btn-reset-tagihan"
               class="bg-slate-50 hover:bg-slate-100 text-slate-600 p-1.5 rounded-lg border border-slate-200/60 transition-all shadow-sm h-[28px] w-[28px] flex items-center justify-center cursor-pointer active:scale-95"
-              data-tooltip="Reset Filter Periode"
+              data-tooltip="Reset Filter"
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
             </button>
@@ -1123,7 +1127,7 @@
             <button
               id="export-pengguna-excel-btn"
               class="flex items-center gap-1.5 px-3.5 py-1.5 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white rounded-lg text-xs font-bold shadow-md hover:shadow-teal-300 transition-all cursor-pointer border border-teal-500 active:scale-95"
-              data-tooltip="Ekspor Data Pengguna ke Excel (.xlsx)"
+              data-tooltip="Ekspor Pengguna (Excel)"
             >
               <svg viewBox="0 0 24 24" stroke="currentColor" class="w-4 h-4">
                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
@@ -1290,7 +1294,7 @@
           <button
             onclick="openActionModalObj(window.currentEditId, 'data')"
             class="group flex items-center p-3 sm:p-4 text-left bg-slate-50 border border-slate-200 rounded-xl hover:border-teal-400 hover:shadow-md transition-all cursor-pointer active:scale-98"
-            data-tooltip="Edit Identitas & Alamat Sekolah"
+            data-tooltip="Edit Profil Sekolah"
           >
             <div
               class="w-8 h-8 rounded bg-white text-slate-400 flex items-center justify-center mr-3 sm:mr-4 group-hover:text-teal-600 group-hover:bg-teal-50"
@@ -1323,7 +1327,7 @@
           <button
             onclick="openActionModalObj(window.currentEditId, 'pesanan')"
             class="group flex items-center p-3 sm:p-4 text-left bg-slate-50 border border-slate-200 rounded-xl hover:border-teal-400 hover:shadow-md transition-all cursor-pointer active:scale-98"
-            data-tooltip="Edit Pilihan Kelas Rapor"
+            data-tooltip="Edit Pesanan Kelas"
           >
             <div
               class="w-8 h-8 rounded bg-white text-slate-400 flex items-center justify-center mr-3 sm:mr-4 group-hover:text-teal-600 group-hover:bg-teal-50"
@@ -1423,7 +1427,7 @@
     </div>
 
     <!-- Modal Confirm -->
-    <div id="confirm-modal" class="modal-overlay" style="z-index: 99999">
+    <div id="confirm-modal" class="modal-overlay" style="z-index: 95000">
       <div class="modal-content max-w-sm shadow-2xl border border-slate-200">
         <div class="p-6 text-center">
           <div
@@ -1841,7 +1845,7 @@
             <button
               id="save-draft-btn"
               class="hidden bg-[#fef3c7] text-[#b45309] border border-[#fde68a] hover:bg-[#fde68a] text-[11.5px] font-bold px-5 py-2 rounded-xl transition-all shadow-xs flex-1 sm:flex-none cursor-pointer active:scale-95"
-              data-tooltip="Simpan Sementara sebagai Draft"
+              data-tooltip="Simpan Draft"
             >
               DRAFT
             </button>
@@ -1888,7 +1892,7 @@
           <div>
             <div class="flex items-center justify-between mb-1.5">
               <label class="block text-[11px] font-bold text-slate-600 uppercase tracking-tight">Password Akses</label>
-              <button type="button" id="copy-password-btn" class="text-[10px] text-teal-600 hover:text-teal-700 font-bold flex items-center gap-1 hover:underline cursor-pointer" data-tooltip="Salin Password ke Papan Klip">
+              <button type="button" id="copy-password-btn" class="text-[10px] text-teal-600 hover:text-teal-700 font-bold flex items-center gap-1 hover:underline cursor-pointer" data-tooltip="Salin Password">
                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path></svg>
                 <span>Salin Password</span>
               </button>
@@ -1900,7 +1904,7 @@
           <div class="bg-slate-50 border border-slate-200/80 rounded-lg p-2.5 space-y-2">
             <div class="text-[10px] font-bold text-slate-500 uppercase tracking-wider text-center">Pilihan Reset Password</div>
             <div class="grid grid-cols-2 gap-2">
-              <button type="button" id="reset-default-password-btn" class="flex flex-col items-center justify-center p-2.5 bg-white hover:bg-teal-50/60 border border-slate-200 hover:border-teal-300 rounded-md transition-all text-center cursor-pointer group shadow-2xs active:scale-95" data-tooltip="Gunakan Formula: rapor[NPSN]">
+              <button type="button" id="reset-default-password-btn" class="flex flex-col items-center justify-center p-2.5 bg-white hover:bg-teal-50/60 border border-slate-200 hover:border-teal-300 rounded-md transition-all text-center cursor-pointer group shadow-2xs active:scale-95" data-tooltip="Format: rapor[NPSN]">
                 <div class="flex items-center justify-center gap-1.5 text-xs font-bold text-slate-700 group-hover:text-teal-700 w-full">
                   <svg class="w-3.5 h-3.5 text-teal-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
                   <span>Format Awal</span>
@@ -1908,7 +1912,7 @@
                 <span class="text-[9.5px] text-slate-400 group-hover:text-slate-600 font-mono mt-0.5 truncate w-full text-center" id="reset-default-preview">rapor[NPSN]</span>
               </button>
 
-              <button type="button" id="generate-random-password-btn" class="flex flex-col items-center justify-center p-2.5 bg-white hover:bg-indigo-50/60 border border-slate-200 hover:border-indigo-300 rounded-md transition-all text-center cursor-pointer group shadow-2xs active:scale-95" data-tooltip="Buat Password Acak Baru">
+              <button type="button" id="generate-random-password-btn" class="flex flex-col items-center justify-center p-2.5 bg-white hover:bg-indigo-50/60 border border-slate-200 hover:border-indigo-300 rounded-md transition-all text-center cursor-pointer group shadow-2xs active:scale-95" data-tooltip="Password Acak Baru">
                 <div class="flex items-center justify-center gap-1.5 text-xs font-bold text-slate-700 group-hover:text-indigo-700 w-full">
                   <svg class="w-3.5 h-3.5 text-indigo-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
                   <span>Acak Baru</span>
@@ -2011,7 +2015,7 @@
 
       <div class="flex items-center gap-3">
         <!-- Master Switch for Selected Schools -->
-        <div class="inline-flex items-center gap-2 bg-slate-800/90 px-3 py-1.5 rounded-xl border border-slate-700/60 select-none cursor-pointer" data-tooltip="Nyalakan / Matikan semua fitur untuk sekolah yang dicentang">
+        <div class="inline-flex items-center gap-2 bg-slate-800/90 px-3 py-1.5 rounded-xl border border-slate-700/60 select-none cursor-pointer" data-tooltip="Saklar Sekolah Terpilih">
           <span class="text-[11px] font-bold text-slate-200">Semua Fitur:</span>
           <label class="relative inline-flex items-center cursor-pointer">
             <input type="checkbox" id="floating-selected-master-toggle" class="sr-only peer" onchange="window.bulkUpdateSelectedSchools(this.checked)">
@@ -2237,11 +2241,16 @@
         }
 
         const toast = document.getElementById("toast-notification");
+        let toastTimeout = null;
         function showToast(message, isSuccess = true) {
+          if (!toast) return;
+          if (toastTimeout) clearTimeout(toastTimeout);
           toast.innerHTML = message;
           toast.className =
-            "show " + (isSuccess ? "bg-teal-600" : "bg-rose-600");
-          setTimeout(() => toast.classList.remove("show"), 3000);
+            "show " + (isSuccess ? "bg-teal-600 shadow-teal-900/30" : "bg-rose-600 shadow-rose-900/30");
+          toastTimeout = setTimeout(() => {
+            if (toast) toast.classList.remove("show");
+          }, 3000);
         }
 
         function getTimestamp() {
