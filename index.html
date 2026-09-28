@@ -24,12 +24,18 @@
         const supabaseUrl = 'https://tnzceffjxostkwyellwf.supabase.co';
         const supabaseKey = 'sb_publishable_b0Myq0XAqdiUj-Dzb-pHBQ_9LAmpsVE';
         if (window.supabase) {
-          supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
-        } else {
-          console.error("Supabase script failed to load. window.supabase is undefined.");
+          supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey, {
+            realtime: {
+              params: {
+                eventsPerSecond: 10
+              },
+              timeout: 30000,
+              heartbeatIntervalMs: 15000,
+            }
+          });
         }
       } catch (e) {
-        console.error("Supabase init error:", e);
+        console.warn("Supabase init info:", e);
       }
 
       const appId = typeof __app_id !== "undefined" ? __app_id : "aplikasirapor-App";
@@ -201,31 +207,59 @@
                }
             });
             return docsData;
-        }
+        };
 
-        supabaseClient.from(q).select('*').then(({ data, error }) => {
-          if (error) {
-             console.error("Supabase select error:", error);
+        const fetchLatestData = async () => {
+          try {
+            const { data, error } = await supabaseClient.from(q).select('*');
+            if (!error && data) {
+              callback({ docs: processData(data) });
+            }
+          } catch(err) {
+            // silent catch for transient fetch errors
           }
-          if (!error && data) {
-            callback({ docs: processData(data) });
-          }
-        }).catch(err => console.error("Supabase select uncaught:", err));
+        };
 
-        const channel = supabaseClient.channel('table-db-changes')
-          .on('postgres_changes', { event: '*', schema: 'public', table: q }, payload => {
-            supabaseClient.from(q).select('*').then(({ data, error }) => {
-              if (error) console.error("Supabase realtime error:", error);
-              if (!error && data) {
-                callback({ docs: processData(data) });
+        // Initial fetch
+        fetchLatestData();
+
+        // Realtime channel with resilient handling
+        let channel = null;
+        try {
+          const channelName = 'table-db-' + Math.random().toString(36).substring(2, 7);
+          channel = supabaseClient.channel(channelName)
+            .on('postgres_changes', { event: '*', schema: 'public', table: q }, () => {
+              fetchLatestData();
+            })
+            .subscribe((status) => {
+              if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
+                // Fetch via HTTP when websocket state changes
+                fetchLatestData();
               }
             });
-          })
-          .subscribe((status, err) => {
-            if (err) console.error("Supabase subscribe error:", status, err);
-          });
+        } catch(e) {
+          // fallback if websocket channel fails
+        }
 
-        return () => supabaseClient.removeChannel(channel);
+        // Automatic polling fallback every 8 seconds and on window focus/visibility
+        const pollInterval = setInterval(fetchLatestData, 8000);
+        const onFocus = () => fetchLatestData();
+        window.addEventListener('focus', onFocus);
+        const onVisibilityChange = () => {
+          if (document.visibilityState === 'visible') fetchLatestData();
+        };
+        document.addEventListener('visibilitychange', onVisibilityChange);
+
+        return () => {
+          clearInterval(pollInterval);
+          window.removeEventListener('focus', onFocus);
+          document.removeEventListener('visibilitychange', onVisibilityChange);
+          if (channel && supabaseClient) {
+            try {
+              supabaseClient.removeChannel(channel);
+            } catch(e) {}
+          }
+        };
       }
 
       function serverTimestamp() {
@@ -307,21 +341,28 @@
       }
       table {
         width: 100%;
-        border-collapse: separate;
-        border-spacing: 0;
+        border-collapse: separate !important;
+        border-spacing: 0 !important;
         font-size: 0.7rem;
       }
 
+      /* Sticky Architecture: Level 1 - Header Sticky Top Only */
+      thead th {
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        background-color: #f8fafc;
+      }
       thead th.main-header {
         position: sticky;
         top: 0;
-        z-index: 30;
+        z-index: 20;
         background-color: #f8fafc;
         height: 40px;
         padding: 0 0.6rem;
         font-weight: 700;
         color: #374151;
-        border-bottom: 1px solid #e5e7eb;
+        border-bottom: 1px solid #e2e8f0;
         white-space: nowrap;
         cursor: pointer;
         user-select: none;
@@ -330,6 +371,40 @@
       }
       thead th.main-header:hover {
         background-color: #e2e8f0;
+      }
+
+      /* Sticky Architecture: Level 2 - Body Sticky Left Columns */
+      tbody td[class*="sticky"] {
+        position: sticky;
+        z-index: 20;
+        background-color: #ffffff;
+      }
+
+      /* Sticky Architecture: Level 3 - Corner Intersection (Sticky Top & Left) */
+      thead th[class*="sticky"][class*="left"] {
+        position: sticky;
+        top: 0;
+        z-index: 40 !important;
+        background-color: #f8fafc !important;
+      }
+      thead th[class*="sticky"][class*="left"]:hover {
+        background-color: #e2e8f0 !important;
+      }
+
+      /* Mobile & Tablet Responsive: Release sticky left columns so they don't block the screen */
+      @media (max-width: 1024px) {
+        thead th[class*="sticky"][class*="left"] {
+          position: sticky !important;
+          top: 0 !important;
+          left: auto !important;
+          z-index: 20 !important;
+          box-shadow: none !important;
+        }
+        tbody td[class*="sticky"] {
+          position: static !important;
+          left: auto !important;
+          box-shadow: none !important;
+        }
       }
 
       td {
@@ -450,7 +525,7 @@
         max-height: 90dvh;
         overflow-y: auto;
         overflow-x: hidden;
-        border-radius: 1rem;
+        border-radius: 1.25rem;
         padding: 1.5rem;
         transform: scale(0.95) translateY(10px);
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -474,117 +549,60 @@
         backdrop-filter: blur(8px);
       }
 
-      .tooltip-container {
-        position: relative;
-        display: inline-block;
-      }
-      .tooltip-text {
-        visibility: hidden;
-        width: max-content;
-        background-color: #1e293b;
-        color: #fff;
-        text-align: center;
-        border-radius: 6px;
-        padding: 6px 12px;
-        position: absolute;
-        z-index: 100;
-        bottom: 130%;
-        left: 50%;
-        transform: translateX(-50%) translateY(10px);
-        opacity: 0;
-        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        font-size: 10px;
-        pointer-events: none;
-        white-space: nowrap;
-        box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
-        font-weight: 600;
-        letter-spacing: 0.025em;
-      }
-      .tooltip-container:hover .tooltip-text {
-        visibility: visible;
-        opacity: 1;
-        transform: translateX(-50%) translateY(0);
+      /* Global SVG Baseline */
+      svg {
+        fill: none;
+        stroke: currentColor;
+        stroke-linecap: round;
+        stroke-linejoin: round;
       }
 
+      /* Icon Buttons (Pixel-Perfect Toolbar) */
       .icon-btn {
         width: 38px;
         height: 38px;
         display: flex;
         align-items: center;
         justify-content: center;
-        border-radius: 10px;
-        transition: all 0.2s;
-        position: relative;
-        overflow: hidden;
+        border-radius: 11px;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        cursor: pointer;
+        user-select: none;
+        flex-shrink: 0;
       }
-      .icon-btn::after {
-        content: "";
-        position: absolute;
-        inset: 0;
-        background: white;
-        opacity: 0;
-        transition: opacity 0.2s;
-      }
-      .icon-btn:hover::after {
-        opacity: 0.15;
+      .icon-btn:hover {
+        box-shadow: 0 4px 8px -2px rgba(0, 0, 0, 0.15);
       }
       .icon-btn:active {
-        transform: scale(0.92);
+        transform: scale(0.93);
       }
 
-      svg {
-        stroke-width: 2.2;
-        stroke-linecap: round;
-        stroke-linejoin: round;
-        fill: none;
-        width: 18px;
-        height: 18px;
-        transition: stroke 0.2s;
+      /* Global Interactive Cursor & Hover Animation */
+      button,
+      [role="button"],
+      input[type="checkbox"],
+      input[type="radio"],
+      select,
+      a,
+      .cursor-pointer,
+      [data-tooltip] {
+        cursor: pointer !important;
       }
-      .icon-btn:hover svg {
-        transform: scale(1.1);
-        transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      button,
+      .kelas-btn,
+      .icon-btn,
+      [role="button"],
+      .hover-lift {
+        transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
       }
-
-      input[type="checkbox"] {
-        width: 14px;
-        height: 14px;
-        cursor: pointer;
-        accent-color: #4f46e5;
-        transition: transform 0.1s;
+      button:active,
+      .kelas-btn:active,
+      .icon-btn:active {
+        transform: scale(0.96);
       }
-      input[type="checkbox"]:hover {
-        transform: scale(1.1);
-      }
-      input[type="checkbox"]:active {
-        transform: scale(0.9);
-      }
-
-      .animate-fade-in {
-        animation: fadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      }
-      @keyframes fadeIn {
-        from {
-          opacity: 0;
-          transform: translateY(-10px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
-      }
-
-      /* Tombol Aksi */
-      button {
-        transition: all 0.2s;
-      }
-      button:hover {
+      .icon-btn:hover {
         transform: translateY(-1px);
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-      }
-      button:active {
-        transform: translateY(1px);
-        box-shadow: none;
+        filter: brightness(1.05);
       }
     </style>
   </head>
@@ -662,22 +680,22 @@
           <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto items-center justify-center">
             <div class="relative w-full sm:w-56 group">
               <div
-                class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-teal-500 transition-colors"
+                class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-teal-500 transition-colors pointer-events-none"
               >
-                <svg viewBox="0 0 24 24" stroke="currentColor" class="w-4 h-4">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4">
                   <circle cx="11" cy="11" r="8"></circle>
                   <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                 </svg>
               </div>
               <input
-                type="search"
+                type="text"
                 id="search-input"
                 placeholder="Cari Data..."
                 class="shadow-sm placeholder:text-slate-400 w-full"
               />
             </div>
             <div class="w-full sm:w-40 relative group">
-              <select id="filter-status" class="shadow-sm w-full">
+              <select id="filter-status" class="shadow-sm w-full font-semibold text-slate-700">
                 <option value="all">Semua Status</option>
                 <option value="valid">Data Valid</option>
                 <option value="draft">Hanya Draft</option>
@@ -685,64 +703,42 @@
             </div>
           </div>
 
-          <div class="flex flex-wrap gap-1.5 items-center justify-center">
-            <div class="tooltip-container">
-              <button
-                id="add-school-btn"
-                class="icon-btn bg-gradient-to-br from-teal-600 to-teal-700 text-white shadow-md border border-teal-500 hover:shadow-teal-300"
-              >
-                <svg viewBox="0 0 24 24" stroke="currentColor">
-                  <line x1="12" y1="5" x2="12" y2="19"></line>
-                  <line x1="5" y1="12" x2="19" y2="12"></line>
-                </svg>
-              </button>
-              <span class="tooltip-text">Tambah Data Sekolah</span>
-            </div>
+          <div class="flex items-center gap-1.5 flex-wrap sm:flex-nowrap shrink-0">
+            <button
+              id="add-school-btn"
+              class="icon-btn bg-[#00897b] hover:bg-[#00796b] text-white shadow-sm border border-[#00796b]"
+              data-tooltip="Tambah Data Sekolah"
+            >
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+              </svg>
+            </button>
 
-            <div class="tooltip-container">
-              <button
-                id="download-template-btn"
-                class="icon-btn bg-teal-50 text-teal-600 border border-teal-200"
-              >
-                <svg viewBox="0 0 24 24" stroke="currentColor">
-                  <path
-                    d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
-                  ></path>
-                  <polyline points="14 2 14 8 20 8"></polyline>
-                  <line x1="12" y1="18" x2="12" y2="12"></line>
-                  <line x1="9" y1="15" x2="15" y2="15"></line>
-                </svg>
-              </button>
-              <span class="tooltip-text">Download Template Excel</span>
-            </div>
+            <button
+              id="download-template-btn"
+              class="icon-btn bg-[#e6fcf5] hover:bg-[#c3fae8] text-[#0ca678] border border-[#a7f3d0] shadow-2xs hover:shadow-xs"
+              data-tooltip="Download Template Excel"
+            >
+              <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+                <line x1="12" y1="18" x2="12" y2="12"></line>
+                <line x1="9" y1="15" x2="15" y2="15"></line>
+              </svg>
+            </button>
 
-            <div class="tooltip-container">
-              <button
-                id="export-excel-btn"
-                class="icon-btn bg-gradient-to-br from-teal-600 to-teal-700 text-white shadow-sm border border-teal-500"
-              >
-                <svg viewBox="0 0 24 24" stroke="currentColor">
-                  <path d="M12 15V3"></path>
-                  <path d="m8 7 4-4 4 4"></path>
-                  <path d="M5 20h14"></path>
-                </svg>
-              </button>
-              <span class="tooltip-text">Ekspor ke Excel</span>
-            </div>
-
-            <div class="tooltip-container">
-              <button
-                id="import-excel-btn"
-                class="icon-btn bg-gradient-to-br from-teal-500 to-teal-600 text-white shadow-sm border border-teal-400"
-              >
-                <svg viewBox="0 0 24 24" stroke="currentColor">
-                  <path d="M12 3v12"></path>
-                  <path d="m8 11 4 4 4-4"></path>
-                  <path d="M5 20h14"></path>
-                </svg>
-              </button>
-              <span class="tooltip-text">Impor dari Excel</span>
-            </div>
+            <button
+              id="import-excel-btn"
+              class="icon-btn bg-[#00897b] hover:bg-[#00796b] text-white shadow-sm border border-[#00796b]"
+              data-tooltip="Impor dari Excel"
+            >
+              <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                <path d="M12 3v12"></path>
+                <path d="m8 7 4-4 4 4"></path>
+                <path d="M5 20h14"></path>
+              </svg>
+            </button>
             <input
               type="file"
               id="excel-file-input"
@@ -750,39 +746,43 @@
               accept=".xlsx, .xls"
             />
 
+            <button
+              id="export-excel-btn"
+              class="icon-btn bg-[#009688] hover:bg-[#00897b] text-white shadow-sm border border-[#00897b]"
+              data-tooltip="Ekspor ke Excel"
+            >
+              <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                <path d="M12 15V3"></path>
+                <path d="m8 11 4 4 4-4"></path>
+                <path d="M5 20h14"></path>
+              </svg>
+            </button>
+
             <div class="h-6 w-px bg-slate-200 mx-1"></div>
 
-            <div class="tooltip-container">
-              <button
-                id="backup-btn"
-                class="icon-btn bg-gradient-to-br from-slate-700 to-slate-800 text-white shadow-sm border border-slate-600"
-              >
-                <svg viewBox="0 0 24 24" stroke="currentColor">
-                  <path
-                    d="M4.393 15.269A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.436 8.284"
-                  ></path>
-                  <path d="M12 13v8"></path>
-                  <path d="m8 17 4 4 4-4"></path>
-                </svg>
-              </button>
-              <span class="tooltip-text">Backup Cloud (JSON)</span>
-            </div>
+            <button
+              id="backup-btn"
+              class="icon-btn bg-[#1e293b] hover:bg-[#0f172a] text-white shadow-sm border border-[#334155]"
+              data-tooltip="Backup Cloud (JSON)"
+            >
+              <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                <path d="M4.393 15.269A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.436 8.284"></path>
+                <path d="M12 13v8"></path>
+                <path d="m8 17 4 4 4-4"></path>
+              </svg>
+            </button>
 
-            <div class="tooltip-container">
-              <button
-                id="restore-btn"
-                class="icon-btn bg-slate-50 text-slate-700 border border-slate-300"
-              >
-                <svg viewBox="0 0 24 24" stroke="currentColor">
-                  <path
-                    d="M4.393 15.269A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.436 8.284"
-                  ></path>
-                  <path d="M12 12v9"></path>
-                  <path d="m16 16-4-4-4 4"></path>
-                </svg>
-              </button>
-              <span class="tooltip-text">Restore Cloud (JSON)</span>
-            </div>
+            <button
+              id="restore-btn"
+              class="icon-btn bg-white hover:bg-slate-50 text-[#1e293b] border border-[#cbd5e1] shadow-2xs hover:shadow-xs"
+              data-tooltip="Restore Cloud (JSON)"
+            >
+              <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                <path d="M4.393 15.269A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.436 8.284"></path>
+                <path d="M12 12v9"></path>
+                <path d="m16 16-4-4-4 4"></path>
+              </svg>
+            </button>
             <input
               type="file"
               id="json-file-input"
@@ -795,22 +795,18 @@
               class="hidden flex items-center animate-fade-in group"
             >
               <div class="h-6 w-px bg-slate-200 mx-1"></div>
-              <div class="tooltip-container">
-                <button
-                  id="delete-selected-btn"
-                  class="icon-btn bg-gradient-to-br from-red-500 to-red-600 text-white shadow-md border border-red-500 hover:shadow-red-300"
-                >
-                  <svg viewBox="0 0 24 24" stroke="currentColor">
-                    <polyline points="3 6 5 6 21 6"></polyline>
-                    <path
-                      d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
-                    ></path>
-                    <line x1="10" y1="11" x2="10" y2="17"></line>
-                    <line x1="14" y1="11" x2="14" y2="17"></line>
-                  </svg>
-                </button>
-                <span class="tooltip-text">Hapus Data Terpilih</span>
-              </div>
+              <button
+                id="delete-selected-btn"
+                class="icon-btn bg-rose-600 hover:bg-rose-700 text-white shadow-sm border border-rose-500"
+                data-tooltip="Hapus Data Terpilih"
+              >
+                <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                  <polyline points="3 6 5 6 21 6"></polyline>
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                  <line x1="10" y1="11" x2="10" y2="17"></line>
+                  <line x1="14" y1="11" x2="14" y2="17"></line>
+                </svg>
+              </button>
             </div>
           </div>
         </div>
@@ -821,25 +817,29 @@
         <div class="flex items-center gap-4 sm:gap-6 overflow-x-auto custom-scrollbar no-scrollbar py-1 w-full sm:w-auto">
           <button
             id="tab-data"
-            class="pb-3 text-sm font-bold border-b-[3px] border-teal-500 text-teal-600 transition-colors whitespace-nowrap cursor-pointer"
+            class="pb-3 text-sm font-bold border-b-[3px] border-teal-500 text-teal-600 transition-colors whitespace-nowrap cursor-pointer hover:text-teal-700"
+            data-tooltip="Buka Data Pokok"
           >
             Data Pokok
           </button>
           <button
             id="tab-tagihan"
-            class="pb-3 text-sm font-bold border-b-[3px] border-transparent text-slate-500 hover:text-slate-700 transition-colors whitespace-nowrap cursor-pointer"
+            class="pb-3 text-sm font-bold border-b-[3px] border-transparent text-slate-500 hover:text-teal-700 transition-colors whitespace-nowrap cursor-pointer"
+            data-tooltip="Buka Pesanan & Tagihan"
           >
             Pesanan & Tagihan
           </button>
           <button
             id="tab-akses"
-            class="pb-3 text-sm font-bold border-b-[3px] border-transparent text-slate-500 hover:text-slate-700 transition-colors whitespace-nowrap cursor-pointer"
+            class="pb-3 text-sm font-bold border-b-[3px] border-transparent text-slate-500 hover:text-teal-700 transition-colors whitespace-nowrap cursor-pointer"
+            data-tooltip="Buka Hak Akses Fitur"
           >
             Akses
           </button>
           <button
             id="tab-pengguna"
-            class="pb-3 text-sm font-bold border-b-[3px] border-transparent text-slate-500 hover:text-slate-700 transition-colors flex items-center gap-1.5 whitespace-nowrap cursor-pointer"
+            class="pb-3 text-sm font-bold border-b-[3px] border-transparent text-slate-500 hover:text-teal-700 transition-colors flex items-center gap-1.5 whitespace-nowrap cursor-pointer"
+            data-tooltip="Buka Data Pengguna (Kepsek & Guru)"
           >
             <span>Data Pengguna</span>
           </button>
@@ -856,27 +856,29 @@
             <input
               type="date"
               id="filter-tagihan-start"
-              class="w-full sm:w-auto text-xs font-medium py-1 px-1.5 hover:bg-slate-50 focus:bg-slate-50 rounded outline-none text-slate-600 transition-all font-mono"
+              class="w-full sm:w-auto text-xs font-medium py-1 px-1.5 hover:bg-slate-50 focus:bg-slate-50 rounded outline-none text-slate-600 transition-all font-mono cursor-pointer"
+              data-tooltip="Tanggal Awal Periode"
             />
             <span class="text-slate-300 font-bold text-xs">-</span>
             <input
               type="date"
               id="filter-tagihan-end"
-              class="w-full sm:w-auto text-xs font-medium py-1 px-1.5 hover:bg-slate-50 focus:bg-slate-50 rounded outline-none text-slate-600 transition-all font-mono"
+              class="w-full sm:w-auto text-xs font-medium py-1 px-1.5 hover:bg-slate-50 focus:bg-slate-50 rounded outline-none text-slate-600 transition-all font-mono cursor-pointer"
+              data-tooltip="Tanggal Akhir Periode"
             />
           </div>
           <div class="flex items-center gap-1.5 w-full sm:w-auto justify-center sm:justify-end">
             <button
               id="btn-filter-tagihan"
-              title="Terapkan"
-              class="group relative bg-teal-600 hover:bg-teal-700 text-white p-1.5 rounded-lg transition-colors shadow-sm flex items-center justify-center h-[28px] w-[28px] cursor-pointer"
+              class="bg-teal-600 hover:bg-teal-700 text-white p-1.5 rounded-lg transition-all shadow-sm flex items-center justify-center h-[28px] w-[28px] cursor-pointer active:scale-95"
+              data-tooltip="Terapkan Filter Periode"
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
             </button>
             <button
               id="btn-reset-tagihan"
-              title="Reset"
-              class="group relative bg-slate-50 hover:bg-slate-100 text-slate-600 p-1.5 rounded-lg border border-slate-200/60 transition-colors shadow-sm h-[28px] w-[28px] flex items-center justify-center cursor-pointer"
+              class="bg-slate-50 hover:bg-slate-100 text-slate-600 p-1.5 rounded-lg border border-slate-200/60 transition-all shadow-sm h-[28px] w-[28px] flex items-center justify-center cursor-pointer active:scale-95"
+              data-tooltip="Reset Filter Periode"
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
             </button>
@@ -887,48 +889,50 @@
       <!-- Wadah Tabel Data Pokok -->
       <div id="view-data" class="table-wrapper shadow-sm ring-1 ring-slate-200">
         <table id="main-table">
-          <thead class="bg-slate-50/80 backdrop-blur-sm text-center">
+          <thead class="bg-slate-50 border-b border-slate-200 text-center">
             <tr>
-              <th width="35" class="main-header text-center sticky left-0 z-30 bg-slate-50 border-r border-slate-100 w-[35px] min-w-[35px]">
-                <input type="checkbox" id="select-all-checkbox" />
+              <th class="main-header text-center sticky left-0 z-40 bg-slate-50 border-r border-slate-200 w-[35px] min-w-[35px] max-w-[35px]">
+                <input type="checkbox" id="select-all-checkbox" class="cursor-pointer" data-tooltip="Pilih Semua Baris" />
               </th>
-              <th width="45" class="main-header text-center sticky left-[35px] z-30 bg-slate-50 border-r border-slate-100 w-[45px] min-w-[45px]" data-sort="id">
+              <th class="main-header text-center sticky left-[35px] z-40 bg-slate-50 border-r border-slate-200 w-[45px] min-w-[45px] max-w-[45px] cursor-pointer" data-sort="id" data-tooltip="Urutkan Nomor">
                 NO
               </th>
               <th
-                width="140"
-                class="main-header text-center sticky left-[80px] z-30 bg-slate-50 border-r border-slate-100 w-[140px] min-w-[140px]"
+                class="main-header text-center sticky left-[80px] z-40 bg-slate-50 border-r border-slate-200 w-[140px] min-w-[140px] max-w-[140px] cursor-pointer"
                 data-sort="timestamp"
+                data-tooltip="Urutkan Waktu Registrasi"
               >
                 TIMESTAMP
               </th>
-              <th class="main-header text-center sticky left-[220px] z-30 bg-slate-50 border-r border-slate-200/80 shadow-[4px_0_12px_-4px_rgba(0,0,0,0.08)] w-[200px] min-w-[200px]" data-sort="nama-sekolah">NAMA SEKOLAH</th>
-              <th width="100" class="main-header text-center min-w-[100px]" data-sort="npsn">
+              <th class="main-header text-center sticky left-[220px] z-40 bg-slate-50 border-r border-slate-200 shadow-[4px_0_12px_-4px_rgba(0,0,0,0.12)] w-[220px] min-w-[220px] max-w-[220px] cursor-pointer" data-sort="nama-sekolah" data-tooltip="Urutkan Nama Sekolah">NAMA SEKOLAH</th>
+              <th width="100" class="main-header text-center min-w-[100px] cursor-pointer" data-sort="npsn" data-tooltip="Urutkan NPSN">
                 NPSN
               </th>
-              <th class="main-header text-center min-w-[180px]" data-sort="alamat">ALAMAT LENGKAP</th>
+              <th class="main-header text-center min-w-[180px] cursor-pointer" data-sort="alamat" data-tooltip="Urutkan Alamat">ALAMAT LENGKAP</th>
               <th
                 width="110"
-                class="main-header text-center min-w-[110px]"
+                class="main-header text-center min-w-[110px] cursor-pointer"
                 data-sort="desa-kelurahan-jenis"
+                data-tooltip="Urutkan Jenis Wilayah"
               >
                 JENIS WILAYAH
               </th>
-              <th class="main-header text-center min-w-[130px]" data-sort="desa-kelurahan-nama">
+              <th class="main-header text-center min-w-[130px] cursor-pointer" data-sort="desa-kelurahan-nama" data-tooltip="Urutkan Desa/Kelurahan">
                 NAMA DESA/KEL.
               </th>
-              <th class="main-header text-center min-w-[130px]" data-sort="kecamatan">KECAMATAN</th>
+              <th class="main-header text-center min-w-[130px] cursor-pointer" data-sort="kecamatan" data-tooltip="Urutkan Kecamatan">KECAMATAN</th>
               <th
                 width="110"
-                class="main-header text-center min-w-[110px]"
+                class="main-header text-center min-w-[110px] cursor-pointer"
                 data-sort="kabupaten-kota-jenis"
+                data-tooltip="Urutkan Tipe Daerah"
               >
                 TIPE DAERAH
               </th>
-              <th class="main-header text-center min-w-[140px]" data-sort="kabupaten-kota-nama">
+              <th class="main-header text-center min-w-[140px] cursor-pointer" data-sort="kabupaten-kota-nama" data-tooltip="Urutkan Kabupaten/Kota">
                 NAMA KAB./KOTA
               </th>
-              <th class="main-header text-center min-w-[120px]" data-sort="provinsi">PROVINSI</th>
+              <th class="main-header text-center min-w-[120px] cursor-pointer" data-sort="provinsi" data-tooltip="Urutkan Provinsi">PROVINSI</th>
             </tr>
           </thead>
           <tbody id="table-body">
@@ -945,24 +949,25 @@
           style="max-height: 60vh"
         >
           <table
-            class="w-full text-left text-sm border-collapse whitespace-nowrap min-w-max"
+            class="w-full text-left text-sm whitespace-nowrap min-w-max"
+            style="border-collapse: separate; border-spacing: 0;"
           >
             <thead
-              class="bg-slate-50 border-b border-slate-200/60 text-[10px] text-slate-500 font-bold uppercase tracking-wider sticky top-0 z-20 text-center"
+              class="bg-slate-50 border-b border-slate-200 text-[10px] text-slate-500 font-bold uppercase tracking-wider sticky top-0 z-20 text-center"
             >
               <tr>
                 <th
-                  class="px-3 py-3 text-center sticky left-0 z-30 bg-slate-50 border-r border-slate-200 w-[50px] min-w-[50px]"
+                  class="px-3 py-3 text-center sticky left-0 z-40 bg-slate-50 border-r border-slate-200 w-[50px] min-w-[50px] max-w-[50px]"
                 >
                   NO
                 </th>
                 <th
-                  class="px-3 py-3 text-center sticky left-[50px] z-30 bg-slate-50 border-r border-slate-200 w-[150px] min-w-[150px] whitespace-nowrap"
+                  class="px-3 py-3 text-center sticky left-[50px] z-40 bg-slate-50 border-r border-slate-200 w-[150px] min-w-[150px] max-w-[150px] whitespace-nowrap"
                 >
                   TRANSAKSI
                 </th>
                 <th
-                  class="px-3 py-3 text-center sticky left-[200px] z-30 bg-slate-50 border-r border-slate-200 shadow-[4px_0_12px_-4px_rgba(0,0,0,0.08)] w-[220px] min-w-[220px]"
+                  class="px-3 py-3 text-center sticky left-[200px] z-40 bg-slate-50 border-r border-slate-200 shadow-[4px_0_12px_-4px_rgba(0,0,0,0.12)] w-[220px] min-w-[220px] max-w-[220px]"
                 >
                   NAMA SEKOLAH
                 </th>
@@ -1002,14 +1007,15 @@
           style="max-height: 65vh"
         >
           <table
-            class="w-full text-left text-xs border-collapse whitespace-nowrap"
+            class="w-full text-left text-xs whitespace-nowrap"
+            style="border-collapse: separate; border-spacing: 0;"
           >
             <thead
-              class="bg-slate-50 border-b border-slate-200/60 text-[10px] text-slate-500 font-bold uppercase tracking-wider sticky top-0 z-20 select-none text-center"
+              class="bg-slate-50 border-b border-slate-200 text-[10px] text-slate-500 font-bold uppercase tracking-wider sticky top-0 z-20 select-none text-center"
             >
               <tr>
                 <th
-                  class="px-2 py-2.5 text-center sticky left-0 z-30 bg-slate-50 border-r border-slate-100 w-[40px] min-w-[40px]"
+                  class="px-2 py-2.5 text-center sticky left-0 z-40 bg-slate-50 border-r border-slate-200 w-[40px] min-w-[40px] max-w-[40px]"
                 >
                   <div class="flex items-center justify-center">
                     <input
@@ -1022,12 +1028,12 @@
                   </div>
                 </th>
                 <th
-                  class="px-2 py-2.5 text-center sticky left-[40px] z-30 bg-slate-50 border-r border-slate-100 w-[45px] min-w-[45px]"
+                  class="px-2 py-2.5 text-center sticky left-[40px] z-40 bg-slate-50 border-r border-slate-200 w-[45px] min-w-[45px] max-w-[45px]"
                 >
                   <span>NO</span>
                 </th>
                 <th
-                  class="px-3 py-2.5 text-center sticky left-[85px] z-30 bg-slate-50 border-r border-slate-200/80 shadow-[4px_0_12px_-4px_rgba(0,0,0,0.08)] w-[175px] min-w-[175px]"
+                  class="px-3 py-2.5 text-center sticky left-[85px] z-40 bg-slate-50 border-r border-slate-200 shadow-[4px_0_12px_-4px_rgba(0,0,0,0.12)] w-[190px] min-w-[190px] max-w-[190px]"
                 >
                   <span>NAMA SEKOLAH</span>
                 </th>
@@ -1040,7 +1046,7 @@
                     </label>
                   </div>
                 </th>
-                <th class="px-2 py-2.5 text-center w-[85px]">
+                <th class="px-2 py-2.5 text-center min-w-[130px]">
                   <div class="flex items-center justify-center gap-1.5 cursor-pointer" data-tooltip="Saklar Mapel Kustom seluruh sekolah">
                     <span>MAPEL</span>
                     <label class="relative inline-flex items-center cursor-pointer">
@@ -1049,7 +1055,7 @@
                     </label>
                   </div>
                 </th>
-                <th class="px-2 py-2.5 text-center w-[95px]">
+                <th class="px-2 py-2.5 text-center min-w-[145px]">
                   <div class="flex items-center justify-center gap-1.5 cursor-pointer" data-tooltip="Saklar Buku Induk seluruh sekolah">
                     <span>BUKU INDUK</span>
                     <label class="relative inline-flex items-center cursor-pointer">
@@ -1058,7 +1064,7 @@
                     </label>
                   </div>
                 </th>
-                <th class="px-2 py-2.5 text-center w-[80px]">
+                <th class="px-2 py-2.5 text-center min-w-[130px]">
                   <div class="flex items-center justify-center gap-1.5 cursor-pointer" data-tooltip="Saklar Unggah Foto seluruh sekolah">
                     <span>FOTO</span>
                     <label class="relative inline-flex items-center cursor-pointer">
@@ -1067,7 +1073,7 @@
                     </label>
                   </div>
                 </th>
-                <th class="px-2 py-2.5 text-center w-[80px]">
+                <th class="px-2 py-2.5 text-center min-w-[130px]">
                   <div class="flex items-center justify-center gap-1.5 cursor-pointer" data-tooltip="Saklar Ganti Logo seluruh sekolah">
                     <span>LOGO</span>
                     <label class="relative inline-flex items-center cursor-pointer">
@@ -1076,7 +1082,7 @@
                     </label>
                   </div>
                 </th>
-                <th class="px-2 py-2.5 text-center w-[95px]">
+                <th class="px-2 py-2.5 text-center min-w-[130px]">
                   <div class="flex items-center justify-center gap-1.5 cursor-pointer" data-tooltip="Saklar Tanda Tangan seluruh sekolah">
                     <span>TTD</span>
                     <label class="relative inline-flex items-center cursor-pointer">
@@ -1084,6 +1090,9 @@
                       <div class="w-6 h-3 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-[12px] peer-checked:after:border-white after:content-[''] after:absolute after:top-[1px] after:left-[1px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-2.5 after:w-2.5 after:transition-all peer-checked:bg-teal-600"></div>
                     </label>
                   </div>
+                </th>
+                <th class="px-2 py-2.5 text-center min-w-[85px]">
+                  <span>MATRIKS</span>
                 </th>
               </tr>
             </thead>
@@ -1111,22 +1120,19 @@
             </div>
           </div>
           <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
-            <!-- Sub Ekspor XLSX dengan Tooltips Tailwind CSS -->
-            <div class="tooltip-container">
-              <button
-                id="export-pengguna-excel-btn"
-                class="flex items-center gap-1.5 px-3.5 py-1.5 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white rounded-lg text-xs font-bold shadow-md hover:shadow-teal-300 transition-all cursor-pointer border border-teal-500"
-              >
-                <svg viewBox="0 0 24 24" stroke="currentColor" class="w-4 h-4">
-                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                  <polyline points="14 2 14 8 20 8"></polyline>
-                  <line x1="12" y1="18" x2="12" y2="12"></line>
-                  <line x1="9" y1="15" x2="15" y2="15"></line>
-                </svg>
-                <span>Ekspor XLSX Data Pengguna</span>
-              </button>
-              <span class="tooltip-text">Ekspor Tabel Data Pengguna ke File Excel (.xlsx)</span>
-            </div>
+            <button
+              id="export-pengguna-excel-btn"
+              class="flex items-center gap-1.5 px-3.5 py-1.5 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white rounded-lg text-xs font-bold shadow-md hover:shadow-teal-300 transition-all cursor-pointer border border-teal-500 active:scale-95"
+              data-tooltip="Ekspor Data Pengguna ke Excel (.xlsx)"
+            >
+              <svg viewBox="0 0 24 24" stroke="currentColor" class="w-4 h-4">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+                <line x1="12" y1="18" x2="12" y2="12"></line>
+                <line x1="9" y1="15" x2="15" y2="15"></line>
+              </svg>
+              <span>Ekspor XLSX Data Pengguna</span>
+            </button>
           </div>
         </div>
 
@@ -1135,14 +1141,16 @@
           style="max-height: 60vh"
         >
           <table
-            class="w-full text-left text-sm border-collapse whitespace-nowrap min-w-max"
+            class="w-full text-left text-sm whitespace-nowrap min-w-max"
+            style="border-collapse: separate; border-spacing: 0;"
           >
             <thead
-              class="bg-slate-50 border-b border-slate-200/60 text-[10px] text-slate-500 font-bold uppercase tracking-wider sticky top-0 z-20 text-center"
+              class="bg-slate-50 border-b border-slate-200 text-[10px] text-slate-500 font-bold uppercase tracking-wider sticky top-0 z-20 text-center"
             >
               <tr>
-                <th class="px-3 py-3 text-center sticky left-0 z-30 bg-slate-50 border-r border-slate-100 min-w-[45px]">NO</th>
-                <th class="px-3 py-3 text-center sticky left-[45px] z-30 bg-slate-50 border-r border-slate-200/80 shadow-[4px_0_12px_-4px_rgba(0,0,0,0.05)] min-w-[200px]">NAMA SEKOLAH</th>
+                <th class="px-3 py-3 text-center sticky left-0 z-40 bg-slate-50 border-r border-slate-200 w-[50px] min-w-[50px] max-w-[50px]">NO</th>
+                <th class="px-3 py-3 text-center sticky left-[50px] z-40 bg-slate-50 border-r border-slate-200 w-[140px] min-w-[140px] max-w-[140px]">TIMESTAMP</th>
+                <th class="px-3 py-3 text-center sticky left-[190px] z-40 bg-slate-50 border-r border-slate-200 shadow-[4px_0_12px_-4px_rgba(0,0,0,0.12)] w-[220px] min-w-[220px] max-w-[220px]">NAMA SEKOLAH</th>
                 <th class="px-3 py-3 text-center min-w-[120px]">KECAMATAN</th>
                 <th class="px-3 py-3 text-center min-w-[140px]">KABUPATEN/KOTA</th>
                 <th class="px-3 py-3 text-center min-w-[120px]">PROVINSI</th>
@@ -1238,7 +1246,8 @@
               .getElementById('edit-type-modal')
               .classList.remove('active')
           "
-          class="absolute p-2 transition-colors rounded-full top-3 right-3 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+          class="absolute p-2 transition-colors rounded-full top-3 right-3 text-slate-400 hover:bg-slate-100 hover:text-slate-600 cursor-pointer"
+          data-tooltip="Tutup"
         >
           <svg
             class="w-5 h-5"
@@ -1280,7 +1289,8 @@
         <div class="flex flex-col gap-3">
           <button
             onclick="openActionModalObj(window.currentEditId, 'data')"
-            class="group flex items-center p-3 sm:p-4 text-left bg-slate-50 border border-slate-200 rounded-xl hover:border-teal-400 hover:shadow-md transition-all"
+            class="group flex items-center p-3 sm:p-4 text-left bg-slate-50 border border-slate-200 rounded-xl hover:border-teal-400 hover:shadow-md transition-all cursor-pointer active:scale-98"
+            data-tooltip="Edit Identitas & Alamat Sekolah"
           >
             <div
               class="w-8 h-8 rounded bg-white text-slate-400 flex items-center justify-center mr-3 sm:mr-4 group-hover:text-teal-600 group-hover:bg-teal-50"
@@ -1312,7 +1322,8 @@
           </button>
           <button
             onclick="openActionModalObj(window.currentEditId, 'pesanan')"
-            class="group flex items-center p-3 sm:p-4 text-left bg-slate-50 border border-slate-200 rounded-xl hover:teal-400 hover:border-teal-400 hover:shadow-md transition-all"
+            class="group flex items-center p-3 sm:p-4 text-left bg-slate-50 border border-slate-200 rounded-xl hover:border-teal-400 hover:shadow-md transition-all cursor-pointer active:scale-98"
+            data-tooltip="Edit Pilihan Kelas Rapor"
           >
             <div
               class="w-8 h-8 rounded bg-white text-slate-400 flex items-center justify-center mr-3 sm:mr-4 group-hover:text-teal-600 group-hover:bg-teal-50"
@@ -1355,7 +1366,8 @@
           onclick="
             document.getElementById('history-modal').classList.remove('active')
           "
-          class="absolute p-2 transition-colors rounded-full top-3 right-3 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+          class="absolute p-2 transition-colors rounded-full top-3 right-3 text-slate-400 hover:bg-slate-100 hover:text-slate-600 cursor-pointer"
+          data-tooltip="Tutup"
         >
           <svg
             class="w-5 h-5"
@@ -1443,13 +1455,15 @@
           <div class="flex gap-3 justify-center">
             <button
               id="confirm-cancel-btn"
-              class="w-full inline-flex justify-center rounded-lg border border-slate-300 shadow-sm px-4 py-2 bg-white text-base font-bold text-slate-700 hover:bg-slate-50 focus:outline-none sm:w-auto sm:text-sm"
+              class="w-full inline-flex justify-center rounded-lg border border-slate-300 shadow-sm px-4 py-2 bg-white text-base font-bold text-slate-700 hover:bg-slate-50 focus:outline-none sm:w-auto sm:text-sm cursor-pointer active:scale-95"
+              data-tooltip="Batalkan"
             >
               Batal
             </button>
             <button
               id="confirm-ok-btn"
-              class="w-full inline-flex justify-center rounded-lg border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-bold text-white hover:bg-red-700 focus:outline-none sm:w-auto sm:text-sm"
+              class="w-full inline-flex justify-center rounded-lg border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-bold text-white hover:bg-red-700 focus:outline-none sm:w-auto sm:text-sm cursor-pointer active:scale-95"
+              data-tooltip="Konfirmasi Hapus"
             >
               Hapus
             </button>
@@ -1466,9 +1480,9 @@
           <div class="flex items-center gap-3">
             <div
               id="modal-icon-bg"
-              class="w-10 h-10 bg-teal-600 text-white rounded-xl flex items-center justify-center shadow-lg transition-colors"
+              class="w-10 h-10 bg-[#00897b] text-white rounded-xl flex items-center justify-center shadow-md transition-colors shrink-0"
             >
-              <svg id="modal-icon" viewBox="0 0 24 24" stroke="currentColor">
+              <svg id="modal-icon" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path
                   d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"
                 ></path>
@@ -1480,7 +1494,7 @@
             <div>
               <div class="flex items-center gap-2">
                 <h2 id="modal-title" class="text-lg font-bold text-slate-800">
-                  Edit Profil Sekolah
+                  Registrasi Sekolah Baru
                 </h2>
                 <span
                   id="audit-trail"
@@ -1490,7 +1504,7 @@
               </div>
               <p
                 id="modal-subtitle"
-                class="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-0.5"
+                class="hidden text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-0.5"
               >
                 Cloud ID:
                 <span id="display-id" class="font-mono text-slate-500">-</span>
@@ -1499,9 +1513,10 @@
           </div>
           <button
             id="close-modal-btn"
-            class="text-slate-400 hover:text-rose-500 bg-white hover:bg-rose-50 p-1.5 rounded-lg border border-transparent hover:border-rose-100 transition-all"
+            class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer active:scale-95"
+            data-tooltip="Tutup"
           >
-            <svg viewBox="0 0 24 24" stroke="currentColor">
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <line x1="18" y1="6" x2="6" y2="18"></line>
               <line x1="6" y1="6" x2="18" y2="18"></line>
             </svg>
@@ -1510,7 +1525,7 @@
 
         <input type="hidden" id="edit-id" />
 
-        <div class="space-y-3 mb-6 text-[11.5px]">
+        <div class="space-y-3 mb-4 text-[11.5px]">
           <div id="data-sekolah-fields" class="space-y-3 sm:space-y-4">
             <div class="flex flex-col sm:flex-row gap-3">
               <div class="flex-grow group">
@@ -1724,38 +1739,44 @@
               >
               <div class="flex flex-wrap gap-1.5" id="edit-kelas-container">
                 <button
-                  class="kelas-btn w-8 h-8 rounded-lg font-bold text-slate-500 border border-slate-200 transition-all hover:border-teal-500 text-[11px]"
+                  class="kelas-btn w-8 h-8 rounded-lg font-bold text-slate-500 border border-slate-200 transition-all hover:border-teal-500 text-[11px] cursor-pointer"
                   data-val="1"
+                  data-tooltip="Pilih Kelas 1"
                 >
                   1
                 </button>
                 <button
-                  class="kelas-btn w-8 h-8 rounded-lg font-bold text-slate-500 border border-slate-200 transition-all hover:border-teal-500 text-[11px]"
+                  class="kelas-btn w-8 h-8 rounded-lg font-bold text-slate-500 border border-slate-200 transition-all hover:border-teal-500 text-[11px] cursor-pointer"
                   data-val="2"
+                  data-tooltip="Pilih Kelas 2"
                 >
                   2
                 </button>
                 <button
-                  class="kelas-btn w-8 h-8 rounded-lg font-bold text-slate-500 border border-slate-200 transition-all hover:border-teal-500 text-[11px]"
+                  class="kelas-btn w-8 h-8 rounded-lg font-bold text-slate-500 border border-slate-200 transition-all hover:border-teal-500 text-[11px] cursor-pointer"
                   data-val="3"
+                  data-tooltip="Pilih Kelas 3"
                 >
                   3
                 </button>
                 <button
-                  class="kelas-btn w-8 h-8 rounded-lg font-bold text-slate-500 border border-slate-200 transition-all hover:border-teal-500 text-[11px]"
+                  class="kelas-btn w-8 h-8 rounded-lg font-bold text-slate-500 border border-slate-200 transition-all hover:border-teal-500 text-[11px] cursor-pointer"
                   data-val="4"
+                  data-tooltip="Pilih Kelas 4"
                 >
                   4
                 </button>
                 <button
-                  class="kelas-btn w-8 h-8 rounded-lg font-bold text-slate-500 border border-slate-200 transition-all hover:border-teal-500 text-[11px]"
+                  class="kelas-btn w-8 h-8 rounded-lg font-bold text-slate-500 border border-slate-200 transition-all hover:border-teal-500 text-[11px] cursor-pointer"
                   data-val="5"
+                  data-tooltip="Pilih Kelas 5"
                 >
                   5
                 </button>
                 <button
-                  class="kelas-btn w-8 h-8 rounded-lg font-bold text-slate-500 border border-slate-200 transition-all hover:border-teal-500 text-[11px]"
+                  class="kelas-btn w-8 h-8 rounded-lg font-bold text-slate-500 border border-slate-200 transition-all hover:border-teal-500 text-[11px] cursor-pointer"
                   data-val="6"
+                  data-tooltip="Pilih Kelas 6"
                 >
                   6
                 </button>
@@ -1765,15 +1786,16 @@
         </div>
 
         <div
-          class="flex flex-col-reverse sm:flex-row gap-3 items-center justify-between pt-4 border-t border-slate-100 bg-slate-50 -mx-6 -mb-6 px-6 pb-6 rounded-b-2xl"
+          class="flex flex-col-reverse sm:flex-row gap-3 items-center justify-between mt-5"
         >
           <div
             id="edit-only-actions"
-            class="flex gap-2 w-full sm:w-auto mt-2 sm:mt-0"
+            class="flex gap-2 w-full sm:w-auto"
           >
             <button
               id="delete-btn"
-              class="text-rose-600 bg-rose-50 hover:bg-rose-100 hover:text-rose-700 text-[11px] font-bold flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl transition-colors w-full sm:w-auto shadow-sm"
+              class="text-rose-600 bg-rose-50 hover:bg-rose-100 hover:text-rose-700 text-[11px] font-bold flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl transition-colors w-full sm:w-auto shadow-xs cursor-pointer active:scale-95"
+              data-tooltip="Hapus Sekolah dari Database"
             >
               <svg
                 viewBox="0 0 24 24"
@@ -1791,7 +1813,8 @@
             </button>
             <button
               id="duplicate-btn"
-              class="text-teal-700 bg-teal-50 hover:bg-teal-100 hover:text-teal-800 text-[11px] font-bold flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl transition-colors w-full sm:w-auto shadow-sm"
+              class="text-teal-700 bg-teal-50 hover:bg-teal-100 hover:text-teal-800 text-[11px] font-bold flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl transition-colors w-full sm:w-auto shadow-xs cursor-pointer active:scale-95"
+              data-tooltip="Duplikasi Data Sekolah Ini"
             >
               <svg
                 viewBox="0 0 24 24"
@@ -1806,31 +1829,35 @@
               DUPLIKAT
             </button>
           </div>
-          <div class="flex gap-2 w-full sm:w-auto justify-end ml-auto">
+          <div class="flex gap-2.5 w-full sm:w-auto justify-end ml-auto">
             <button
               id="modal-cancel-btn"
-              class="text-slate-600 bg-white border border-slate-200 text-[11px] font-bold px-5 py-2 rounded-xl hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm flex-1 sm:flex-none"
+              class="text-slate-700 bg-white border border-slate-200 text-[11.5px] font-bold px-5 py-2 rounded-xl hover:bg-slate-50 hover:border-slate-300 transition-all shadow-xs flex-1 sm:flex-none cursor-pointer active:scale-95"
+              data-tooltip="Batalkan Perubahan"
             >
               BATAL
             </button>
 
             <button
               id="save-draft-btn"
-              class="hidden bg-amber-100 text-amber-700 border border-amber-200 hover:bg-amber-200 hover:border-amber-300 text-[11px] font-bold px-5 py-2 rounded-xl transition-all shadow-sm flex-1 sm:flex-none"
+              class="hidden bg-[#fef3c7] text-[#b45309] border border-[#fde68a] hover:bg-[#fde68a] text-[11.5px] font-bold px-5 py-2 rounded-xl transition-all shadow-xs flex-1 sm:flex-none cursor-pointer active:scale-95"
+              data-tooltip="Simpan Sementara sebagai Draft"
             >
               DRAFT
             </button>
 
             <button
               id="save-add-more-btn"
-              class="hidden bg-teal-50 text-teal-700 border border-teal-200 hover:bg-teal-100 hover:border-teal-300 text-[11px] font-bold px-5 py-2 rounded-xl transition-all shadow-sm flex-1 sm:flex-none whitespace-nowrap"
+              class="hidden bg-[#e6fcf5] text-[#0f766e] border border-[#99f6e4] hover:bg-[#c3fae8] text-[11.5px] font-bold px-5 py-2 rounded-xl transition-all shadow-xs flex-1 sm:flex-none whitespace-nowrap cursor-pointer active:scale-95"
+              data-tooltip="Simpan & Buka Form Baru"
             >
               SIMPAN & TAMBAH
             </button>
 
             <button
               id="save-main-btn"
-              class="bg-teal-600 hover:bg-teal-700 text-white border border-teal-600 hover:border-teal-700 text-[11px] font-bold px-6 py-2 rounded-xl shadow-md border-b-2 hover:border-b transition-all flex-1 sm:flex-none active:translate-y-[1px]"
+              class="bg-[#00897b] hover:bg-[#00796b] text-white border border-[#00796b] text-[11.5px] font-bold px-6 py-2 rounded-xl shadow-md transition-all flex-1 sm:flex-none cursor-pointer active:scale-95"
+              data-tooltip="Simpan ke Database"
             >
               SIMPAN
             </button>
@@ -1852,7 +1879,7 @@
               <p id="edit-password-school-name" class="text-[10px] text-slate-500 font-medium truncate max-w-[200px]"></p>
             </div>
           </div>
-          <button onclick="document.getElementById('edit-password-modal').classList.remove('active')" class="text-slate-400 hover:text-slate-600 p-1 cursor-pointer">
+          <button onclick="document.getElementById('edit-password-modal').classList.remove('active')" class="text-slate-400 hover:text-slate-600 p-1 cursor-pointer" data-tooltip="Tutup">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
           </button>
         </div>
@@ -1861,7 +1888,7 @@
           <div>
             <div class="flex items-center justify-between mb-1.5">
               <label class="block text-[11px] font-bold text-slate-600 uppercase tracking-tight">Password Akses</label>
-              <button type="button" id="copy-password-btn" class="text-[10px] text-teal-600 hover:text-teal-700 font-bold flex items-center gap-1 hover:underline cursor-pointer">
+              <button type="button" id="copy-password-btn" class="text-[10px] text-teal-600 hover:text-teal-700 font-bold flex items-center gap-1 hover:underline cursor-pointer" data-tooltip="Salin Password ke Papan Klip">
                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path></svg>
                 <span>Salin Password</span>
               </button>
@@ -1873,7 +1900,7 @@
           <div class="bg-slate-50 border border-slate-200/80 rounded-lg p-2.5 space-y-2">
             <div class="text-[10px] font-bold text-slate-500 uppercase tracking-wider text-center">Pilihan Reset Password</div>
             <div class="grid grid-cols-2 gap-2">
-              <button type="button" id="reset-default-password-btn" class="flex flex-col items-center justify-center p-2.5 bg-white hover:bg-teal-50/60 border border-slate-200 hover:border-teal-300 rounded-md transition-all text-center cursor-pointer group shadow-2xs">
+              <button type="button" id="reset-default-password-btn" class="flex flex-col items-center justify-center p-2.5 bg-white hover:bg-teal-50/60 border border-slate-200 hover:border-teal-300 rounded-md transition-all text-center cursor-pointer group shadow-2xs active:scale-95" data-tooltip="Gunakan Formula: rapor[NPSN]">
                 <div class="flex items-center justify-center gap-1.5 text-xs font-bold text-slate-700 group-hover:text-teal-700 w-full">
                   <svg class="w-3.5 h-3.5 text-teal-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
                   <span>Format Awal</span>
@@ -1881,7 +1908,7 @@
                 <span class="text-[9.5px] text-slate-400 group-hover:text-slate-600 font-mono mt-0.5 truncate w-full text-center" id="reset-default-preview">rapor[NPSN]</span>
               </button>
 
-              <button type="button" id="generate-random-password-btn" class="flex flex-col items-center justify-center p-2.5 bg-white hover:bg-indigo-50/60 border border-slate-200 hover:border-indigo-300 rounded-md transition-all text-center cursor-pointer group shadow-2xs">
+              <button type="button" id="generate-random-password-btn" class="flex flex-col items-center justify-center p-2.5 bg-white hover:bg-indigo-50/60 border border-slate-200 hover:border-indigo-300 rounded-md transition-all text-center cursor-pointer group shadow-2xs active:scale-95" data-tooltip="Buat Password Acak Baru">
                 <div class="flex items-center justify-center gap-1.5 text-xs font-bold text-slate-700 group-hover:text-indigo-700 w-full">
                   <svg class="w-3.5 h-3.5 text-indigo-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
                   <span>Acak Baru</span>
@@ -1893,8 +1920,78 @@
         </div>
 
         <div class="flex gap-2 justify-end pt-2 border-t border-slate-100">
-          <button onclick="document.getElementById('edit-password-modal').classList.remove('active')" class="px-4 py-1.5 text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors cursor-pointer">BATAL</button>
-          <button id="save-password-btn" class="px-4 py-1.5 text-xs font-bold text-white bg-teal-600 hover:bg-teal-700 rounded-lg transition-colors shadow-sm cursor-pointer">SIMPAN</button>
+          <button onclick="document.getElementById('edit-password-modal').classList.remove('active')" class="px-4 py-1.5 text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors cursor-pointer active:scale-95" data-tooltip="Batalkan">BATAL</button>
+          <button id="save-password-btn" class="px-4 py-1.5 text-xs font-bold text-white bg-teal-600 hover:bg-teal-700 rounded-lg transition-colors shadow-sm cursor-pointer active:scale-95" data-tooltip="Simpan Password">SIMPAN</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Matriks Hak Akses Per Kelas (Option B) -->
+    <div id="akses-matrix-modal" class="modal-overlay">
+      <div class="modal-content max-w-2xl sm:max-w-3xl shadow-2xl border border-slate-200">
+        <!-- Header -->
+        <div class="flex justify-between items-center mb-3 border-b border-slate-100 pb-3">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 bg-gradient-to-br from-teal-600 to-teal-700 text-white rounded-xl flex items-center justify-center shadow-md shrink-0">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
+              </svg>
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <h2 id="matrix-modal-title" class="text-base font-bold text-slate-800">
+                  Pengaturan Akses Per Kelas
+                </h2>
+                <span id="matrix-feature-badge" class="text-[9.5px] font-bold text-teal-700 bg-teal-50 px-2 py-0.5 rounded border border-teal-200">
+                  Matriks Akses
+                </span>
+              </div>
+              <p class="text-xs text-slate-500 mt-0.5">
+                <span id="matrix-school-name" class="font-bold text-slate-700">-</span>
+                <span class="text-slate-400"> (NPSN: <span id="matrix-school-npsn" class="font-mono text-slate-600">-</span>)</span>
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onclick="document.getElementById('akses-matrix-modal').classList.remove('active')"
+            class="text-slate-400 hover:text-rose-500 bg-white hover:bg-rose-50 p-1.5 rounded-lg border border-transparent hover:border-rose-100 transition-all cursor-pointer"
+            data-tooltip="Tutup"
+          >
+            <svg class="w-5 h-5" viewBox="0 0 24 24" stroke="currentColor">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+
+        <input type="hidden" id="matrix-school-id" />
+
+        <!-- Dynamic Content (Single Feature Card or Full Matrix Table) -->
+        <div id="matrix-modal-dynamic-content" class="mb-3">
+          <!-- Dynamically injected via JavaScript -->
+        </div>
+
+        <!-- Footer -->
+        <div class="flex gap-2 justify-end pt-2.5 border-t border-slate-100">
+          <button
+            type="button"
+            onclick="document.getElementById('akses-matrix-modal').classList.remove('active')"
+            class="px-4 py-1.5 text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors cursor-pointer active:scale-95"
+            data-tooltip="Batalkan Perubahan"
+          >
+            BATAL
+          </button>
+          <button
+            type="button"
+            id="matrix-save-btn"
+            onclick="window.saveAksesClassMatrix()"
+            class="px-4 py-1.5 text-xs font-bold text-white bg-teal-600 hover:bg-teal-700 rounded-lg transition-colors shadow-sm cursor-pointer flex items-center gap-1.5 active:scale-95"
+            data-tooltip="Simpan Pengaturan Matriks"
+          >
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+            <span>SIMPAN PERUBAHAN</span>
+          </button>
         </div>
       </div>
     </div>
@@ -1925,7 +2022,8 @@
         <button
           type="button"
           onclick="window.deselectAllAksesCheckboxes()"
-          class="text-slate-400 hover:text-white text-xs px-2 py-1 transition-colors font-medium whitespace-nowrap"
+          class="text-slate-400 hover:text-white hover:bg-slate-800 text-xs px-2.5 py-1 rounded-lg transition-colors font-medium whitespace-nowrap cursor-pointer active:scale-95"
+          data-tooltip="Batal Pilih Semua"
         >
           Batal
         </button>
@@ -2134,33 +2232,7 @@
         const exportPenggunaBtn = document.getElementById("export-pengguna-excel-btn");
         if (exportPenggunaBtn) {
           exportPenggunaBtn.addEventListener("click", () => {
-            const list = window.latestUniqueSchools || [];
-            if (list.length === 0) {
-              return showToast("Tidak ada data pengguna untuk diekspor.", false);
-            }
-            const exportRows = list.map((school, index) => {
-              const kabKota = (school["kabupaten-kota-jenis"] ? school["kabupaten-kota-jenis"] + " " : "") + (school["kabupaten-kota-nama"] || "");
-              return {
-                "NO": index + 1,
-                "NAMA SEKOLAH": school["nama-sekolah"] || "-",
-                "KECAMATAN": school["kecamatan"] || "-",
-                "KABUPATEN/KOTA": kabKota || "-",
-                "PROVINSI": school["provinsi"] || "-",
-                "NAMA KEPSEK": school["kepsek_nama"] || "-",
-                "NIP KEPSEK": school["kepsek_nip"] || "-",
-                "WHATSAPP KEPSEK": school["kepsek_wa"] || "-",
-                "TANGGAL LAHIR KEPSEK": school["kepsek_tgl_lahir"] || "-",
-                "NAMA GURU": school["guru_nama"] || "-",
-                "NIP GURU": school["guru_nip"] || "-",
-                "WHATSAPP GURU": school["guru_wa"] || "-",
-                "TANGGAL LAHIR GURU": school["guru_tgl_lahir"] || "-"
-              };
-            });
-            const ws = XLSX.utils.json_to_sheet(exportRows);
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "Data Pengguna");
-            XLSX.writeFile(wb, `Data_Pengguna_E_Rapor_${getTimestamp().replace(/[:\s]/g, "_")}.xlsx`);
-            showToast("Data Pengguna berhasil diekspor ke Excel!");
+            showToast("Belum ada data pada Tab Data Pengguna untuk diekspor.", false);
           });
         }
 
@@ -2435,7 +2507,7 @@
                 '<tr><td colspan="5" class="text-center py-10 text-slate-400">Tidak ada data sekolah</td></tr>';
             if (penggunaTableBody)
               penggunaTableBody.innerHTML =
-                '<tr><td colspan="13" class="text-center py-10 text-slate-400">Tidak ada data pengguna</td></tr>';
+                '<tr><td colspan="14" class="text-center py-10 text-slate-400">Belum ada data pengguna</td></tr>';
           } else {
             // Render Tagihan Table
             let tagihanIndex = 1;
@@ -2537,9 +2609,9 @@
 
                 tagihanRow.className = "hover:bg-slate-50/80 transition-colors";
                 tagihanRow.innerHTML = `
-                            <td class="px-3 py-2 text-center text-slate-400 sticky left-0 z-20 bg-white border-r border-slate-100 w-[50px] min-w-[50px]">${tagihanIndex++}</td>
-                            <td class="px-3 py-2 text-center text-slate-600 font-mono sticky left-[50px] z-20 bg-white border-r border-slate-100 w-[150px] min-w-[150px] whitespace-nowrap font-medium text-[11px]">${tsStr}</td>
-                            <td class="px-3 py-2 font-bold text-slate-800 sticky left-[200px] z-20 bg-white border-r border-slate-200/80 shadow-[4px_0_12px_-4px_rgba(0,0,0,0.08)] w-[220px] min-w-[220px]">${school["nama-sekolah"] || "-"}</td>
+                            <td class="px-3 py-2 text-center text-slate-400 sticky left-0 z-20 bg-white border-r border-slate-100 w-[50px] min-w-[50px] max-w-[50px]">${tagihanIndex++}</td>
+                            <td class="px-3 py-2 text-center text-slate-600 font-mono sticky left-[50px] z-20 bg-white border-r border-slate-100 w-[150px] min-w-[150px] max-w-[150px] whitespace-nowrap font-medium text-[11px]">${tsStr}</td>
+                            <td class="px-3 py-2 font-bold text-slate-800 sticky left-[200px] z-20 bg-white border-r border-slate-200 shadow-[4px_0_12px_-4px_rgba(0,0,0,0.12)] w-[220px] min-w-[220px] max-w-[220px] truncate">${school["nama-sekolah"] || "-"}</td>
                             <td class="px-4 py-2 text-center font-mono text-slate-500">${school["npsn"] || "-"}</td>
                             <td class="px-4 py-2 text-center">
                                 <div class="flex flex-wrap items-center justify-center gap-1">
@@ -2564,11 +2636,6 @@
                 const isSelected = window.selectedAksesSchoolIds.has(school.id);
                 const isPassActive = school.akses_password_active !== false;
                 const passVal = school.akses_password || (school["npsn"] ? "rapor" + school["npsn"] : "rapor123");
-                const isMapelKustom = school.akses_mapel_kustom !== false;
-                const isBukuInduk = school.akses_buku_induk !== false;
-                const isUnggahFoto = school.akses_unggah_foto !== false;
-                const isGantiLogo = school.akses_ganti_logo !== false;
-                const isTandaTanganDigital = school.akses_tanda_tangan_digital !== false;
 
                 let passContent = "";
                 if (isPassActive) {
@@ -2578,20 +2645,44 @@
                   `;
                 }
 
+                const renderFeatureCell = (featKey) => {
+                  const acc = getSchoolClassAccess(school, featKey);
+                  const isEnabled = acc.enabled && acc.classes.length > 0;
+                  const count = acc.enabled ? acc.classes.length : 0;
+                  const badgeText = !isEnabled ? 'OFF' : `${count} Kls`;
+                  const badgeClass = !isEnabled 
+                    ? 'bg-slate-100 text-slate-400 border-slate-200 hover:bg-slate-200' 
+                    : 'bg-teal-50 text-teal-700 border-teal-200 hover:bg-teal-100';
+                  const tooltip = isEnabled ? `Aktif untuk Kelas: ${acc.classes.join(', ')}` : 'Nonaktif';
+
+                  return `
+                    <div class="flex items-center justify-center gap-1.5">
+                      <label class="relative inline-flex items-center cursor-pointer select-none shrink-0" data-tooltip="${isEnabled ? 'Matikan fitur untuk sekolah ini' : 'Aktifkan fitur'}">
+                        <input type="checkbox" class="sr-only peer" ${isEnabled ? "checked" : ""} onchange="window.toggleAksesFeatureMaster('${school.id}', '${featKey}', this.checked)">
+                        <div class="w-7 h-3.5 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-[16px] peer-checked:after:border-white after:content-[''] after:absolute after:top-[1px] after:left-[1px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-2.5 after:w-2.5 after:transition-all peer-checked:bg-teal-600"></div>
+                      </label>
+                      <button type="button" onclick="window.openAksesClassMatrixModal('${school.id}', '${featKey}')" class="px-1.5 py-0.5 rounded text-[9.5px] font-bold border transition-colors cursor-pointer flex items-center gap-1 ${badgeClass} active:scale-95" data-tooltip="${tooltip} (Atur per kelas)">
+                        <span>${badgeText}</span>
+                        <svg class="w-2.5 h-2.5 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
+                      </button>
+                    </div>
+                  `;
+                };
+
                 const aksesRow = document.createElement("tr");
                 aksesRow.className = "hover:bg-slate-50/70 transition-colors";
                 aksesRow.innerHTML = `
-                  <td class="px-2 py-2 text-center sticky left-0 z-20 bg-white border-r border-slate-100 w-[40px] min-w-[40px]">
+                  <td class="px-2 py-2 text-center sticky left-0 z-20 bg-white border-r border-slate-100 w-[40px] min-w-[40px] max-w-[40px]">
                     <div class="flex items-center justify-center">
-                      <input type="checkbox" class="akses-row-checkbox rounded border-slate-300 text-teal-600 focus:ring-teal-500 cursor-pointer w-3.5 h-3.5" data-id="${school.id}" ${isSelected ? 'checked' : ''} onchange="window.handleAksesRowCheckboxChange(this, '${school.id}')">
+                      <input type="checkbox" class="akses-row-checkbox rounded border-slate-300 text-teal-600 focus:ring-teal-500 cursor-pointer w-3.5 h-3.5" data-id="${school.id}" ${isSelected ? 'checked' : ''} onchange="window.handleAksesRowCheckboxChange(this, '${school.id}')" data-tooltip="Pilih sekolah ini">
                     </div>
                   </td>
-                  <td class="px-2 py-2 text-center text-slate-400 sticky left-[40px] z-20 bg-white border-r border-slate-100 w-[45px] min-w-[45px]">
+                  <td class="px-2 py-2 text-center text-slate-400 sticky left-[40px] z-20 bg-white border-r border-slate-100 w-[45px] min-w-[45px] max-w-[45px]">
                     ${index + 1}
                   </td>
-                  <td class="px-3 py-2 sticky left-[85px] z-20 bg-white border-r border-slate-200/80 shadow-[4px_0_12px_-4px_rgba(0,0,0,0.08)] w-[175px] min-w-[175px]">
+                  <td class="px-3 py-2 sticky left-[85px] z-20 bg-white border-r border-slate-200 shadow-[4px_0_12px_-4px_rgba(0,0,0,0.12)] w-[190px] min-w-[190px] max-w-[190px]">
                     <div class="min-w-0 pr-1 truncate">
-                      <div class="font-bold text-slate-800 text-xs truncate" title="${school["nama-sekolah"] || "-"}">${school["nama-sekolah"] || "-"}</div>
+                      <div class="font-bold text-slate-800 text-xs truncate cursor-pointer hover:text-teal-600 transition-colors" data-tooltip="Klik untuk Edit Sekolah" onclick="window.openEditTypeModalById('${school.id}')">${school["nama-sekolah"] || "-"}</div>
                       <div class="text-[10px] text-slate-400 font-mono">NPSN: ${school["npsn"] || "-"}</div>
                     </div>
                   </td>
@@ -2604,35 +2695,26 @@
                       ${passContent}
                     </div>
                   </td>
-                  <td class="px-2 py-2 text-center w-[85px]">
-                    <label class="relative inline-flex items-center cursor-pointer select-none" data-tooltip="${isMapelKustom ? 'Matikan Mapel Kustom' : 'Aktifkan Mapel Kustom'}">
-                      <input type="checkbox" class="sr-only peer" ${isMapelKustom ? "checked" : ""} onchange="window.toggleAksesMapelKustomById('${school.id}', this.checked)">
-                      <div class="w-7 h-3.5 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-[16px] peer-checked:after:border-white after:content-[''] after:absolute after:top-[1px] after:left-[1px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-2.5 after:w-2.5 after:transition-all peer-checked:bg-teal-600"></div>
-                    </label>
+                  <td class="px-2 py-2 text-center min-w-[130px]">
+                    ${renderFeatureCell('akses_mapel_kustom')}
                   </td>
-                  <td class="px-2 py-2 text-center w-[95px]">
-                    <label class="relative inline-flex items-center cursor-pointer select-none" data-tooltip="${isBukuInduk ? 'Matikan Buku Induk' : 'Aktifkan Buku Induk'}">
-                      <input type="checkbox" class="sr-only peer" ${isBukuInduk ? "checked" : ""} onchange="window.toggleAksesBukuIndukById('${school.id}', this.checked)">
-                      <div class="w-7 h-3.5 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-[16px] peer-checked:after:border-white after:content-[''] after:absolute after:top-[1px] after:left-[1px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-2.5 after:w-2.5 after:transition-all peer-checked:bg-teal-600"></div>
-                    </label>
+                  <td class="px-2 py-2 text-center min-w-[145px]">
+                    ${renderFeatureCell('akses_buku_induk')}
                   </td>
-                  <td class="px-2 py-2 text-center w-[80px]">
-                    <label class="relative inline-flex items-center cursor-pointer select-none" data-tooltip="${isUnggahFoto ? 'Matikan Unggah Foto' : 'Aktifkan Unggah Foto'}">
-                      <input type="checkbox" class="sr-only peer" ${isUnggahFoto ? "checked" : ""} onchange="window.toggleAksesUnggahFotoById('${school.id}', this.checked)">
-                      <div class="w-7 h-3.5 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-[16px] peer-checked:after:border-white after:content-[''] after:absolute after:top-[1px] after:left-[1px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-2.5 after:w-2.5 after:transition-all peer-checked:bg-teal-600"></div>
-                    </label>
+                  <td class="px-2 py-2 text-center min-w-[130px]">
+                    ${renderFeatureCell('akses_unggah_foto')}
                   </td>
-                  <td class="px-2 py-2 text-center w-[80px]">
-                    <label class="relative inline-flex items-center cursor-pointer select-none" data-tooltip="${isGantiLogo ? 'Matikan Ganti Logo' : 'Aktifkan Ganti Logo'}">
-                      <input type="checkbox" class="sr-only peer" ${isGantiLogo ? "checked" : ""} onchange="window.toggleAksesGantiLogoById('${school.id}', this.checked)">
-                      <div class="w-7 h-3.5 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-[16px] peer-checked:after:border-white after:content-[''] after:absolute after:top-[1px] after:left-[1px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-2.5 after:w-2.5 after:transition-all peer-checked:bg-teal-600"></div>
-                    </label>
+                  <td class="px-2 py-2 text-center min-w-[130px]">
+                    ${renderFeatureCell('akses_ganti_logo')}
                   </td>
-                  <td class="px-2 py-2 text-center w-[95px]">
-                    <label class="relative inline-flex items-center cursor-pointer select-none" data-tooltip="${isTandaTanganDigital ? 'Matikan Tanda Tangan Digital' : 'Aktifkan Tanda Tangan Digital'}">
-                      <input type="checkbox" class="sr-only peer" ${isTandaTanganDigital ? "checked" : ""} onchange="window.toggleAksesTandaTanganDigitalById('${school.id}', this.checked)">
-                      <div class="w-7 h-3.5 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-[16px] peer-checked:after:border-white after:content-[''] after:absolute after:top-[1px] after:left-[1px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-2.5 after:w-2.5 after:transition-all peer-checked:bg-teal-600"></div>
-                    </label>
+                  <td class="px-2 py-2 text-center min-w-[130px]">
+                    ${renderFeatureCell('akses_tanda_tangan_digital')}
+                  </td>
+                  <td class="px-2 py-2 text-center min-w-[85px]">
+                    <button type="button" onclick="window.openAksesClassMatrixModal('${school.id}')" class="px-2 py-1 bg-gradient-to-r from-teal-50 to-emerald-50 hover:from-teal-100 hover:to-emerald-100 text-teal-700 font-bold text-[10px] rounded-lg border border-teal-200 transition-all flex items-center justify-center gap-1 mx-auto shadow-2xs hover:shadow-xs cursor-pointer active:scale-95" data-tooltip="Buka Matriks Seluruh Fitur">
+                      <svg class="w-3 h-3 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
+                      <span>Matriks</span>
+                    </button>
                   </td>
                 `;
                 aksesTableBody.appendChild(aksesRow);
@@ -2642,34 +2724,21 @@
               }
             }
 
-            // Render Pengguna Table
+            // Render Pengguna Table (Dikosongkan - tidak dihubungkan dengan isian tab manapun)
             if (penggunaTableBody) {
-              uniqueSchools.forEach((school, index) => {
-                const kabKota = (school["kabupaten-kota-jenis"] ? school["kabupaten-kota-jenis"] + " " : "") + (school["kabupaten-kota-nama"] || "");
-
-                const kepsekWA = school["kepsek_wa"] ? `<a href="https://wa.me/${school["kepsek_wa"].replace(/[^0-9]/g, "")}" target="_blank" class="text-teal-600 hover:text-teal-700 font-bold inline-flex items-center gap-1 hover:underline"><svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M12.031 0C5.385 0 0 5.385 0 12.031c0 2.124.553 4.197 1.604 6.01L0 24l6.126-1.607a11.986 11.986 0 005.905 1.547h.005c6.645 0 12.03-5.385 12.03-12.031A11.97 11.97 0 0012.031 0z"/></svg>${school["kepsek_wa"]}</a>` : "-";
-
-                const guruWA = school["guru_wa"] ? `<a href="https://wa.me/${school["guru_wa"].replace(/[^0-9]/g, "")}" target="_blank" class="text-indigo-600 hover:text-indigo-700 font-bold inline-flex items-center gap-1 hover:underline"><svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M12.031 0C5.385 0 0 5.385 0 12.031c0 2.124.553 4.197 1.604 6.01L0 24l6.126-1.607a11.986 11.986 0 005.905 1.547h.005c6.645 0 12.03-5.385 12.03-12.031A11.97 11.97 0 0012.031 0z"/></svg>${school["guru_wa"]}</a>` : "-";
-
-                const row = document.createElement("tr");
-                row.className = "hover:bg-slate-50/80 transition-colors";
-                row.innerHTML = `
-                  <td class="px-3 py-2.5 text-center text-slate-400 sticky left-0 z-20 bg-white border-r border-slate-100 w-[45px] min-w-[45px]">${index + 1}</td>
-                  <td class="px-3 py-2.5 font-bold text-slate-800 sticky left-[45px] z-20 bg-white border-r border-slate-200/80 shadow-[4px_0_12px_-4px_rgba(0,0,0,0.08)] w-[200px] min-w-[200px] cursor-pointer hover:text-teal-600" onclick="window.openEditTypeModalById('${school.id}')">${school["nama-sekolah"] || "-"}</td>
-                  <td class="px-3 py-2.5 text-slate-600 min-w-[120px]">${school["kecamatan"] || "-"}</td>
-                  <td class="px-3 py-2.5 text-slate-600 min-w-[140px]">${kabKota || "-"}</td>
-                  <td class="px-3 py-2.5 text-slate-600 min-w-[120px]">${school["provinsi"] || "-"}</td>
-                  <td class="px-3 py-2.5 font-semibold text-teal-900 bg-teal-50/30 border-l border-teal-100 min-w-[160px]">${school["kepsek_nama"] || "-"}</td>
-                  <td class="px-3 py-2.5 text-center font-mono text-slate-600 bg-teal-50/30 min-w-[130px]">${school["kepsek_nip"] || "-"}</td>
-                  <td class="px-3 py-2.5 text-center font-mono bg-teal-50/30 min-w-[130px]">${kepsekWA}</td>
-                  <td class="px-3 py-2.5 text-center font-mono text-slate-600 bg-teal-50/30 min-w-[140px]">${school["kepsek_tgl_lahir"] || "-"}</td>
-                  <td class="px-3 py-2.5 font-semibold text-indigo-900 bg-indigo-50/30 border-l border-indigo-100 min-w-[160px]">${school["guru_nama"] || "-"}</td>
-                  <td class="px-3 py-2.5 text-center font-mono text-slate-600 bg-indigo-50/30 min-w-[130px]">${school["guru_nip"] || "-"}</td>
-                  <td class="px-3 py-2.5 text-center font-mono bg-indigo-50/30 min-w-[130px]">${guruWA}</td>
-                  <td class="px-3 py-2.5 text-center font-mono text-slate-600 bg-indigo-50/30 min-w-[140px]">${school["guru_tgl_lahir"] || "-"}</td>
-                `;
-                penggunaTableBody.appendChild(row);
-              });
+              penggunaTableBody.innerHTML = `
+                <tr>
+                  <td colspan="14" class="text-center py-16 bg-slate-50/40">
+                    <div class="flex flex-col items-center justify-center opacity-70 py-6">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" class="w-10 h-10 text-slate-300 mb-2.5" stroke-width="1.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                      </svg>
+                      <h4 class="text-slate-500 font-bold text-xs mb-0.5">Belum Ada Data Pengguna</h4>
+                      <p class="text-slate-400 text-[10.5px]">Data tab ini mandiri dan tidak dihubungkan dengan isian tab lain.</p>
+                    </div>
+                  </td>
+                </tr>
+              `;
             }
 
             // Render Data Pokok Table
@@ -2695,15 +2764,14 @@
                   const historyHtml = uniqueTs
                     .map(
                       (t) =>
-                        `<div class="py-1.5 px-3 border-b border-slate-100 last:border-b-0 hover:bg-slate-50 transition-colors flex justify-between items-center gap-3 group/item"><div class="flex items-center gap-2"><div class="w-1.5 h-1.5 rounded-full ${t.isDraft ? "bg-amber-400" : "bg-teal-400"}"></div><span class="font-mono text-[11px] font-bold text-slate-700">${t.isDraft ? "DRAFT " : ""}${formatDisplayDate(t.timestamp)}</span></div><button onclick="event.stopPropagation(); window.deleteHistoryItem('${t.id}')" class="opacity-0 group-hover/item:opacity-100 p-1 text-red-500 hover:bg-red-50 hover:text-red-700 rounded transition-all focus:outline-none focus:opacity-100 group/btn relative"><div class="invisible group-hover/btn:visible absolute z-[9999] top-full right-0 mt-1 px-2 py-1 bg-slate-800 text-white text-[10px] font-normal tracking-normal rounded shadow opacity-0 group-hover/btn:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">Hapus histori</div><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button></div>`,
+                        `<div class="py-1.5 px-3 border-b border-slate-100 last:border-b-0 hover:bg-slate-50 transition-colors flex justify-between items-center gap-3 group/item"><div class="flex items-center gap-2"><div class="w-1.5 h-1.5 rounded-full ${t.isDraft ? "bg-amber-400" : "bg-teal-400"}"></div><span class="font-mono text-[11px] font-bold text-slate-700">${t.isDraft ? "DRAFT " : ""}${formatDisplayDate(t.timestamp)}</span></div><button onclick="event.stopPropagation(); window.deleteHistoryItem('${t.id}')" class="opacity-0 group-hover/item:opacity-100 p-1 text-red-500 hover:bg-red-50 hover:text-red-700 rounded transition-all focus:outline-none focus:opacity-100 cursor-pointer active:scale-95" data-tooltip="Hapus Riwayat Ini"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button></div>`,
                     )
                     .join("");
                   const encodedHistory = btoa(
                     unescape(encodeURIComponent(historyHtml)),
                   );
-                  return `<div class="group relative inline-flex items-center gap-1.5 px-2 py-1 bg-indigo-50 text-indigo-600 border border-indigo-100 hover:bg-indigo-100 hover:border-indigo-300 transition-all cursor-pointer rounded-md shadow-sm" onclick="openHistoryModal('${item.npsn || "Draft"}', '${encodedHistory}')">
+                  return `<div class="group relative inline-flex items-center gap-1.5 px-2 py-1 bg-indigo-50 text-indigo-600 border border-indigo-100 hover:bg-indigo-100 hover:border-indigo-300 transition-all cursor-pointer rounded-md shadow-sm" onclick="openHistoryModal('${item.npsn || "Draft"}', '${encodedHistory}')" data-tooltip="Lihat Riwayat Versi">
                     <span class="font-bold">${latestTs.isDraft ? '<span class="bg-amber-100 text-amber-600 px-1 py-0.5 rounded shadow-sm text-[8px]">DRAFT</span>' : formatDisplayDate(latestTs.timestamp)}</span>
-                    <div class="invisible group-hover:visible absolute z-50 mb-2 bottom-full left-1/2 -translate-x-1/2 px-2 py-1 bg-slate-800 text-white text-xs font-normal tracking-normal rounded shadow opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">Lihat History</div>
                   </div>`;
                 } else {
                   return `<div class="inline-block"><span class="block px-1 py-0.5">${latestTs.isDraft ? '<span class="bg-amber-100 border border-amber-200 text-amber-600 px-1 py-0.5 rounded shadow-sm font-bold tracking-tight text-[8px]">DRAFT</span>' : formatDisplayDate(latestTs.timestamp)}</span></div>`;
@@ -2711,12 +2779,12 @@
               })();
 
               row.innerHTML = `
-                        <td class="text-center align-middle py-2 sticky left-0 z-20 bg-white border-r border-slate-100 w-[35px] min-w-[35px]"><input type="checkbox" ${isSelected ? "checked" : ""} onchange="toggleRowSelection('${item.id}')"></td>
-                        <td class="text-center font-bold text-slate-400 border-r border-slate-100 align-middle py-2 sticky left-[35px] z-20 bg-white w-[45px] min-w-[45px]">${index + 1}</td>
-                        <td class="text-[9.5px] text-slate-500 font-mono text-center align-middle py-2 sticky left-[80px] z-20 bg-white border-r border-slate-100 w-[140px] min-w-[140px] whitespace-nowrap">
+                        <td class="text-center align-middle py-2 sticky left-0 z-20 bg-white border-r border-slate-100 w-[35px] min-w-[35px] max-w-[35px]"><input type="checkbox" ${isSelected ? "checked" : ""} onchange="toggleRowSelection('${item.id}')" class="cursor-pointer" data-tooltip="Pilih baris ini"></td>
+                        <td class="text-center font-bold text-slate-400 border-r border-slate-100 align-middle py-2 sticky left-[35px] z-20 bg-white w-[45px] min-w-[45px] max-w-[45px]">${index + 1}</td>
+                        <td class="text-[9.5px] text-slate-500 font-mono text-center align-middle py-2 sticky left-[80px] z-20 bg-white border-r border-slate-100 w-[140px] min-w-[140px] max-w-[140px] whitespace-nowrap">
                             ${tsHtml}
                         </td>
-                        <td class="font-bold text-teal-700 cursor-pointer transition-all hover:underline hover:text-teal-900 underline-offset-4 decoration-teal-300 decoration-2 align-middle py-2 sticky left-[220px] z-20 bg-white border-r border-slate-200/80 shadow-[4px_0_12px_-4px_rgba(0,0,0,0.08)] w-[200px] min-w-[200px]">${highlightText(item["nama-sekolah"], searchVal)}</td>
+                        <td class="font-bold text-teal-700 cursor-pointer transition-all hover:underline hover:text-teal-900 underline-offset-4 decoration-teal-300 decoration-2 align-middle py-2 sticky left-[220px] z-20 bg-white border-r border-slate-200 shadow-[4px_0_12px_-4px_rgba(0,0,0,0.12)] w-[220px] min-w-[220px] max-w-[220px] truncate" data-tooltip="Klik untuk Edit Sekolah">${highlightText(item["nama-sekolah"], searchVal)}</td>
                         <td class="font-mono text-slate-500 text-center align-middle py-2 min-w-[100px]">${highlightText(item["npsn"], searchVal)}</td>
                         <td class="max-w-[150px] min-w-[180px] align-middle py-2 group relative">
                             <span class="block truncate">${highlightText(item["alamat"], searchVal)}</span>
@@ -3000,7 +3068,7 @@
             editIdInput.value = "";
             document.getElementById("audit-trail").classList.add("hidden");
             iconBg.className =
-              "w-10 h-10 bg-teal-500 text-white rounded-xl flex items-center justify-center shadow-lg shadow-teal-500/30 transition-colors";
+              "w-10 h-10 bg-[#00897b] text-white rounded-xl flex items-center justify-center shadow-md transition-colors shrink-0";
             editActions.classList.add("hidden");
             addMoreBtn.classList.remove("hidden");
             draftBtn.classList.remove("hidden");
@@ -3486,6 +3554,14 @@
             { id: "kabupaten-kota-nama", label: "Nama Kab/Kota" },
             { id: "provinsi", label: "Provinsi" },
             { id: "kelas", label: "Kelas (Pisahkan koma, cth: 1, 2, 3, 4, 5, 6)" },
+            { id: "kepsek_nama", label: "Nama Kepsek" },
+            { id: "kepsek_nip", label: "NIP Kepsek" },
+            { id: "kepsek_wa", label: "WhatsApp Kepsek" },
+            { id: "kepsek_tgl_lahir", label: "Tanggal Lahir Kepsek" },
+            { id: "guru_nama", label: "Nama Guru" },
+            { id: "guru_nip", label: "NIP Guru" },
+            { id: "guru_wa", label: "WhatsApp Guru" },
+            { id: "guru_tgl_lahir", label: "Tanggal Lahir Guru" }
           ];
           const headers = templateCols.map((col) => col.label);
           const sampleRow = [
@@ -3499,6 +3575,14 @@
             "Serang",
             "Banten",
             "1, 2, 3, 4, 5, 6",
+            "Drs. H. Ahmad Fauzi, M.Pd.",
+            "197501012000031001",
+            "081234567890",
+            "1975-01-01",
+            "Budi Santoso, S.Kom.",
+            "198805122015021002",
+            "089876543210",
+            "1988-05-12"
           ];
           const ws = XLSX.utils.aoa_to_sheet([headers, sampleRow]);
           ws["!cols"] = [
@@ -3512,12 +3596,20 @@
             { wch: 20 },
             { wch: 18 },
             { wch: 45 },
+            { wch: 26 },
+            { wch: 20 },
+            { wch: 18 },
+            { wch: 20 },
+            { wch: 26 },
+            { wch: 20 },
+            { wch: 18 },
+            { wch: 20 }
           ];
           const wb = XLSX.utils.book_new();
           XLSX.utils.book_append_sheet(wb, ws, "Template Sekolah");
           XLSX.writeFile(
             wb,
-            `Template_Impor_Sekolah_E_Rapor_${getTimestamp().replace(/[:\s]/g, "_")}.xlsx`,
+            `Registrasi E-Rapor Edi Brata Template ${getTimestamp()}.xlsx`,
           );
           showToast("Template Excel berhasil diunduh.");
         };
@@ -3555,7 +3647,7 @@
               ? String(item.npsn).trim().toLowerCase()
               : item["nama-sekolah"]
                 ? String(item["nama-sekolah"]).trim().toLowerCase()
-                : Math.random().toString();
+                : (item.id || Math.random().toString());
             if (!uniqueExportMap.has(key)) {
               uniqueExportMap.set(key, {
                 ...item,
@@ -3586,146 +3678,245 @@
           });
           const aggregatedExport = Array.from(uniqueExportMap.values());
 
-          const tabData = document.getElementById("tab-data");
-          const tabAkses = document.getElementById("tab-akses");
-          const tabPengguna = document.getElementById("tab-pengguna");
-          const isDataPokokActive =
-            tabData && tabData.classList.contains("text-teal-600");
-          const isAksesActive =
-            tabAkses && tabAkses.classList.contains("text-teal-600");
-          const isPenggunaActive =
-            tabPengguna && tabPengguna.classList.contains("text-teal-600");
+          const formatExportFeature = (schoolItem, key) => {
+            const acc = getSchoolClassAccess(schoolItem, key);
+            if (!acc.enabled || acc.classes.length === 0) return "Nonaktif (OFF)";
+            return `Aktif (Kelas ${acc.classes.join(', ')})`;
+          };
 
-          let headers = [];
-          let rows = [];
-          let sheetName = "Database";
-          let filenamePrefix = "Data_Pokok";
+          // 1. MASTER SHEET: SEMUA DATA LENGKAP (Pastikan seluruh data secara lengkap masuk)
+          const completeHeaders = [
+            "NO",
+            "STATUS DATA",
+            "WAKTU REGISTRASI",
+            "NAMA SEKOLAH",
+            "NPSN",
+            "ALAMAT LENGKAP",
+            "JENIS WILAYAH",
+            "NAMA DESA/KELURAHAN",
+            "KECAMATAN",
+            "TIPE DAERAH",
+            "NAMA KABUPATEN/KOTA",
+            "PROVINSI",
+            "DAFTAR KELAS",
+            "JUMLAH KELAS",
+            "KATEGORI PESANAN",
+            "SEKOLAH GRATIS",
+            "TOTAL PEMASUKAN/BIAYA (RP)",
+            "STATUS PASSWORD",
+            "PASSWORD AKSES",
+            "MAPEL KUSTOM",
+            "BUKU INDUK",
+            "UNGGAH FOTO",
+            "GANTI LOGO",
+            "TANDA TANGAN DIGITAL",
+            "NAMA KEPALA SEKOLAH",
+            "NIP KEPALA SEKOLAH",
+            "WHATSAPP KEPALA SEKOLAH",
+            "TANGGAL LAHIR KEPALA SEKOLAH",
+            "NAMA GURU OPERATOR",
+            "NIP GURU OPERATOR",
+            "WHATSAPP GURU OPERATOR",
+            "TANGGAL LAHIR GURU OPERATOR"
+          ];
 
-          if (isDataPokokActive) {
-            // Export Data Pokok (Agregat)
-            filenamePrefix = "Data_Pokok";
-            sheetName = "Data Pokok Sekolah";
-            headers = excelColumns.map((col) => col.label);
-            rows = aggregatedExport.map((item) =>
-              excelColumns.map((col) => {
-                if (col.id === "timestamp") {
-                  return item.allTimestamps
-                    .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0))
-                    .map(
-                      (t) =>
-                        formatDisplayDate(t.timestamp) +
-                        (t.isDraft ? " (DRAFT)" : ""),
-                    )
-                    .join("\n");
-                }
-                if (col.id === "kelas") {
-                  const uniqueKelas = Array.from(new Set(item.allKelas)).sort((a, b) => a - b);
-                  return uniqueKelas.join(", ");
-                }
-                return item[col.id] || "";
-              }),
-            );
-          } else if (isAksesActive) {
-            // Export Akses
-            filenamePrefix = "Hak_Akses";
-            sheetName = "Hak Akses Sekolah";
-            headers = ["NO", "NAMA SEKOLAH", "NPSN", "PASSWORD AKTIF", "PASSWORD", "MAPEL KUSTOM", "BUKU INDUK", "UNGGAH FOTO", "GANTI LOGO", "TANDA TANGAN DIGITAL"];
-            rows = aggregatedExport.map((item, idx) => [
+          const completeRows = aggregatedExport.map((item, idx) => {
+            const uniqueClasses = Array.from(new Set(item.allKelas || item.kelas || [])).sort((a, b) => a - b);
+            const classStr = uniqueClasses.join(", ");
+            const kCount = uniqueClasses.length;
+
+            let totalSchoolBiaya = 0;
+            const schoolDocsAll = item.allTimestamps || [item];
+            schoolDocsAll.forEach((doc) => {
+              const count = Array.isArray(doc.kelas) ? doc.kelas.length : 0;
+              const jp = doc["jenis-pesanan"] || "pesanan_baru";
+              let cost = 0;
+              if (jp === "lanjutan") {
+                cost = count * 50000;
+              } else {
+                if (count > 0) cost = 50000 + count * 50000;
+              }
+              if (doc["sekolah-gratis"]) cost = 0;
+              totalSchoolBiaya += cost;
+            });
+            if (item["sekolah-gratis"]) totalSchoolBiaya = 0;
+
+            const isPassActive = item.akses_password_active !== false;
+            const passVal = item.akses_password || (item.npsn ? 'rapor' + item.npsn : "rapor123");
+
+            const allTimestampsStr = schoolDocsAll
+              .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0))
+              .map((t) => formatDisplayDate(t.timestamp) + (t.isDraft ? " (DRAFT)" : ""))
+              .join("; ");
+
+            const jpRaw = item["jenis-pesanan"] || "pesanan_baru";
+            const jpText = jpRaw === "lanjutan" ? "Lanjutan (Tambahan Kelas)" : "Pesanan Baru";
+            const isGratisText = item["sekolah-gratis"] ? "Ya (Gratis)" : "Tidak";
+
+            return [
               idx + 1,
-              item["nama-sekolah"] || "",
-              item["npsn"] || "",
-              item.akses_password_active !== false ? "ON" : "OFF",
-              item.akses_password || (item["npsn"] ? 'rapor' + item["npsn"] : "rapor123"),
-              item.akses_mapel_kustom !== false ? "ON" : "OFF",
-              item.akses_buku_induk !== false ? "ON" : "OFF",
-              item.akses_unggah_foto !== false ? "ON" : "OFF",
-              item.akses_ganti_logo !== false ? "ON" : "OFF",
-              item.akses_tanda_tangan_digital !== false ? "ON" : "OFF"
-            ]);
-          } else if (isPenggunaActive) {
-            // Export Data Pengguna
-            filenamePrefix = "Data_Pengguna";
-            sheetName = "Data Pengguna";
-            headers = ["NO", "NAMA SEKOLAH", "KECAMATAN", "KABUPATEN/KOTA", "PROVINSI", "NAMA KEPSEK", "NIP KEPSEK", "WHATSAPP KEPSEK", "TANGGAL LAHIR KEPSEK", "NAMA GURU", "NIP GURU", "WHATSAPP GURU", "TANGGAL LAHIR GURU"];
-            rows = aggregatedExport.map((school, idx) => {
-              const kabKota = (school["kabupaten-kota-jenis"] ? school["kabupaten-kota-jenis"] + " " : "") + (school["kabupaten-kota-nama"] || "");
-              return [
-                idx + 1,
-                school["nama-sekolah"] || "-",
-                school["kecamatan"] || "-",
-                kabKota || "-",
-                school["provinsi"] || "-",
-                school["kepsek_nama"] || "-",
-                school["kepsek_nip"] || "-",
-                school["kepsek_wa"] || "-",
-                school["kepsek_tgl_lahir"] || "-",
-                school["guru_nama"] || "-",
-                school["guru_nip"] || "-",
-                school["guru_wa"] || "-",
-                school["guru_tgl_lahir"] || "-"
-              ];
-            });
-          } else {
-            // Export Tagihan
-            filenamePrefix = "Tagihan_Pesanan";
-            sheetName = "Tagihan Pesanan";
-            const tagihanCols = [
-              ...excelColumns,
-              { id: "jenis-pesanan", label: "Jenis Pesanan" },
-              { id: "biaya", label: "Biaya (Rp)" },
+              item.isDraft ? "DRAFT" : "VALID",
+              allTimestampsStr || formatDisplayDate(item.timestamp),
+              item["nama-sekolah"] || "-",
+              item["npsn"] || "-",
+              item["alamat"] || "-",
+              item["desa-kelurahan-jenis"] || "-",
+              item["desa-kelurahan-nama"] || "-",
+              item["kecamatan"] || "-",
+              item["kabupaten-kota-jenis"] || "-",
+              item["kabupaten-kota-nama"] || "-",
+              item["provinsi"] || "-",
+              classStr || "-",
+              kCount,
+              jpText,
+              isGratisText,
+              totalSchoolBiaya,
+              isPassActive ? "Aktif" : "Nonaktif",
+              passVal,
+              formatExportFeature(item, "akses_mapel_kustom"),
+              formatExportFeature(item, "akses_buku_induk"),
+              formatExportFeature(item, "akses_unggah_foto"),
+              formatExportFeature(item, "akses_ganti_logo"),
+              formatExportFeature(item, "akses_tanda_tangan_digital"),
+              item["kepsek_nama"] || "-",
+              item["kepsek_nip"] || "-",
+              item["kepsek_wa"] || "-",
+              item["kepsek_tgl_lahir"] || "-",
+              item["guru_nama"] || "-",
+              item["guru_nip"] || "-",
+              item["guru_wa"] || "-",
+              item["guru_tgl_lahir"] || "-"
             ];
-            headers = tagihanCols.map((col) => col.label);
+          });
 
-            // Flatten grouped data back out for tagihan
-            aggregatedExport.forEach((school) => {
-              const schoolItems = [...school.allTimestamps].sort(
-                (a, b) => (b.timestamp || 0) - (a.timestamp || 0),
-              );
-              schoolItems.forEach((item) => {
-                const rowData = tagihanCols.map((col) => {
-                  if (col.id === "timestamp")
-                    return (
-                      formatDisplayDate(item.timestamp) +
-                      (item.isDraft ? " (DRAFT)" : "")
-                    );
-                  if (col.id === "kelas")
-                    return Array.isArray(item.kelas)
-                      ? item.kelas.join(", ")
-                      : "";
-                  if (col.id === "jenis-pesanan") {
-                    const jp = item["jenis-pesanan"] || "pesanan_baru";
-                    return jp === "lanjutan"
-                      ? "Lanjutan (Tambahan Kelas)"
-                      : "Pesanan Baru";
-                  }
-                  if (col.id === "biaya") {
-                    if (item['sekolah-gratis']) return 0;
-                    const kCount = Array.isArray(item.kelas)
-                      ? item.kelas.length
-                      : 0;
-                    const jp = item["jenis-pesanan"] || "pesanan_baru";
-                    if (jp === "lanjutan") return kCount * 50000;
-                    return kCount > 0 ? 50000 + kCount * 50000 : 0;
-                  }
-                  return item[col.id] || "";
-                });
-                rows.push(rowData);
-              });
-            });
-          }
-
-          const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
-          ws["!cols"] = headers.map(() => ({ wch: 22 }));
           const wb = XLSX.utils.book_new();
-          XLSX.utils.book_append_sheet(wb, ws, sheetName);
+
+          // 1. Sheet Master: Data Lengkap
+          const wsComplete = XLSX.utils.aoa_to_sheet([completeHeaders, ...completeRows]);
+          wsComplete["!cols"] = [
+            { wch: 6 },
+            { wch: 12 },
+            { wch: 24 },
+            { wch: 30 },
+            { wch: 14 },
+            { wch: 32 },
+            { wch: 16 },
+            { wch: 22 },
+            { wch: 20 },
+            { wch: 16 },
+            { wch: 22 },
+            { wch: 18 },
+            { wch: 20 },
+            { wch: 14 },
+            { wch: 24 },
+            { wch: 16 },
+            { wch: 24 },
+            { wch: 16 },
+            { wch: 18 },
+            { wch: 28 },
+            { wch: 28 },
+            { wch: 28 },
+            { wch: 28 },
+            { wch: 28 },
+            { wch: 26 },
+            { wch: 20 },
+            { wch: 20 },
+            { wch: 22 },
+            { wch: 26 },
+            { wch: 20 },
+            { wch: 20 },
+            { wch: 22 }
+          ];
+          XLSX.utils.book_append_sheet(wb, wsComplete, "Data Lengkap");
+
+          // 2. Sheet Data Pokok
+          const pokokHeaders = ["NO", "TIMESTAMP", "NAMA SEKOLAH", "NPSN", "ALAMAT LENGKAP", "JENIS WILAYAH", "NAMA DESA/KEL", "KECAMATAN", "TIPE DAERAH", "NAMA KAB./KOTA", "PROVINSI", "KELAS"];
+          const pokokRows = aggregatedExport.map((item, idx) => {
+            const uniqueClasses = Array.from(new Set(item.allKelas || item.kelas || [])).sort((a, b) => a - b);
+            return [
+              idx + 1,
+              formatDisplayDate(item.timestamp),
+              item["nama-sekolah"] || "-",
+              item["npsn"] || "-",
+              item["alamat"] || "-",
+              item["desa-kelurahan-jenis"] || "-",
+              item["desa-kelurahan-nama"] || "-",
+              item["kecamatan"] || "-",
+              item["kabupaten-kota-jenis"] || "-",
+              item["kabupaten-kota-nama"] || "-",
+              item["provinsi"] || "-",
+              uniqueClasses.join(", ") || "-"
+            ];
+          });
+          const wsPokok = XLSX.utils.aoa_to_sheet([pokokHeaders, ...pokokRows]);
+          wsPokok["!cols"] = pokokHeaders.map(() => ({ wch: 20 }));
+          XLSX.utils.book_append_sheet(wb, wsPokok, "Data Pokok");
+
+          // 3. Sheet Pesanan & Tagihan
+          const tagihanHeaders = ["NO", "TRANSAKSI", "NAMA SEKOLAH", "NPSN", "PENAMBAHAN KELAS", "JENIS PESANAN", "SEKOLAH GRATIS", "PEMASUKAN (RP)"];
+          const tagihanRows = [];
+          let tagihanIdx = 1;
+          aggregatedExport.forEach((school) => {
+            const schoolDocs = [...(school.allTimestamps || [school])].sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+            schoolDocs.forEach((doc) => {
+              const kArr = Array.isArray(doc.kelas) ? doc.kelas : [];
+              const jp = doc["jenis-pesanan"] || "pesanan_baru";
+              let cost = 0;
+              if (jp === "lanjutan") {
+                cost = kArr.length * 50000;
+              } else {
+                if (kArr.length > 0) cost = 50000 + kArr.length * 50000;
+              }
+              if (doc["sekolah-gratis"]) cost = 0;
+              tagihanRows.push([
+                tagihanIdx++,
+                formatDisplayDate(doc.timestamp) + (doc.isDraft ? " (DRAFT)" : ""),
+                school["nama-sekolah"] || "-",
+                school["npsn"] || "-",
+                kArr.join(", ") || "-",
+                jp === "lanjutan" ? "Lanjutan" : "Pesanan Baru",
+                doc["sekolah-gratis"] ? "Ya" : "Tidak",
+                cost
+              ]);
+            });
+          });
+          const wsTagihan = XLSX.utils.aoa_to_sheet([tagihanHeaders, ...tagihanRows]);
+          wsTagihan["!cols"] = tagihanHeaders.map(() => ({ wch: 20 }));
+          XLSX.utils.book_append_sheet(wb, wsTagihan, "Pesanan & Tagihan");
+
+          // 4. Sheet Hak Akses Fitur
+          const aksesHeaders = ["NO", "NAMA SEKOLAH", "NPSN", "PASSWORD AKTIF", "PASSWORD", "MAPEL KUSTOM", "BUKU INDUK", "UNGGAH FOTO", "GANTI LOGO", "TANDA TANGAN DIGITAL"];
+          const aksesRows = aggregatedExport.map((item, idx) => [
+            idx + 1,
+            item["nama-sekolah"] || "-",
+            item["npsn"] || "-",
+            item.akses_password_active !== false ? "Aktif" : "Nonaktif",
+            item.akses_password || (item["npsn"] ? 'rapor' + item["npsn"] : "rapor123"),
+            formatExportFeature(item, "akses_mapel_kustom"),
+            formatExportFeature(item, "akses_buku_induk"),
+            formatExportFeature(item, "akses_unggah_foto"),
+            formatExportFeature(item, "akses_ganti_logo"),
+            formatExportFeature(item, "akses_tanda_tangan_digital")
+          ]);
+          const wsAkses = XLSX.utils.aoa_to_sheet([aksesHeaders, ...aksesRows]);
+          wsAkses["!cols"] = aksesHeaders.map(() => ({ wch: 22 }));
+          XLSX.utils.book_append_sheet(wb, wsAkses, "Hak Akses Fitur");
+
+          // 5. Sheet Data Pengguna (Mandiri & Terpisah)
+          const penggunaHeaders = ["NO", "TIMESTAMP", "NAMA SEKOLAH", "KECAMATAN", "KABUPATEN/KOTA", "PROVINSI", "NAMA KEPSEK", "NIP KEPSEK", "WHATSAPP KEPSEK", "TANGGAL LAHIR KEPSEK", "NAMA GURU", "NIP GURU", "WHATSAPP GURU", "TANGGAL LAHIR GURU"];
+          const penggunaRows = [];
+          const wsPengguna = XLSX.utils.aoa_to_sheet([penggunaHeaders, ...penggunaRows]);
+          wsPengguna["!cols"] = penggunaHeaders.map(() => ({ wch: 20 }));
+          XLSX.utils.book_append_sheet(wb, wsPengguna, "Data Pengguna");
+
           XLSX.writeFile(
             wb,
-            `Ekspor_${filenamePrefix}_Aplikasi_Rapor_Edi_Brata_${getTimestamp().replace(/[:\s]/g, "_")}.xlsx`,
+            `Registrasi E-Rapor Edi Brata Ekspor ${getTimestamp()}.xlsx`,
           );
           showToast(
             selectedIds.size > 0
-              ? `${rows.length} data yang dipilih berhasil diekspor.`
-              : `Seluruh database (${rows.length} baris) berhasil diekspor.`,
+              ? `${completeRows.length} data terpilih berhasil diekspor secara lengkap ke Excel!`
+              : `Seluruh data (${completeRows.length} sekolah) berhasil diekspor secara lengkap ke Excel!`,
           );
         };
 
@@ -3901,7 +4092,7 @@
           const url = URL.createObjectURL(blob);
           const a = document.createElement("a");
           a.href = url;
-          a.download = `Backup_Data_Registrasi_Aplikasi_Rapor_${getTimestamp().replace(/[:\s]/g, "_")}.json`;
+          a.download = `Registrasi E-Rapor Edi Brata Backup ${getTimestamp()}.json`;
           a.click();
           showToast(`File Backup JSON (${cleanData.length} sekolah) berhasil diunduh.`);
         };
@@ -4122,39 +4313,471 @@
           }
         };
 
+        // --- AKSES PER-CLASS HELPERS & MATRIX MODAL (OPTION B) ---
+        const AKSES_FEATURES = [
+          { key: "akses_mapel_kustom", label: "Mapel Kustom", short: "Mapel", icon: "📚" },
+          { key: "akses_buku_induk", label: "Buku Induk", short: "Buku Induk", icon: "📖" },
+          { key: "akses_unggah_foto", label: "Unggah Foto", short: "Foto", icon: "📷" },
+          { key: "akses_ganti_logo", label: "Ganti Logo", short: "Logo", icon: "🖼️" },
+          { key: "akses_tanda_tangan_digital", label: "Tanda Tangan Digital", short: "TTD", icon: "✍️" },
+        ];
+
+        function getSchoolOrderedClasses(school) {
+          if (school && Array.isArray(school.kelas) && school.kelas.length > 0) {
+            return Array.from(new Set(school.kelas.map(k => parseInt(k, 10)).filter(n => !isNaN(n)))).sort((a, b) => a - b);
+          }
+          if (school && Array.isArray(school.allKelas) && school.allKelas.length > 0) {
+            return Array.from(new Set(school.allKelas.map(k => parseInt(k, 10)).filter(n => !isNaN(n)))).sort((a, b) => a - b);
+          }
+          return [1, 2, 3, 4, 5, 6];
+        }
+
+        function getSchoolClassAccess(school, featureKey) {
+          const ordered = getSchoolOrderedClasses(school);
+          if (!school) return { enabled: true, classes: [...ordered] };
+          
+          const val = school[featureKey];
+          const classesKey = featureKey + "_classes";
+          
+          if (val === false) {
+            return { enabled: false, classes: [] };
+          }
+          
+          if (Array.isArray(school[classesKey])) {
+            return {
+              enabled: val !== false,
+              classes: school[classesKey].map(c => parseInt(c, 10)).filter(n => !isNaN(n)).sort((a, b) => a - b)
+            };
+          }
+          
+          if (Array.isArray(val)) {
+            return {
+              enabled: true,
+              classes: val.map(c => parseInt(c, 10)).filter(n => !isNaN(n)).sort((a, b) => a - b)
+            };
+          }
+          
+          if (typeof val === 'object' && val !== null) {
+            const isEn = val.enabled !== false;
+            const cls = Array.isArray(val.classes) ? val.classes.map(c => parseInt(c, 10)).filter(n => !isNaN(n)).sort((a, b) => a - b) : (isEn ? [...ordered] : []);
+            return { enabled: isEn, classes: cls };
+          }
+          
+          return { enabled: true, classes: [...ordered] };
+        }
+
+        window.toggleAksesFeatureMaster = async (id, featureKey, isChecked) => {
+          const school = findSchoolById(id);
+          const ordered = getSchoolOrderedClasses(school);
+          const currentAcc = getSchoolClassAccess(school, featureKey);
+          
+          let classesToSave = [];
+          if (isChecked) {
+            classesToSave = currentAcc.classes && currentAcc.classes.length > 0 ? currentAcc.classes : [...ordered];
+          } else {
+            classesToSave = [];
+          }
+
+          const updatePayload = {
+            [featureKey]: isChecked,
+            [featureKey + "_classes"]: classesToSave
+          };
+
+          await updateSchoolAksesData(id, updatePayload);
+          const feat = AKSES_FEATURES.find(f => f.key === featureKey);
+          showToast(`Saklar ${feat ? feat.label : featureKey} ${isChecked ? 'diaktifkan (ON)' : 'dinonaktifkan (OFF)'}`);
+        };
+
         window.toggleAksesMapelKustomById = async (id, isChecked) => {
-          await updateSchoolAksesData(id, {
-            akses_mapel_kustom: isChecked
-          });
-          showToast(isChecked ? "Mapel Kustom diaktifkan" : "Mapel Kustom dinonaktifkan");
+          await window.toggleAksesFeatureMaster(id, 'akses_mapel_kustom', isChecked);
         };
 
         window.toggleAksesBukuIndukById = async (id, isChecked) => {
-          await updateSchoolAksesData(id, {
-            akses_buku_induk: isChecked
-          });
-          showToast(isChecked ? "Buku Induk diaktifkan" : "Buku Induk dinonaktifkan");
+          await window.toggleAksesFeatureMaster(id, 'akses_buku_induk', isChecked);
         };
 
         window.toggleAksesUnggahFotoById = async (id, isChecked) => {
-          await updateSchoolAksesData(id, {
-            akses_unggah_foto: isChecked
-          });
-          showToast(isChecked ? "Unggah Foto diaktifkan" : "Unggah Foto dinonaktifkan");
+          await window.toggleAksesFeatureMaster(id, 'akses_unggah_foto', isChecked);
         };
 
         window.toggleAksesGantiLogoById = async (id, isChecked) => {
-          await updateSchoolAksesData(id, {
-            akses_ganti_logo: isChecked
-          });
-          showToast(isChecked ? "Ganti Logo diaktifkan" : "Ganti Logo dinonaktifkan");
+          await window.toggleAksesFeatureMaster(id, 'akses_ganti_logo', isChecked);
         };
 
         window.toggleAksesTandaTanganDigitalById = async (id, isChecked) => {
-          await updateSchoolAksesData(id, {
-            akses_tanda_tangan_digital: isChecked
+          await window.toggleAksesFeatureMaster(id, 'akses_tanda_tangan_digital', isChecked);
+        };
+
+        // --- MATRIX MODAL CONTROLLER (OPTION B) ---
+        window.tempMatrixState = {};
+        window.currentMatrixFocusKey = null;
+
+        window.openAksesClassMatrixModal = (schoolId, focusKey) => {
+          const school = findSchoolById(schoolId);
+          if (!school) return;
+
+          window.currentMatrixFocusKey = focusKey || null;
+
+          document.getElementById("matrix-school-id").value = schoolId;
+          document.getElementById("matrix-school-name").textContent = school["nama-sekolah"] || "-";
+          document.getElementById("matrix-school-npsn").textContent = school["npsn"] || "-";
+
+          const titleEl = document.getElementById("matrix-modal-title");
+          const badgeEl = document.getElementById("matrix-feature-badge");
+          
+          if (focusKey) {
+            const f = AKSES_FEATURES.find(x => x.key === focusKey);
+            const featTitle = f ? f.label : 'Fitur';
+            if (titleEl) titleEl.textContent = `Pengaturan Akses: ${featTitle}`;
+            if (badgeEl) {
+              badgeEl.textContent = '';
+              badgeEl.classList.add('hidden');
+            }
+          } else {
+            if (titleEl) titleEl.textContent = 'Pengaturan Akses Per Kelas';
+            if (badgeEl) {
+              badgeEl.textContent = 'Semua Fitur';
+              badgeEl.classList.remove('hidden');
+            }
+          }
+
+          // Build local state
+          window.tempMatrixState = {};
+          AKSES_FEATURES.forEach(feat => {
+            const acc = getSchoolClassAccess(school, feat.key);
+            window.tempMatrixState[feat.key] = {
+              enabled: acc.enabled && acc.classes.length > 0,
+              classes: [...acc.classes]
+            };
           });
-          showToast(isChecked ? "Tanda Tangan Digital diaktifkan" : "Tanda Tangan Digital dinonaktifkan");
+
+          window.renderMatrixModalBody(school);
+          document.getElementById("akses-matrix-modal").classList.add("active");
+        };
+
+        window.renderMatrixModalBody = (schoolParam) => {
+          const schoolId = document.getElementById("matrix-school-id").value;
+          const school = schoolParam || findSchoolById(schoolId);
+          if (!school) return;
+
+          const ordered = getSchoolOrderedClasses(school);
+          const allStandardClasses = [1, 2, 3, 4, 5, 6];
+          const dynamicContainer = document.getElementById("matrix-modal-dynamic-content");
+          if (!dynamicContainer) return;
+
+          const orderedPillsHtml = (ordered && ordered.length > 0)
+            ? ordered.map(k => `
+                <span class="w-6 h-6 rounded-md bg-teal-50 text-teal-800 font-bold border border-teal-200/90 flex items-center justify-center shadow-2xs text-xs select-none" data-tooltip="Kelas ${k}">
+                  ${k}
+                </span>
+              `).join("")
+            : '<span class="text-slate-400 text-xs font-normal">Tidak ada data pesanan (Default: 1-6)</span>';
+
+          // --- 1. SINGLE FEATURE MODE (COMPACT CARD, ZERO REDUNDANCY) ---
+          if (window.currentMatrixFocusKey) {
+            const feat = AKSES_FEATURES.find(f => f.key === window.currentMatrixFocusKey) || AKSES_FEATURES[0];
+            const st = window.tempMatrixState[feat.key] || { enabled: true, classes: [...ordered] };
+            const isRowEnabled = st.enabled;
+
+            dynamicContainer.innerHTML = `
+              <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-3.5 space-y-3">
+                <!-- Baris 1: Kelas Pesanan & Status Saklar Master -->
+                <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                  <div class="flex items-center gap-2">
+                    <span class="text-[11px] font-bold text-slate-600 shrink-0">Kelas Pesanan:</span>
+                    <div class="flex items-center gap-1 font-mono">
+                      ${orderedPillsHtml}
+                    </div>
+                  </div>
+                  <div class="flex items-center gap-2.5">
+                    <span class="text-xs font-semibold text-slate-500 font-mono">${st.classes.length} / ${ordered.length} aktif</span>
+                    <label class="relative inline-flex items-center cursor-pointer select-none" data-tooltip="${isRowEnabled ? 'Matikan Fitur' : 'Aktifkan Fitur'}">
+                      <input type="checkbox" class="sr-only peer" ${isRowEnabled ? 'checked' : ''} onchange="window.toggleMatrixFeatureMaster('${feat.key}', this.checked)">
+                      <div class="w-8 h-4 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-[16px] peer-checked:after:border-white after:content-[''] after:absolute after:top-[1px] after:left-[1px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-3.5 after:w-3.5 after:transition-all peer-checked:bg-teal-600"></div>
+                    </label>
+                  </div>
+                </div>
+
+                <!-- Baris 2: Pemilihan Kelas 1-6 & Tombol Preset Ikon Terpadu (1 Set Sahaja) -->
+                <div class="flex flex-col sm:flex-row items-center justify-between gap-3 bg-slate-50/80 p-2.5 rounded-xl border border-slate-200/80">
+                  <div class="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+                    <span class="text-[11px] font-bold text-slate-500 mr-1 shrink-0">Pilih Kelas:</span>
+                    <div class="flex items-center gap-1.5 flex-nowrap">
+                      ${allStandardClasses.map(clsNum => {
+                        const isOrdered = ordered.includes(clsNum);
+                        const isSelected = isRowEnabled && st.classes.includes(clsNum);
+                        
+                        let btnClass = "";
+                        let tooltipText = `Kelas ${clsNum}`;
+
+                        if (isSelected) {
+                          if (isOrdered) {
+                            btnClass = "bg-teal-600 text-white font-bold border-teal-600 shadow-sm hover:bg-teal-700";
+                          } else {
+                            btnClass = "bg-amber-500 text-white font-bold border-amber-500 shadow-sm hover:bg-amber-600";
+                            tooltipText = `Kelas ${clsNum} (Ekstra)`;
+                          }
+                        } else {
+                          if (isOrdered) {
+                            btnClass = "bg-slate-50 text-slate-600 border-slate-200 hover:border-teal-400 hover:bg-teal-50/50";
+                          } else {
+                            btnClass = "bg-white text-slate-300 border-slate-200 hover:border-slate-300 hover:text-slate-500";
+                          }
+                          tooltipText = `Kelas ${clsNum}`;
+                        }
+
+                        return `
+                          <button
+                            type="button"
+                            onclick="window.toggleMatrixFeatureClass('${feat.key}', ${clsNum})"
+                            class="w-8 h-8 rounded-lg text-xs font-mono font-bold border transition-all cursor-pointer flex items-center justify-center select-none ${btnClass}"
+                            data-tooltip="${tooltipText}"
+                          >
+                            ${clsNum}
+                          </button>
+                        `;
+                      }).join("")}
+                    </div>
+                  </div>
+
+                  <!-- Quick Action Preset Icons (Hanya Pesanan & Semua) -->
+                  <div class="flex items-center gap-1.5 shrink-0 pl-0 sm:pl-3 border-t sm:border-t-0 sm:border-l border-slate-200 pt-2 sm:pt-0 w-full sm:w-auto justify-end">
+                    <button
+                      type="button"
+                      onclick="window.applyMatrixPreset('ordered')"
+                      class="w-8 h-8 rounded-lg bg-teal-50 hover:bg-teal-100 text-teal-700 border border-teal-200/90 transition-all cursor-pointer flex items-center justify-center shadow-2xs hover:shadow-xs"
+                      data-tooltip="Hanya Pesanan"
+                    >
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
+                    </button>
+                    <button
+                      type="button"
+                      onclick="window.applyMatrixPreset('all')"
+                      class="w-8 h-8 rounded-lg bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 transition-all cursor-pointer flex items-center justify-center shadow-2xs hover:shadow-xs"
+                      data-tooltip="Semua (1-6)"
+                    >
+                      <svg class="w-4 h-4 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            `;
+            return;
+          }
+
+          // --- 2. FULL MATRIX MODE (5 FEATURES TABLE) ---
+          dynamicContainer.innerHTML = `
+            <!-- Info Kelas Pesanan Bar & Global Preset Buttons -->
+            <div class="flex items-center justify-between bg-slate-50/90 px-3 py-1.5 rounded-xl border border-slate-200/80 mb-2.5 gap-3">
+              <div class="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+                <span class="text-[11px] font-bold text-slate-600 shrink-0">Kelas Pesanan:</span>
+                <div class="flex items-center gap-1 font-mono text-[11px]">
+                  ${orderedPillsHtml}
+                </div>
+              </div>
+              <div class="flex items-center gap-1.5 shrink-0">
+                <button
+                  type="button"
+                  onclick="window.applyMatrixPreset('ordered')"
+                  class="w-7 h-7 rounded-lg bg-teal-50 hover:bg-teal-100 text-teal-700 border border-teal-200/90 transition-all cursor-pointer flex items-center justify-center shadow-2xs hover:shadow-xs"
+                  data-tooltip="Hanya Pesanan"
+                >
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
+                </button>
+                <button
+                  type="button"
+                  onclick="window.applyMatrixPreset('all')"
+                  class="w-7 h-7 rounded-lg bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 transition-all cursor-pointer flex items-center justify-center shadow-2xs hover:shadow-xs"
+                  data-tooltip="Semua (1-6)"
+                >
+                  <svg class="w-3.5 h-3.5 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                </button>
+              </div>
+            </div>
+
+            <!-- Matriks Grid Table (Compact, Solid Header, No Scrollbar) -->
+            <div class="overflow-x-auto rounded-xl border border-slate-200 shadow-sm bg-white">
+              <table class="w-full text-xs text-left border-collapse">
+                <thead>
+                  <tr class="border-b border-slate-200 text-[10px] text-slate-500 font-bold uppercase tracking-wider">
+                    <th class="px-3.5 py-2 bg-slate-50 min-w-[150px]">Fitur Akses</th>
+                    <th class="px-2.5 py-2 bg-slate-50 text-center w-[65px]">Status</th>
+                    <th class="px-3.5 py-2 bg-slate-50 text-center min-w-[240px]">Pilihan Kelas yang Aktif</th>
+                    <th class="px-2.5 py-2 bg-slate-50 text-center w-[75px]">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 text-[11px]">
+                  ${AKSES_FEATURES.map(feat => {
+                    const st = window.tempMatrixState[feat.key] || { enabled: true, classes: [...ordered] };
+                    const isRowEnabled = st.enabled;
+
+                    return `
+                      <tr class="hover:bg-slate-50/60 transition-colors">
+                        <td class="px-3.5 py-2">
+                          <div>
+                            <div class="font-bold text-slate-800 text-xs">${feat.label}</div>
+                            <div class="text-[9.5px] text-slate-400 font-mono">${st.classes.length} / ${ordered.length} aktif</div>
+                          </div>
+                        </td>
+                        <td class="px-2.5 py-2 text-center">
+                          <label class="relative inline-flex items-center cursor-pointer select-none" data-tooltip="${isRowEnabled ? 'Matikan Fitur' : 'Aktifkan Fitur'}">
+                            <input type="checkbox" class="sr-only peer" ${isRowEnabled ? 'checked' : ''} onchange="window.toggleMatrixFeatureMaster('${feat.key}', this.checked)">
+                            <div class="w-7 h-3.5 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-[14px] peer-checked:after:border-white after:content-[''] after:absolute after:top-[1px] after:left-[1px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-2.5 after:w-2.5 after:transition-all peer-checked:bg-teal-600"></div>
+                          </label>
+                        </td>
+                        <td class="px-3.5 py-2 text-center">
+                          <div class="flex items-center justify-center gap-1.5 flex-nowrap">
+                            ${allStandardClasses.map(clsNum => {
+                              const isOrdered = ordered.includes(clsNum);
+                              const isSelected = isRowEnabled && st.classes.includes(clsNum);
+                              
+                              let btnClass = "";
+                              let tooltipText = `Kelas ${clsNum}`;
+
+                              if (isSelected) {
+                                if (isOrdered) {
+                                  btnClass = "bg-teal-600 text-white font-bold border-teal-600 shadow-2xs hover:bg-teal-700";
+                                } else {
+                                  btnClass = "bg-amber-500 text-white font-bold border-amber-500 shadow-2xs hover:bg-amber-600";
+                                  tooltipText = `Kelas ${clsNum} (Ekstra)`;
+                                }
+                              } else {
+                                if (isOrdered) {
+                                  btnClass = "bg-slate-50 text-slate-600 border-slate-200 hover:border-teal-400 hover:bg-teal-50/50";
+                                } else {
+                                  btnClass = "bg-white text-slate-300 border-slate-200 hover:border-slate-300 hover:text-slate-500";
+                                }
+                                tooltipText = `Kelas ${clsNum}`;
+                              }
+
+                              return `
+                                <button
+                                  type="button"
+                                  onclick="window.toggleMatrixFeatureClass('${feat.key}', ${clsNum})"
+                                  class="w-7 h-7 rounded-lg text-xs font-mono font-bold border transition-all cursor-pointer flex items-center justify-center select-none ${btnClass}"
+                                  data-tooltip="${tooltipText}"
+                                >
+                                  ${clsNum}
+                                </button>
+                              `;
+                            }).join("")}
+                          </div>
+                        </td>
+                        <td class="px-2.5 py-2 text-center">
+                          <div class="flex items-center justify-center gap-1">
+                            <button
+                              type="button"
+                              onclick="window.applyMatrixRowPreset('${feat.key}', 'ordered')"
+                              class="w-6.5 h-6.5 rounded-lg bg-slate-50 hover:bg-teal-50 text-slate-500 hover:text-teal-700 border border-slate-200 hover:border-teal-300 transition-all cursor-pointer flex items-center justify-center"
+                              data-tooltip="Sesuai Pesanan"
+                            >
+                              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
+                            </button>
+                            <button
+                              type="button"
+                              onclick="window.applyMatrixRowPreset('${feat.key}', 'all')"
+                              class="w-6.5 h-6.5 rounded-lg bg-slate-50 hover:bg-slate-100 text-slate-500 hover:text-slate-800 border border-slate-200 transition-all cursor-pointer flex items-center justify-center"
+                              data-tooltip="Semua Kelas"
+                            >
+                              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    `;
+                  }).join("")}
+                </tbody>
+              </table>
+            </div>
+          `;
+        };
+
+        window.toggleMatrixFeatureMaster = (featureKey, isChecked) => {
+          const schoolId = document.getElementById("matrix-school-id").value;
+          const school = findSchoolById(schoolId);
+          const ordered = getSchoolOrderedClasses(school);
+
+          if (!window.tempMatrixState[featureKey]) {
+            window.tempMatrixState[featureKey] = { enabled: isChecked, classes: isChecked ? [...ordered] : [] };
+          } else {
+            window.tempMatrixState[featureKey].enabled = isChecked;
+            if (isChecked && window.tempMatrixState[featureKey].classes.length === 0) {
+              window.tempMatrixState[featureKey].classes = [...ordered];
+            }
+          }
+          window.renderMatrixModalBody();
+        };
+
+        window.toggleMatrixFeatureClass = (featureKey, classNum) => {
+          if (!window.tempMatrixState[featureKey]) {
+            window.tempMatrixState[featureKey] = { enabled: true, classes: [classNum] };
+          } else {
+            const arr = window.tempMatrixState[featureKey].classes;
+            const idx = arr.indexOf(classNum);
+            if (idx > -1) {
+              arr.splice(idx, 1);
+            } else {
+              arr.push(classNum);
+              arr.sort((a, b) => a - b);
+            }
+            window.tempMatrixState[featureKey].enabled = arr.length > 0;
+          }
+          window.renderMatrixModalBody();
+        };
+
+        window.applyMatrixPreset = (presetType) => {
+          const schoolId = document.getElementById("matrix-school-id").value;
+          const school = findSchoolById(schoolId);
+          const ordered = getSchoolOrderedClasses(school);
+
+          const targetFeatures = window.currentMatrixFocusKey 
+            ? AKSES_FEATURES.filter(f => f.key === window.currentMatrixFocusKey)
+            : AKSES_FEATURES;
+
+          targetFeatures.forEach(feat => {
+            if (presetType === 'ordered') {
+              window.tempMatrixState[feat.key] = { enabled: true, classes: [...ordered] };
+            } else if (presetType === 'all') {
+              window.tempMatrixState[feat.key] = { enabled: true, classes: [1, 2, 3, 4, 5, 6] };
+            } else if (presetType === 'none') {
+              window.tempMatrixState[feat.key] = { enabled: false, classes: [] };
+            }
+          });
+          window.renderMatrixModalBody();
+        };
+
+        window.applyMatrixRowPreset = (featureKey, presetType) => {
+          const schoolId = document.getElementById("matrix-school-id").value;
+          const school = findSchoolById(schoolId);
+          const ordered = getSchoolOrderedClasses(school);
+
+          if (presetType === 'ordered') {
+            window.tempMatrixState[featureKey] = { enabled: true, classes: [...ordered] };
+          } else if (presetType === 'all') {
+            window.tempMatrixState[featureKey] = { enabled: true, classes: [1, 2, 3, 4, 5, 6] };
+          } else if (presetType === 'none') {
+            window.tempMatrixState[featureKey] = { enabled: false, classes: [] };
+          }
+          window.renderMatrixModalBody();
+        };
+
+        window.saveAksesClassMatrix = async () => {
+          const schoolId = document.getElementById("matrix-school-id").value;
+          if (!schoolId) return;
+
+          const updatePayload = {};
+          AKSES_FEATURES.forEach(feat => {
+            const st = window.tempMatrixState[feat.key];
+            if (st) {
+              const isEnabled = st.enabled && st.classes.length > 0;
+              updatePayload[feat.key] = isEnabled;
+              updatePayload[feat.key + "_classes"] = isEnabled ? [...st.classes].sort((a, b) => a - b) : [];
+            }
+          });
+
+          await updateSchoolAksesData(schoolId, updatePayload);
+          document.getElementById("akses-matrix-modal").classList.remove("active");
+          showToast("Pengaturan hak akses per kelas berhasil disimpan!");
         };
 
         // --- BULK TOGGLE & HEADER SWITCHES FOR TAB AKSES ---
@@ -4399,22 +5022,38 @@
           }
         };
 
-        // --- GLOBAL SMART FLOATING TOOLTIP (Topmost, no clipping, singular instance) ---
+        // --- GLOBAL SMART FLOATING TOOLTIP (Topmost, in front of all layers, singular instance) ---
         (function initFloatingTooltip() {
           const tip = document.getElementById("app-floating-tooltip");
           if (!tip) return;
           let currentTarget = null;
 
+          function hideTip() {
+            if (currentTarget) {
+              currentTarget = null;
+              tip.classList.add("opacity-0", "pointer-events-none");
+              tip.classList.remove("opacity-100");
+            }
+          }
+
           document.addEventListener("mouseover", (e) => {
             const el = e.target.closest("[data-tooltip]");
-            if (!el || el === currentTarget) return;
+            if (!el) {
+              hideTip();
+              return;
+            }
+            if (el === currentTarget) return;
             currentTarget = el;
             const text = el.getAttribute("data-tooltip");
-            if (!text) return;
+            if (!text) {
+              hideTip();
+              return;
+            }
 
             tip.textContent = text;
+            tip.style.top = '-9999px';
+            tip.style.left = '-9999px';
             tip.classList.remove("opacity-0", "pointer-events-none");
-            tip.classList.add("opacity-100");
 
             const rect = el.getBoundingClientRect();
             const tipRect = tip.getBoundingClientRect();
@@ -4432,27 +5071,23 @@
 
             tip.style.top = `${Math.round(top)}px`;
             tip.style.left = `${Math.round(left)}px`;
+            tip.classList.add("opacity-100");
           });
 
           document.addEventListener("mouseout", (e) => {
             if (!currentTarget) return;
             if (!currentTarget.contains(e.relatedTarget)) {
-              currentTarget = null;
-              tip.classList.add("opacity-0", "pointer-events-none");
-              tip.classList.remove("opacity-100");
+              hideTip();
             }
           });
 
-          window.addEventListener("scroll", () => {
-            if (currentTarget) {
-              currentTarget = null;
-              tip.classList.add("opacity-0", "pointer-events-none");
-              tip.classList.remove("opacity-100");
-            }
-          }, { passive: true });
+          // Dismiss on scroll anywhere (including modals, tables)
+          window.addEventListener("scroll", hideTip, { passive: true, capture: true });
+          // Dismiss immediately when clicked
+          document.addEventListener("click", hideTip);
         })();
       }
     </script>
-    <div id="app-floating-tooltip" class="pointer-events-none fixed z-[99999] opacity-0 transition-opacity duration-150 px-2.5 py-1 bg-slate-900/95 backdrop-blur-xs text-white text-[10px] font-medium rounded-md shadow-2xl border border-slate-700/80 whitespace-nowrap"></div>
+    <div id="app-floating-tooltip" class="pointer-events-none fixed z-[999999] opacity-0 transition-opacity duration-150 px-2 py-0.5 bg-slate-900 text-white text-[10.5px] font-semibold rounded-md shadow-xl border border-slate-700/80 whitespace-nowrap select-none"></div>
   </body>
 </html>
