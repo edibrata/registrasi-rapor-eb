@@ -343,6 +343,31 @@
         border: 1px solid #e5e7eb;
         background: white;
       }
+      .custom-scrollbar::-webkit-scrollbar,
+      .table-wrapper::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+      .custom-scrollbar::-webkit-scrollbar-track,
+      .table-wrapper::-webkit-scrollbar-track {
+        background: #f8fafc;
+        border-radius: 6px;
+      }
+      .custom-scrollbar::-webkit-scrollbar-thumb,
+      .table-wrapper::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 6px;
+        border: 2px solid #f8fafc;
+      }
+      .custom-scrollbar::-webkit-scrollbar-thumb:hover,
+      .table-wrapper::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+      }
+      .custom-scrollbar,
+      .table-wrapper {
+        scrollbar-width: thin;
+        scrollbar-color: #cbd5e1 #f8fafc;
+      }
       table {
         width: 100%;
         border-collapse: separate !important;
@@ -356,6 +381,11 @@
         top: 0;
         z-index: 20;
         background-color: #f8fafc;
+        border-bottom: 1px solid #e2e8f0;
+        border-right: 1px solid #e2e8f0;
+      }
+      thead th:last-child {
+        border-right: none;
       }
       thead th.main-header {
         position: sticky;
@@ -367,6 +397,7 @@
         font-weight: 700;
         color: #374151;
         border-bottom: 1px solid #e2e8f0;
+        border-right: 1px solid #e2e8f0;
         white-space: nowrap;
         cursor: pointer;
         user-select: none;
@@ -377,11 +408,50 @@
         background-color: #e2e8f0;
       }
 
+      /* Pengguna Table Sticky & Sort Header Styles */
+      #pengguna-table thead th {
+        position: sticky;
+        top: 0;
+        z-index: 30;
+        border-bottom: 1px solid #e2e8f0;
+        border-right: 1px solid #e2e8f0;
+      }
+      #pengguna-table thead th[class*="sticky"][class*="left"] {
+        position: sticky;
+        top: 0;
+        z-index: 50 !important;
+        background-color: #f8fafc !important;
+        border-right: 1px solid #e2e8f0 !important;
+      }
+      thead th.pengguna-header {
+        position: sticky;
+        top: 0;
+        z-index: 30;
+        cursor: pointer;
+        user-select: none;
+        transition: background-color 0.15s ease;
+        border-bottom: 1px solid #e2e8f0;
+        border-right: 1px solid #e2e8f0;
+      }
+      thead th.pengguna-header:hover {
+        filter: brightness(0.96);
+      }
+      thead th.pengguna-header.active-sort {
+        box-shadow: inset 0 -2px 0 0 #0d9488;
+      }
+      #pengguna-table tbody td[class*="sticky"] {
+        position: sticky;
+        z-index: 10 !important;
+        background-color: #ffffff;
+        border-right: 1px solid #e2e8f0;
+      }
+
       /* Sticky Architecture: Level 2 - Body Sticky Left Columns */
       tbody td[class*="sticky"] {
         position: sticky;
         z-index: 20;
         background-color: #ffffff;
+        border-right: 1px solid #e2e8f0;
       }
 
       /* Sticky Architecture: Level 3 - Corner Intersection (Sticky Top & Left) */
@@ -390,6 +460,7 @@
         top: 0;
         z-index: 40 !important;
         background-color: #f8fafc !important;
+        border-right: 1px solid #e2e8f0 !important;
       }
       thead th[class*="sticky"][class*="left"]:hover {
         background-color: #e2e8f0 !important;
@@ -412,10 +483,14 @@
       }
 
       td {
-        padding: 0.6rem;
-        color: #4b5563;
-        border-bottom: 1px solid #f3f4f6;
+        padding: 0.55rem 0.65rem;
+        color: #475569;
+        border-bottom: 1px solid #e2e8f0;
+        border-right: 1px solid #e2e8f0;
         transition: all 0.2s;
+      }
+      td:last-child {
+        border-right: none;
       }
       tr {
         transition: all 0.2s;
@@ -424,7 +499,7 @@
         background-color: #f8fafc;
       }
       tr:hover td {
-        color: #1e1b4b;
+        color: #0f172a;
       }
       tr.selected {
         background-color: #eff6ff;
@@ -452,47 +527,55 @@
         border-color: #94a3b8;
       }
 
-      #search-input {
+      #search-input,
+      #search-pengguna-input {
         width: 100%;
-        padding: 0.6rem 1rem 0.6rem 2.75rem;
-        border: 1px solid #d1d5db;
-        border-radius: 0.75rem;
-        font-size: 0.8rem;
+        height: 32px;
+        padding: 0 0.75rem 0 2rem;
+        border: 1px solid #e2e8f0;
+        border-radius: 0.5rem;
+        font-size: 0.75rem;
+        line-height: 1.25rem;
         outline: none;
-        transition: all 0.2s;
-        background-color: #f8fafc;
+        transition: all 0.15s ease;
+        background-color: #ffffff;
       }
-      #filter-status {
+      #filter-status,
+      #filter-pengguna-status {
         width: 100%;
-        padding: 0.6rem 2rem 0.6rem 1rem;
-        border: 1px solid #d1d5db;
-        border-radius: 0.75rem;
-        font-size: 0.8rem;
+        height: 32px;
+        padding: 0 1.75rem 0 0.75rem;
+        border: 1px solid #e2e8f0;
+        border-radius: 0.5rem;
+        font-size: 0.75rem;
+        line-height: 1.25rem;
         outline: none;
-        transition: all 0.2s;
-        background-color: #f8fafc;
+        transition: all 0.15s ease;
+        background-color: #ffffff;
         cursor: pointer;
-        color: #475569;
+        color: #334155;
         font-weight: 600;
         appearance: none;
-        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
-        background-position: right 0.5rem center;
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%2364748b' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+        background-position: right 0.4rem center;
         background-repeat: no-repeat;
-        background-size: 1.5em 1.5em;
+        background-size: 1.1rem 1.1rem;
       }
 
       input[type="text"]:focus,
       #search-input:focus,
+      #search-pengguna-input:focus,
       #filter-status:focus,
+      #filter-pengguna-status:focus,
       select:focus {
-        border-color: #6366f1;
-        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
-        transform: translateY(-1px);
+        border-color: #0d9488;
+        box-shadow: 0 0 0 2px rgba(13, 148, 136, 0.15);
         background-color: white;
       }
       #search-input:hover,
-      #filter-status:hover {
-        background-color: white;
+      #search-pengguna-input:hover,
+      #filter-status:hover,
+      #filter-pengguna-status:hover {
         border-color: #cbd5e1;
       }
 
@@ -677,161 +760,6 @@
             </div>
           </div>
         </div>
-
-        <div
-          class="flex flex-col sm:flex-row flex-wrap items-center justify-center lg:justify-end gap-3 w-full lg:w-auto mt-4 lg:mt-0"
-        >
-          <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto items-center justify-center">
-            <div class="relative w-full sm:w-56 group">
-              <div
-                class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-teal-500 transition-colors pointer-events-none"
-              >
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4">
-                  <circle cx="11" cy="11" r="8"></circle>
-                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                </svg>
-              </div>
-              <input
-                type="text"
-                id="search-input"
-                placeholder="Cari Data..."
-                class="shadow-sm placeholder:text-slate-400 w-full"
-              />
-            </div>
-            <div class="w-full sm:w-40 relative group">
-              <select id="filter-status" class="shadow-sm w-full font-semibold text-slate-700">
-                <option value="all">Semua Status</option>
-                <option value="valid">Data Valid</option>
-                <option value="draft">Hanya Draft</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="flex items-center gap-1.5 flex-wrap sm:flex-nowrap shrink-0">
-            <button
-              id="add-school-btn"
-              class="icon-btn bg-[#00897b] hover:bg-[#00796b] text-white shadow-sm border border-[#00796b]"
-              data-tooltip="Tambah Data Sekolah"
-            >
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
-                <line x1="12" y1="5" x2="12" y2="19"></line>
-                <line x1="5" y1="12" x2="19" y2="12"></line>
-              </svg>
-            </button>
-
-            <button
-              id="download-template-btn"
-              class="icon-btn bg-[#e6fcf5] hover:bg-[#c3fae8] text-[#0ca678] border border-[#a7f3d0] shadow-2xs hover:shadow-xs"
-              data-tooltip="Download Template Excel"
-            >
-              <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                <polyline points="14 2 14 8 20 8"></polyline>
-                <line x1="12" y1="18" x2="12" y2="12"></line>
-                <line x1="9" y1="15" x2="15" y2="15"></line>
-              </svg>
-            </button>
-
-            <button
-              id="import-excel-btn"
-              class="icon-btn bg-[#00897b] hover:bg-[#00796b] text-white shadow-sm border border-[#00796b]"
-              data-tooltip="Impor dari Excel"
-            >
-              <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
-                <path d="M12 3v12"></path>
-                <path d="m8 7 4-4 4 4"></path>
-                <path d="M5 20h14"></path>
-              </svg>
-            </button>
-            <input
-              type="file"
-              id="excel-file-input"
-              class="hidden"
-              accept=".xlsx, .xls"
-            />
-
-            <button
-              id="export-excel-btn"
-              class="icon-btn bg-[#009688] hover:bg-[#00897b] text-white shadow-sm border border-[#00897b]"
-              data-tooltip="Ekspor ke Excel"
-            >
-              <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
-                <path d="M12 15V3"></path>
-                <path d="m8 11 4 4 4-4"></path>
-                <path d="M5 20h14"></path>
-              </svg>
-            </button>
-
-            <div class="h-6 w-px bg-slate-200 mx-1"></div>
-
-            <button
-              id="backup-btn"
-              class="icon-btn bg-[#1e293b] hover:bg-[#0f172a] text-white shadow-sm border border-[#334155]"
-              data-tooltip="Backup Cloud (JSON)"
-            >
-              <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
-                <path d="M4.393 15.269A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.436 8.284"></path>
-                <path d="M12 13v8"></path>
-                <path d="m8 17 4 4 4-4"></path>
-              </svg>
-            </button>
-
-            <button
-              id="restore-btn"
-              class="icon-btn bg-white hover:bg-slate-50 text-[#1e293b] border border-[#cbd5e1] shadow-2xs hover:shadow-xs"
-              data-tooltip="Restore Cloud (JSON)"
-            >
-              <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
-                <path d="M4.393 15.269A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.436 8.284"></path>
-                <path d="M12 12v9"></path>
-                <path d="m16 16-4-4-4 4"></path>
-              </svg>
-            </button>
-            <input
-              type="file"
-              id="json-file-input"
-              class="hidden"
-              accept=".json"
-            />
-
-            <div class="h-6 w-px bg-slate-200 mx-1"></div>
-
-            <button
-              id="trash-btn"
-              onclick="window.openTrashModal()"
-              class="icon-btn relative bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 shadow-2xs hover:shadow-xs transition-all cursor-pointer"
-              data-tooltip="Tempat Sampah"
-              aria-label="Tempat Sampah"
-            >
-              <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
-                <polyline points="3 6 5 6 21 6"></polyline>
-                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                <line x1="10" y1="11" x2="10" y2="17"></line>
-                <line x1="14" y1="11" x2="14" y2="17"></line>
-              </svg>
-              <span id="trash-badge" class="hidden absolute -top-1.5 -right-1.5 bg-rose-600 text-white text-[9px] font-bold px-1.5 py-0.2 rounded-full shadow-sm leading-tight border border-white">0</span>
-            </button>
-
-            <div
-              id="delete-actions-group"
-              class="hidden flex items-center animate-fade-in group"
-            >
-              <div class="h-6 w-px bg-slate-200 mx-1"></div>
-              <button
-                id="delete-selected-btn"
-                class="icon-btn bg-rose-600 hover:bg-rose-700 text-white shadow-sm border border-rose-500"
-                data-tooltip="Hapus Terpilih"
-                aria-label="Hapus Terpilih"
-              >
-                <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
-                  <circle cx="12" cy="12" r="10"></circle>
-                  <line x1="15" y1="9" x2="9" y2="15"></line>
-                  <line x1="9" y1="9" x2="15" y2="15"></line>
-                </svg>
-              </button>
-            </div>
-          </div>
-        </div>
       </div>
 
       <!-- Tabs Navigasi & Filter -->
@@ -867,44 +795,284 @@
           </button>
         </div>
 
-        <!-- Filter Container (Compact Inline) -->
+        <!-- Controls Container (Contextual Inline Sejajar Tab) untuk Data Pokok -->
+        <div
+          id="controls-data-container"
+          class="flex w-full sm:w-auto flex-wrap sm:flex-nowrap items-center justify-center sm:justify-end gap-1.5 pb-2"
+        >
+          <!-- Kolom Pencarian (Proporsional & Ringkas) -->
+          <div class="relative w-full sm:w-48 group">
+            <span class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none text-slate-400 group-focus-within:text-teal-600 transition-colors">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            </span>
+            <input
+              type="text"
+              id="search-input"
+              placeholder="Cari Data Pokok..."
+              class="w-full pl-8 pr-3 text-xs bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-teal-500 focus:border-teal-500 transition-all placeholder:text-slate-400 h-8"
+              data-tooltip="Cari sekolah, NPSN, kepsek, atau kecamatan"
+            />
+          </div>
+
+          <!-- Dropdown Filter Status (Compact & Ramping) -->
+          <div class="w-full sm:w-32 shrink-0">
+            <select
+              id="filter-status"
+              class="w-full text-xs bg-white border border-slate-200 rounded-lg text-slate-700 font-semibold focus:outline-none focus:ring-1 focus:ring-teal-500 cursor-pointer h-8 truncate"
+              data-tooltip="Saring Status Data Pokok"
+            >
+              <option value="all">Semua Status</option>
+              <option value="valid">Data Valid</option>
+              <option value="draft">Hanya Draft</option>
+            </select>
+          </div>
+
+          <!-- Tombol Tambah Sekolah -->
+          <button
+            id="add-school-btn"
+            class="w-8 h-8 bg-teal-600 hover:bg-teal-700 text-white rounded-lg transition-all shadow-2xs flex items-center justify-center cursor-pointer active:scale-95 border border-teal-600 shrink-0"
+            data-tooltip="Tambah Data Sekolah"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+          </button>
+
+          <!-- Tombol Template Excel -->
+          <button
+            id="download-template-btn"
+            class="w-8 h-8 bg-white hover:bg-emerald-50 text-emerald-600 hover:text-emerald-700 border border-slate-200 hover:border-emerald-300 rounded-lg transition-all shadow-2xs flex items-center justify-center cursor-pointer active:scale-95 shrink-0"
+            data-tooltip="Download Template Excel"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+              <line x1="12" y1="18" x2="12" y2="12"></line>
+              <line x1="9" y1="15" x2="15" y2="15"></line>
+            </svg>
+          </button>
+
+          <!-- Tombol Impor Excel -->
+          <button
+            id="import-excel-btn"
+            class="w-8 h-8 bg-white hover:bg-teal-50 text-teal-600 hover:text-teal-700 border border-slate-200 hover:border-teal-300 rounded-lg transition-all shadow-2xs flex items-center justify-center cursor-pointer active:scale-95 shrink-0"
+            data-tooltip="Impor dari Excel"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+              <path d="M12 3v12"></path>
+              <path d="m8 7 4-4 4 4"></path>
+              <path d="M5 20h14"></path>
+            </svg>
+          </button>
+          <input
+            type="file"
+            id="excel-file-input"
+            class="hidden"
+            accept=".xlsx, .xls"
+          />
+
+          <!-- Tombol Ekspor Excel -->
+          <button
+            id="export-excel-btn"
+            class="w-8 h-8 bg-white hover:bg-teal-50 text-teal-600 hover:text-teal-700 border border-slate-200 hover:border-teal-300 rounded-lg transition-all shadow-2xs flex items-center justify-center cursor-pointer active:scale-95 shrink-0"
+            data-tooltip="Ekspor ke Excel"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+              <path d="M12 15V3"></path>
+              <path d="m8 11 4 4 4-4"></path>
+              <path d="M5 20h14"></path>
+            </svg>
+          </button>
+
+          <div class="h-5 w-px bg-slate-200 mx-0.5"></div>
+
+          <!-- Tombol Backup Cloud -->
+          <button
+            id="backup-btn"
+            class="w-8 h-8 bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-900 border border-slate-200 hover:border-slate-300 rounded-lg transition-all shadow-2xs flex items-center justify-center cursor-pointer active:scale-95 shrink-0"
+            data-tooltip="Backup Cloud (JSON)"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+              <path d="M4.393 15.269A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.436 8.284"></path>
+              <path d="M12 13v8"></path>
+              <path d="m8 17 4 4 4-4"></path>
+            </svg>
+          </button>
+
+          <!-- Tombol Restore Cloud -->
+          <button
+            id="restore-btn"
+            class="w-8 h-8 bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-900 border border-slate-200 hover:border-slate-300 rounded-lg transition-all shadow-2xs flex items-center justify-center cursor-pointer active:scale-95 shrink-0"
+            data-tooltip="Restore Cloud (JSON)"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+              <path d="M4.393 15.269A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.436 8.284"></path>
+              <path d="M12 12v9"></path>
+              <path d="m16 16-4-4-4 4"></path>
+            </svg>
+          </button>
+          <input
+            type="file"
+            id="json-file-input"
+            class="hidden"
+            accept=".json"
+          />
+
+          <div class="h-5 w-px bg-slate-200 mx-0.5"></div>
+
+          <!-- Tombol Tempat Sampah -->
+          <button
+            id="trash-btn"
+            onclick="window.openTrashModal()"
+            class="w-8 h-8 relative bg-white hover:bg-rose-50 text-rose-600 hover:text-rose-700 border border-slate-200 hover:border-rose-300 rounded-lg transition-all shadow-2xs flex items-center justify-center cursor-pointer active:scale-95 shrink-0"
+            data-tooltip="Tempat Sampah"
+            aria-label="Tempat Sampah"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+              <polyline points="3 6 5 6 21 6"></polyline>
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+              <line x1="10" y1="11" x2="10" y2="17"></line>
+              <line x1="14" y1="11" x2="14" y2="17"></line>
+            </svg>
+            <span id="trash-badge" class="hidden absolute -top-1.5 -right-1.5 bg-rose-600 text-white text-[8.5px] font-bold px-1.5 py-0.2 rounded-full shadow-sm leading-tight border border-white">0</span>
+          </button>
+
+          <!-- Group Hapus Terpilih -->
+          <div
+            id="delete-actions-group"
+            class="hidden flex items-center animate-fade-in group shrink-0"
+          >
+            <div class="h-5 w-px bg-slate-200 mx-0.5"></div>
+            <button
+              id="delete-selected-btn"
+              class="w-8 h-8 bg-rose-600 hover:bg-rose-700 text-white shadow-2xs rounded-lg border border-rose-600 flex items-center justify-center cursor-pointer active:scale-95 transition-all"
+              data-tooltip="Hapus Terpilih"
+              aria-label="Hapus Terpilih"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="15" y1="9" x2="9" y2="15"></line>
+                <line x1="9" y1="9" x2="15" y2="15"></line>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Filter Container (Compact Inline) untuk Pesanan & Tagihan -->
         <div
           id="filter-tagihan-container"
           class="hidden w-full sm:w-auto flex-col sm:flex-row items-center justify-center sm:justify-end gap-1.5 pb-2"
         >
           <div
-            class="flex items-center gap-1 bg-white border border-slate-200/60 rounded-lg p-1 shadow-sm w-full sm:w-auto justify-center"
+            class="flex items-center gap-1.5 bg-white border border-slate-200 rounded-lg px-2 h-8 shadow-2xs w-full sm:w-auto justify-center"
           >
             <input
               type="date"
               id="filter-tagihan-start"
-              class="w-full sm:w-auto text-xs font-medium py-1 px-1.5 hover:bg-slate-50 focus:bg-slate-50 rounded outline-none text-slate-600 transition-all font-mono cursor-pointer"
+              class="w-full sm:w-auto text-xs font-medium py-0.5 px-1 hover:bg-slate-50 focus:bg-slate-50 rounded outline-none text-slate-600 transition-all font-mono cursor-pointer"
               data-tooltip="Tanggal Awal"
             />
             <span class="text-slate-300 font-bold text-xs">-</span>
             <input
               type="date"
               id="filter-tagihan-end"
-              class="w-full sm:w-auto text-xs font-medium py-1 px-1.5 hover:bg-slate-50 focus:bg-slate-50 rounded outline-none text-slate-600 transition-all font-mono cursor-pointer"
+              class="w-full sm:w-auto text-xs font-medium py-0.5 px-1 hover:bg-slate-50 focus:bg-slate-50 rounded outline-none text-slate-600 transition-all font-mono cursor-pointer"
               data-tooltip="Tanggal Akhir"
             />
           </div>
           <div class="flex items-center gap-1.5 w-full sm:w-auto justify-center sm:justify-end">
             <button
               id="btn-filter-tagihan"
-              class="bg-teal-600 hover:bg-teal-700 text-white p-1.5 rounded-lg transition-all shadow-sm flex items-center justify-center h-[28px] w-[28px] cursor-pointer active:scale-95"
+              class="bg-teal-600 hover:bg-teal-700 text-white rounded-lg transition-all shadow-2xs flex items-center justify-center h-8 w-8 cursor-pointer active:scale-95 border border-teal-600 shrink-0"
               data-tooltip="Terapkan Filter"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
             </button>
             <button
               id="btn-reset-tagihan"
-              class="bg-slate-50 hover:bg-slate-100 text-slate-600 p-1.5 rounded-lg border border-slate-200/60 transition-all shadow-sm h-[28px] w-[28px] flex items-center justify-center cursor-pointer active:scale-95"
+              class="bg-white hover:bg-slate-50 text-slate-700 rounded-lg border border-slate-200 hover:border-slate-300 transition-all shadow-2xs h-8 w-8 flex items-center justify-center cursor-pointer active:scale-95 shrink-0"
               data-tooltip="Reset Filter"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
             </button>
           </div>
+        </div>
+
+        <!-- Controls Container (Contextual Inline Sejajar Tab) untuk Data Pengguna -->
+        <div
+          id="controls-pengguna-container"
+          class="hidden w-full sm:w-auto flex-wrap sm:flex-nowrap items-center justify-center sm:justify-end gap-1.5 pb-2"
+        >
+          <!-- Kolom Pencarian Pengguna (Proporsional & Ringkas) -->
+          <div class="relative w-full sm:w-48 group">
+            <span class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none text-slate-400 group-focus-within:text-teal-600 transition-colors">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            </span>
+            <input
+              type="text"
+              id="search-pengguna-input"
+              placeholder="Cari nama, NIP, sekolah..."
+              class="w-full pl-8 pr-3 text-xs bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-teal-500 focus:border-teal-500 transition-all placeholder:text-slate-400 h-8"
+              data-tooltip="Cari sekolah, kepsek, guru, NIP, atau rombel"
+            />
+          </div>
+
+          <!-- Dropdown Filter Status Pengguna -->
+          <div class="w-full sm:w-28 shrink-0">
+            <select
+              id="filter-pengguna-status"
+              class="w-full text-xs bg-white border border-slate-200 rounded-lg text-slate-700 font-semibold focus:outline-none focus:ring-1 focus:ring-teal-500 cursor-pointer h-8 truncate px-2"
+              data-tooltip="Saring Status Pengguna"
+            >
+              <option value="ALL">Semua</option>
+              <option value="ONLINE">🟢 Online</option>
+              <option value="OFFLINE">⚪ Offline</option>
+            </select>
+          </div>
+
+          <!-- Micro Badges dengan Tailwind Tooltip -->
+          <div
+            class="flex items-center gap-2 bg-white border border-slate-200 rounded-lg px-2.5 h-8 text-xs font-medium shadow-2xs text-slate-600 select-none cursor-pointer hover:border-slate-300 transition-colors shrink-0"
+            data-tooltip="Aktivitas Pengguna: Total, Online, dan Offline"
+          >
+            <span class="text-slate-400 font-normal">Total:</span>
+            <span id="stat-pengguna-total" class="font-bold font-mono text-slate-700">0</span>
+            <span class="text-slate-200">|</span>
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span id="stat-pengguna-online" class="font-bold font-mono text-emerald-700">0</span>
+            <span class="text-slate-200">|</span>
+            <span class="w-2 h-2 rounded-full bg-slate-400"></span>
+            <span id="stat-pengguna-offline" class="font-bold font-mono text-slate-600">0</span>
+          </div>
+
+          <!-- Tombol Segarkan Ikon Murni -->
+          <button
+            id="refresh-pengguna-btn"
+            type="button"
+            onclick="window.fetchPenggunaData(true)"
+            class="w-8 h-8 bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-900 border border-slate-200 hover:border-slate-300 rounded-lg transition-all shadow-2xs flex items-center justify-center cursor-pointer active:scale-95 shrink-0"
+            data-tooltip="Segarkan Data"
+          >
+            <svg id="refresh-pengguna-icon" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+          </button>
+
+          <!-- Tombol Ekspor Excel Ikon Murni -->
+          <button
+            id="export-pengguna-excel-btn"
+            type="button"
+            class="w-8 h-8 bg-white hover:bg-emerald-50 text-emerald-600 hover:text-emerald-700 border border-slate-200 hover:border-emerald-300 rounded-lg transition-all shadow-2xs flex items-center justify-center cursor-pointer active:scale-95 shrink-0"
+            data-tooltip="Ekspor ke Excel"
+          >
+            <svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="2" class="w-4 h-4">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline stroke-linecap="round" stroke-linejoin="round" points="14 2 14 8 20 8"></polyline>
+              <line stroke-linecap="round" stroke-linejoin="round" x1="12" y1="18" x2="12" y2="12"></line>
+              <line stroke-linecap="round" stroke-linejoin="round" x1="9" y1="15" x2="15" y2="15"></line>
+            </svg>
+          </button>
         </div>
       </div>
 
@@ -926,7 +1094,7 @@
               >
                 TIMESTAMP
               </th>
-              <th class="main-header text-center sticky left-[220px] z-40 bg-slate-50 border-r border-slate-200 shadow-[4px_0_12px_-4px_rgba(0,0,0,0.12)] w-[220px] min-w-[220px] max-w-[220px] cursor-pointer" data-sort="nama-sekolah" data-tooltip="Urutkan Nama Sekolah">NAMA SEKOLAH</th>
+              <th class="main-header text-center sticky left-[220px] z-40 bg-slate-50 border-r border-slate-200 w-[220px] min-w-[220px] max-w-[220px] cursor-pointer" data-sort="nama-sekolah" data-tooltip="Urutkan Nama Sekolah">NAMA SEKOLAH</th>
               <th width="100" class="main-header text-center min-w-[100px] cursor-pointer" data-sort="npsn" data-tooltip="Urutkan NPSN">
                 NPSN
               </th>
@@ -989,7 +1157,7 @@
                   TRANSAKSI
                 </th>
                 <th
-                  class="px-3 py-3 text-center sticky left-[200px] z-40 bg-slate-50 border-r border-slate-200 shadow-[4px_0_12px_-4px_rgba(0,0,0,0.12)] w-[220px] min-w-[220px] max-w-[220px]"
+                  class="px-3 py-3 text-center sticky left-[200px] z-40 bg-slate-50 border-r border-slate-200 w-[220px] min-w-[220px] max-w-[220px]"
                 >
                   NAMA SEKOLAH
                 </th>
@@ -1055,7 +1223,7 @@
                   <span>NO</span>
                 </th>
                 <th
-                  class="px-3 py-2.5 text-center sticky left-[85px] z-40 bg-slate-50 border-r border-slate-200 shadow-[4px_0_12px_-4px_rgba(0,0,0,0.12)] w-[190px] min-w-[190px] max-w-[190px]"
+                  class="px-3 py-2.5 text-center sticky left-[85px] z-40 bg-slate-50 border-r border-slate-200 w-[190px] min-w-[190px] max-w-[190px]"
                 >
                   <span>NAMA SEKOLAH</span>
                 </th>
@@ -1126,64 +1294,38 @@
         </div>
       </div>
 
-      <!-- Wadah Tabel Data Pengguna -->
-      <div id="view-pengguna" class="hidden flex-col gap-3 w-full">
-        <!-- Sub Ekspor XLSX Header Toolbar -->
-        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between bg-slate-50 p-3 rounded-xl border border-slate-200/80 shadow-sm gap-2">
-          <div class="flex items-center gap-2">
-            <span class="w-2.5 h-2.5 bg-teal-500 rounded-full animate-pulse"></span>
-            <div>
-              <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider">
-                Data Kepala Sekolah & Guru Operator
-              </h3>
-              <p class="text-[10px] text-slate-500">
-                Kelola data Kepala Sekolah dan Guru Operator untuk seluruh satuan pendidikan.
-              </p>
-            </div>
-          </div>
-          <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
-            <button
-              id="export-pengguna-excel-btn"
-              class="flex items-center gap-1.5 px-3.5 py-1.5 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white rounded-lg text-xs font-bold shadow-md hover:shadow-teal-300 transition-all cursor-pointer border border-teal-500 active:scale-95"
-              data-tooltip="Ekspor Pengguna (Excel)"
-            >
-              <svg viewBox="0 0 24 24" stroke="currentColor" class="w-4 h-4">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                <polyline points="14 2 14 8 20 8"></polyline>
-                <line x1="12" y1="18" x2="12" y2="12"></line>
-                <line x1="9" y1="15" x2="15" y2="15"></line>
-              </svg>
-              <span>Ekspor XLSX Data Pengguna</span>
-            </button>
-          </div>
-        </div>
-
+      <!-- Wadah Tabel Data Pengguna (Terhubung ke Supabase tabel aplikasirapor) -->
+      <div id="view-pengguna" class="hidden flex-col w-full flex-1 min-h-0">
         <div
-          class="overflow-x-auto overflow-y-auto rounded-xl border border-slate-200/60 shadow-sm relative group bg-white custom-scrollbar w-full"
-          style="max-height: 60vh"
+          id="view-pengguna-wrapper"
+          class="table-wrapper shadow-sm ring-1 ring-slate-200 relative group bg-white custom-scrollbar w-full flex-1 min-h-0 overflow-y-auto overflow-x-auto"
         >
           <table
+            id="pengguna-table"
             class="w-full text-left text-sm whitespace-nowrap min-w-max"
             style="border-collapse: separate; border-spacing: 0;"
           >
             <thead
-              class="bg-slate-50 border-b border-slate-200 text-[10px] text-slate-500 font-bold uppercase tracking-wider sticky top-0 z-20 text-center"
+              class="bg-slate-50 border-b border-slate-200 text-[10px] text-slate-600 font-bold uppercase tracking-wider text-center"
             >
               <tr>
-                <th class="px-3 py-3 text-center sticky left-0 z-40 bg-slate-50 border-r border-slate-200 w-[50px] min-w-[50px] max-w-[50px]">NO</th>
-                <th class="px-3 py-3 text-center sticky left-[50px] z-40 bg-slate-50 border-r border-slate-200 w-[140px] min-w-[140px] max-w-[140px]">TIMESTAMP</th>
-                <th class="px-3 py-3 text-center sticky left-[190px] z-40 bg-slate-50 border-r border-slate-200 shadow-[4px_0_12px_-4px_rgba(0,0,0,0.12)] w-[220px] min-w-[220px] max-w-[220px]">NAMA SEKOLAH</th>
-                <th class="px-3 py-3 text-center min-w-[120px]">KECAMATAN</th>
-                <th class="px-3 py-3 text-center min-w-[140px]">KABUPATEN/KOTA</th>
-                <th class="px-3 py-3 text-center min-w-[120px]">PROVINSI</th>
-                <th class="px-3 py-3 text-center bg-teal-50/70 text-teal-800 border-l border-teal-100 min-w-[160px]">NAMA KEPSEK</th>
-                <th class="px-3 py-3 text-center bg-teal-50/70 text-teal-800 min-w-[130px]">NIP KEPSEK</th>
-                <th class="px-3 py-3 text-center bg-teal-50/70 text-teal-800 min-w-[130px]">WHATSAPP KEPSEK</th>
-                <th class="px-3 py-3 text-center bg-teal-50/70 text-teal-800 min-w-[140px]">TANGGAL LAHIR KEPSEK</th>
-                <th class="px-3 py-3 text-center bg-indigo-50/70 text-indigo-800 border-l border-indigo-100 min-w-[160px]">NAMA GURU</th>
-                <th class="px-3 py-3 text-center bg-indigo-50/70 text-indigo-800 min-w-[130px]">NIP GURU</th>
-                <th class="px-3 py-3 text-center bg-indigo-50/70 text-indigo-800 min-w-[130px]">WHATSAPP GURU</th>
-                <th class="px-3 py-3 text-center bg-indigo-50/70 text-indigo-800 min-w-[140px]">TANGGAL LAHIR GURU</th>
+                <th class="pengguna-header px-3 py-3 text-center sticky top-0 left-0 z-50 bg-slate-50 border-r border-slate-200 w-[45px] min-w-[45px] max-w-[45px] cursor-pointer hover:bg-slate-100 transition-colors select-none" data-sort="index" data-tooltip="Urutkan Nomor">NO <span class="sort-icon ml-0.5 text-[8px] text-slate-400"></span></th>
+                <th class="pengguna-header px-1 py-3 text-center sticky top-0 left-[45px] z-50 bg-slate-50 border-r border-slate-200 w-[45px] min-w-[45px] max-w-[45px] cursor-pointer hover:bg-slate-100 transition-colors select-none" data-sort="status" data-tooltip="Urutkan Status Online">ST <span class="sort-icon ml-0.5 text-[8px] text-slate-400"></span></th>
+                <th class="pengguna-header px-3 py-3 text-center sticky top-0 left-[90px] z-50 bg-slate-50 border-r border-slate-200 w-[140px] min-w-[140px] max-w-[140px] cursor-pointer hover:bg-slate-100 transition-colors select-none" data-sort="recordTime" data-tooltip="Urutkan Waktu Aktif">TERAKHIR AKTIF <span class="sort-icon ml-0.5 text-[8px] text-slate-400"></span></th>
+                <th class="pengguna-header px-3 py-3 text-center sticky top-0 left-[230px] z-50 bg-slate-50 border-r border-slate-200 w-[210px] min-w-[210px] max-w-[210px] cursor-pointer hover:bg-slate-100 transition-colors select-none" data-sort="namaSekolah" data-tooltip="Urutkan Nama Sekolah">NAMA SEKOLAH <span class="sort-icon ml-0.5 text-[8px] text-slate-400"></span></th>
+                <th class="pengguna-header px-3 py-3 text-center min-w-[95px] font-mono text-slate-700 sticky top-0 z-30 bg-slate-100 border-r border-slate-200 cursor-pointer hover:bg-slate-200 transition-colors select-none" data-sort="npsn" data-tooltip="Urutkan NPSN">NPSN <span class="sort-icon ml-0.5 text-[8px] text-slate-400"></span></th>
+                <th class="pengguna-header px-3 py-3 text-center min-w-[110px] sticky top-0 z-30 bg-slate-100 border-r border-slate-200 cursor-pointer hover:bg-slate-200 transition-colors select-none" data-sort="rombel" data-tooltip="Urutkan Rombel">ROMBEL <span class="sort-icon ml-0.5 text-[8px] text-slate-400"></span></th>
+                <th class="pengguna-header px-3 py-3 text-center min-w-[120px] sticky top-0 z-30 bg-slate-50 border-r border-slate-200 cursor-pointer hover:bg-slate-100 transition-colors select-none" data-sort="kecamatan" data-tooltip="Urutkan Kecamatan">KECAMATAN <span class="sort-icon ml-0.5 text-[8px] text-slate-400"></span></th>
+                <th class="pengguna-header px-3 py-3 text-center min-w-[140px] sticky top-0 z-30 bg-slate-50 border-r border-slate-200 cursor-pointer hover:bg-slate-100 transition-colors select-none" data-sort="kabupaten" data-tooltip="Urutkan Kabupaten/Kota">KABUPATEN/KOTA <span class="sort-icon ml-0.5 text-[8px] text-slate-400"></span></th>
+                <th class="pengguna-header px-3 py-3 text-center min-w-[110px] sticky top-0 z-30 bg-slate-50 border-r border-slate-200 cursor-pointer hover:bg-slate-100 transition-colors select-none" data-sort="provinsi" data-tooltip="Urutkan Provinsi">PROVINSI <span class="sort-icon ml-0.5 text-[8px] text-slate-400"></span></th>
+                <th class="pengguna-header px-3 py-3 text-center sticky top-0 z-30 bg-teal-50 text-teal-900 border-l border-r border-teal-200 min-w-[160px] cursor-pointer hover:bg-teal-100 transition-colors select-none" data-sort="kepsekNama" data-tooltip="Urutkan Nama Kepsek">NAMA KEPSEK <span class="sort-icon ml-0.5 text-[8px] text-teal-600"></span></th>
+                <th class="pengguna-header px-3 py-3 text-center sticky top-0 z-30 bg-teal-50 text-teal-900 border-r border-teal-200 min-w-[140px] cursor-pointer hover:bg-teal-100 transition-colors select-none" data-sort="kepsekNip" data-tooltip="Urutkan NIP Kepsek">NIP KEPSEK <span class="sort-icon ml-0.5 text-[8px] text-teal-600"></span></th>
+                <th class="pengguna-header px-3 py-3 text-center sticky top-0 z-30 bg-teal-50 text-teal-900 border-r border-teal-200 min-w-[130px] cursor-pointer hover:bg-teal-100 transition-colors select-none" data-sort="kepsekWa" data-tooltip="Urutkan WA Kepsek">WA KEPSEK <span class="sort-icon ml-0.5 text-[8px] text-teal-600"></span></th>
+                <th class="pengguna-header px-3 py-3 text-center sticky top-0 z-30 bg-emerald-50 text-emerald-900 border-r border-teal-300 font-bold min-w-[150px] cursor-pointer hover:bg-emerald-100 transition-colors select-none" data-sort="kepsekTglLahir" data-tooltip="Urutkan Tgl Lahir Kepsek">TGL LAHIR KEPSEK <span class="sort-icon ml-0.5 text-[8px] text-emerald-700"></span></th>
+                <th class="pengguna-header px-3 py-3 text-center sticky top-0 z-30 bg-indigo-50 text-indigo-900 border-l border-r border-indigo-200 min-w-[160px] cursor-pointer hover:bg-indigo-100 transition-colors select-none" data-sort="guruNama" data-tooltip="Urutkan Nama Guru">NAMA GURU <span class="sort-icon ml-0.5 text-[8px] text-indigo-600"></span></th>
+                <th class="pengguna-header px-3 py-3 text-center sticky top-0 z-30 bg-indigo-50 text-indigo-900 border-r border-indigo-200 min-w-[140px] cursor-pointer hover:bg-indigo-100 transition-colors select-none" data-sort="guruNip" data-tooltip="Urutkan NIP Guru">NIP GURU <span class="sort-icon ml-0.5 text-[8px] text-indigo-600"></span></th>
+                <th class="pengguna-header px-3 py-3 text-center sticky top-0 z-30 bg-indigo-50 text-indigo-900 border-r border-indigo-200 min-w-[130px] cursor-pointer hover:bg-indigo-100 transition-colors select-none" data-sort="guruWa" data-tooltip="Urutkan WA Guru">WA GURU <span class="sort-icon ml-0.5 text-[8px] text-indigo-600"></span></th>
+                <th class="pengguna-header px-3 py-3 text-center sticky top-0 z-30 bg-violet-50 text-violet-900 font-bold min-w-[150px] cursor-pointer hover:bg-violet-100 transition-colors select-none" data-sort="guruTglLahir" data-tooltip="Urutkan Tgl Lahir Guru">TGL LAHIR GURU <span class="sort-icon ml-0.5 text-[8px] text-violet-700"></span></th>
               </tr>
             </thead>
             <tbody
@@ -2342,34 +2484,45 @@
             }
           });
 
+          const dContainer = document.getElementById("controls-data-container");
+          const fContainer = document.getElementById("filter-tagihan-container");
+          const pContainer = document.getElementById("controls-pengguna-container");
+
           if (activeTab === tabData) {
             if (viewData) viewData.classList.remove("hidden");
             if (viewTagihan) { viewTagihan.classList.add("hidden"); viewTagihan.classList.remove("flex"); }
             if (viewAkses) { viewAkses.classList.add("hidden"); viewAkses.classList.remove("flex"); }
             if (viewPengguna) { viewPengguna.classList.add("hidden"); viewPengguna.classList.remove("flex"); }
-            const fContainer = document.getElementById("filter-tagihan-container");
+            if (dContainer) { dContainer.classList.remove("hidden"); dContainer.classList.add("flex"); }
             if (fContainer) { fContainer.classList.add("hidden"); fContainer.classList.remove("flex"); }
+            if (pContainer) { pContainer.classList.add("hidden"); pContainer.classList.remove("flex"); }
           } else if (activeTab === tabTagihan) {
             if (viewTagihan) { viewTagihan.classList.remove("hidden"); viewTagihan.classList.add("flex"); }
             if (viewData) viewData.classList.add("hidden");
             if (viewAkses) { viewAkses.classList.add("hidden"); viewAkses.classList.remove("flex"); }
             if (viewPengguna) { viewPengguna.classList.add("hidden"); viewPengguna.classList.remove("flex"); }
-            const fContainer = document.getElementById("filter-tagihan-container");
+            if (dContainer) { dContainer.classList.add("hidden"); dContainer.classList.remove("flex"); }
             if (fContainer) { fContainer.classList.remove("hidden"); fContainer.classList.add("flex"); }
+            if (pContainer) { pContainer.classList.add("hidden"); pContainer.classList.remove("flex"); }
           } else if (activeTab === tabAkses) {
             if (viewAkses) { viewAkses.classList.remove("hidden"); viewAkses.classList.add("flex"); }
             if (viewData) viewData.classList.add("hidden");
             if (viewTagihan) { viewTagihan.classList.add("hidden"); viewTagihan.classList.remove("flex"); }
             if (viewPengguna) { viewPengguna.classList.add("hidden"); viewPengguna.classList.remove("flex"); }
-            const fContainer = document.getElementById("filter-tagihan-container");
+            if (dContainer) { dContainer.classList.add("hidden"); dContainer.classList.remove("flex"); }
             if (fContainer) { fContainer.classList.add("hidden"); fContainer.classList.remove("flex"); }
+            if (pContainer) { pContainer.classList.add("hidden"); pContainer.classList.remove("flex"); }
           } else if (activeTab === tabPengguna) {
             if (viewPengguna) { viewPengguna.classList.remove("hidden"); viewPengguna.classList.add("flex"); }
             if (viewData) viewData.classList.add("hidden");
             if (viewTagihan) { viewTagihan.classList.add("hidden"); viewTagihan.classList.remove("flex"); }
             if (viewAkses) { viewAkses.classList.add("hidden"); viewAkses.classList.remove("flex"); }
-            const fContainer = document.getElementById("filter-tagihan-container");
+            if (dContainer) { dContainer.classList.add("hidden"); dContainer.classList.remove("flex"); }
             if (fContainer) { fContainer.classList.add("hidden"); fContainer.classList.remove("flex"); }
+            if (pContainer) { pContainer.classList.remove("hidden"); pContainer.classList.add("flex"); }
+            if (window.fetchPenggunaData) {
+              window.fetchPenggunaData(false);
+            }
           }
 
           const floatBar = document.getElementById("akses-floating-bar");
@@ -2466,12 +2619,718 @@
           { id: "guru_tgl_lahir", label: "Tanggal Lahir Guru" },
         ];
 
+        // ==========================================
+        // --- TAB DATA PENGGUNA (SUPABASE: aplikasirapor) ---
+        // ==========================================
+        window.rawPenggunaData = [];
+
+        function extractBirthDateFromNIP(nip) {
+          if (!nip) return { valid: false, short: "-", expanded: "-", full: "-" };
+          const clean = String(nip).replace(/\D/g, "");
+          if (clean.length >= 8) {
+            const yyyy = clean.substring(0, 4);
+            const mm = clean.substring(4, 6);
+            const dd = clean.substring(6, 8);
+            const y = parseInt(yyyy, 10);
+            const m = parseInt(mm, 10);
+            const d = parseInt(dd, 10);
+            if (y >= 1920 && y <= 2040 && m >= 1 && m <= 12 && d >= 1 && d <= 31) {
+              const months = [
+                "Januari", "Februari", "Maret", "April", "Mei", "Juni",
+                "Juli", "Agustus", "September", "Oktober", "November", "Desember"
+              ];
+              const monthName = months[m - 1];
+              const dayNum = parseInt(dd, 10);
+              const shortStr = `${dd}/${mm}/${yyyy}`;
+              const expandedStr = `${dayNum} ${monthName} ${yyyy}`;
+              const fullStr = `${expandedStr} (${shortStr})`;
+              return {
+                valid: true,
+                short: shortStr,
+                expanded: expandedStr,
+                full: fullStr,
+                day: dd,
+                month: mm,
+                year: yyyy
+              };
+            }
+          }
+          return { valid: false, short: "-", expanded: "-", full: "-" };
+        }
+
+        function parseUniversalTimestamp(val) {
+          if (!val) return null;
+          if (typeof val === "number" && !isNaN(val)) {
+            return val < 10000000000 ? val * 1000 : val;
+          }
+          if (typeof val === "string") {
+            const trimmed = val.trim();
+            if (!trimmed) return null;
+            if (/^\d+$/.test(trimmed)) {
+              const num = Number(trimmed);
+              if (!isNaN(num)) {
+                return num < 10000000000 ? num * 1000 : num;
+              }
+            }
+            const dateObj = new Date(trimmed);
+            if (!isNaN(dateObj.getTime())) {
+              const localT = dateObj.getTime();
+              // Jika format tanggal SQL tanpa timezone (misal "2026-09-29 11:40:00")
+              // Uji apakah interpretasi UTC lebih dekat dengan waktu sekarang (mengatasi selisih UTC vs WIB +7 jam)
+              if (/^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}/.test(trimmed) && !/[zZ\+\-]/.test(trimmed.slice(10))) {
+                const utcT = new Date(trimmed.replace(" ", "T") + "Z").getTime();
+                if (!isNaN(utcT)) {
+                  const now = Date.now();
+                  if (Math.abs(now - utcT) < Math.abs(now - localT)) {
+                    return utcT;
+                  }
+                }
+              }
+              return localT;
+            }
+            const idMatch = trimmed.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})(?:\s+(\d{1,2}):(\d{1,2})(?::(\d{1,2}))?)?/);
+            if (idMatch) {
+              const d = parseInt(idMatch[1], 10);
+              const m = parseInt(idMatch[2], 10) - 1;
+              const y = parseInt(idMatch[3], 10);
+              const hr = idMatch[4] ? parseInt(idMatch[4], 10) : 0;
+              const min = idMatch[5] ? parseInt(idMatch[5], 10) : 0;
+              const sec = idMatch[6] ? parseInt(idMatch[6], 10) : 0;
+              const parsed = new Date(y, m, d, hr, min, sec).getTime();
+              if (!isNaN(parsed)) return parsed;
+            }
+          }
+          return null;
+        }
+
+        function getPenggunaActivityStatus(item) {
+          const p = item.data_payload || {};
+          const s = p.sekolah || p || {};
+
+          // Pindai seluruh kemungkinan field waktu dari seluruh lapisan data Supabase
+          const rawCandidates = [
+            item.last_login,
+            item.last_active,
+            item.last_seen,
+            item.last_activity,
+            item.updated_at,
+            item.timestamp,
+            p.last_login,
+            p.last_active,
+            p.last_seen,
+            p.last_activity,
+            p.login_at,
+            p.loginTime,
+            p.updated_at,
+            p.timestamp,
+            p.waktu,
+            p.tanggal,
+            s.last_login,
+            s.last_active,
+            s.last_seen,
+            s.last_activity,
+            s.updated_at,
+            s.timestamp,
+            s.waktu,
+            s.tanggal,
+            item.created_at,
+            p.created_at,
+            s.created_at
+          ];
+
+          let recordTime = 0;
+          for (const cand of rawCandidates) {
+            const parsed = parseUniversalTimestamp(cand);
+            if (parsed && parsed > recordTime) {
+              recordTime = parsed;
+            }
+          }
+
+          // Cek penanda eksplisit offline dan online
+          const isExplicitOffline = 
+            item.status === "offline" || 
+            item.is_online === false || 
+            item.isOnline === false ||
+            p.status === "offline" || 
+            p.is_online === false || 
+            p.isOnline === false ||
+            s.status === "offline" || 
+            s.is_online === false || 
+            s.isOnline === false;
+
+          const isExplicitOnline = 
+            !isExplicitOffline && (
+              item.is_online === true || 
+              item.isOnline === true ||
+              p.is_online === true || 
+              p.isOnline === true ||
+              s.is_online === true ||
+              s.isOnline === true ||
+              String(item.status || "").toLowerCase() === "online" ||
+              String(p.status || "").toLowerCase() === "online" ||
+              String(s.status || "").toLowerCase() === "online"
+            );
+
+          if (!recordTime || isNaN(recordTime)) {
+            if (isExplicitOnline) {
+              return {
+                isOnline: true,
+                label: "Sedang Online",
+                subLabel: "Aktif",
+                badgeClass: "bg-emerald-50 text-emerald-700 border-emerald-300 shadow-2xs ring-1 ring-emerald-500/20",
+                dotClass: "bg-emerald-500 animate-pulse",
+                timeFormatted: "Aktif sekarang",
+                timeAgo: "Baru saja",
+                recordTime: Date.now()
+              };
+            }
+            return {
+              isOnline: false,
+              label: "Offline",
+              subLabel: isExplicitOffline ? "Telah logout" : "Tanpa riwayat waktu",
+              badgeClass: "bg-slate-100 text-slate-500 border-slate-200",
+              dotClass: "bg-slate-400",
+              timeFormatted: "-",
+              timeAgo: "-",
+              recordTime: 0
+            };
+          }
+
+          const now = Date.now();
+          const diffMs = now - recordTime;
+          const diffMinutes = Math.floor(diffMs / (1000 * 60));
+          const timeFormatted = formatDisplayDate(recordTime);
+
+          // Online jika BUKAN explicit offline, DAN (ada explicit online atau aktif dalam 120 menit terakhir)
+          const isRecentlyActive = diffMinutes >= -15 && diffMinutes <= 120;
+          const isOnline = !isExplicitOffline && (isExplicitOnline || isRecentlyActive);
+
+          if (isOnline) {
+            const timeAgo = (diffMinutes <= 1) ? "Baru saja" : `${diffMinutes} mnt lalu`;
+            return {
+              isOnline: true,
+              label: "Sedang Online",
+              subLabel: timeAgo,
+              badgeClass: "bg-emerald-50 text-emerald-700 border-emerald-300 shadow-2xs ring-1 ring-emerald-500/20",
+              dotClass: "bg-emerald-500 animate-pulse",
+              timeFormatted: timeFormatted,
+              timeAgo: timeAgo,
+              recordTime: recordTime
+            };
+          } else {
+            const isToday = new Date(recordTime).toDateString() === new Date(now).toDateString();
+            let timeAgo = "";
+            if (isExplicitOffline) {
+              timeAgo = "Logout";
+            } else if (diffMinutes < -15) {
+              timeAgo = "Baru saja";
+            } else if (isToday) {
+              const hours = Math.floor(diffMinutes / 60);
+              timeAgo = hours <= 1 ? "1 jam lalu" : `${hours} jam lalu`;
+            } else {
+              const days = Math.floor(diffMinutes / (60 * 24));
+              timeAgo = days <= 1 ? "Kemarin" : `${days} hari lalu`;
+            }
+            return {
+              isOnline: false,
+              label: "Offline",
+              subLabel: timeAgo,
+              badgeClass: "bg-slate-100 text-slate-600 border-slate-200",
+              dotClass: "bg-slate-400",
+              timeFormatted: timeFormatted,
+              timeAgo: timeAgo,
+              recordTime: recordTime
+            };
+          }
+        }
+
+        function renderTglLahirCell(info) {
+          if (!info || !info.valid) {
+            return `<span class="text-slate-300 font-normal">-</span>`;
+          }
+          return `
+            <div class="flex flex-col items-center justify-center leading-tight">
+              <span class="font-mono font-bold text-teal-800 text-[11px]">${info.short}</span>
+              <span class="text-[9.5px] text-slate-500 font-medium whitespace-nowrap">${info.expanded}</span>
+            </div>
+          `;
+        }
+
+        function formatWaLink(wa) {
+          if (!wa || String(wa).trim().length < 5) return `<span class="text-slate-300 font-normal">-</span>`;
+          const cleanWa = String(wa).replace(/\D/g, "");
+          const waTarget = cleanWa.startsWith("0") ? "62" + cleanWa.slice(1) : cleanWa;
+          return `
+            <a href="https://wa.me/${waTarget}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 font-mono text-emerald-700 hover:text-emerald-800 hover:underline decoration-emerald-400 font-medium" data-tooltip="Kirim WhatsApp">
+              <span>${wa}</span>
+            </a>
+          `;
+        }
+
+        function formatRombelDisplay(kelas, ruangRombel) {
+          const rawKelas = (kelas !== undefined && kelas !== null) ? String(kelas).trim() : "";
+          const rawRombel = (ruangRombel !== undefined && ruangRombel !== null) ? String(ruangRombel).trim() : "";
+          
+          if (!rawKelas && !rawRombel) return "-";
+
+          // Ambil angka kelas utama
+          const digitMatch = rawKelas.match(/\d+/);
+          const cleanKelas = digitMatch ? digitMatch[0] : rawKelas;
+
+          if (!cleanKelas && rawRombel) {
+            return rawRombel.toLowerCase().startsWith("kelas") ? rawRombel : `Kelas ${rawRombel}`;
+          }
+
+          // Cek apakah ruangRombel bernilai tunggal/kata angka ("satu", "1", "tunggal", "utama", "-") atau sama dengan kelas
+          const rombelLower = rawRombel.toLowerCase().replace(/[^a-z0-9]/g, "");
+          const isSingleOrRedundant = 
+            !rombelLower || 
+            rombelLower === "satu" || 
+            rombelLower === "1" || 
+            rombelLower === "tunggal" || 
+            rombelLower === "utama" || 
+            rombelLower === "default" || 
+            rombelLower === "-" ||
+            rombelLower === cleanKelas;
+
+          if (isSingleOrRedundant) {
+            return `Kelas ${cleanKelas}`;
+          }
+
+          // Jika berupa huruf paralel tunggal (misal "A", "B", "C", "D", "a", "b", "Rombel A")
+          let letterPart = rawRombel.replace(/^rombel\s*/i, "").replace(/^kelas\s*/i, "").trim();
+
+          // Jika huruf tunggal (misal: kelas: 5, ruangRombel: "A" => "Kelas 5A")
+          if (/^[a-zA-Z]$/.test(letterPart)) {
+            return `Kelas ${cleanKelas}${letterPart.toUpperCase()}`;
+          }
+
+          // Jika huruf dan angka (misal: "A1" => "Kelas 5A1")
+          if (/^[a-zA-Z]\d+$/.test(letterPart)) {
+            return `Kelas ${cleanKelas}${letterPart.toUpperCase()}`;
+          }
+
+          // Jika string ruangRombel sudah berupa "5A" atau "5-A"
+          if (new RegExp(`^${cleanKelas}[a-zA-Z]$`, "i").test(letterPart)) {
+            return `Kelas ${cleanKelas}${letterPart.slice(cleanKelas.length).toUpperCase()}`;
+          }
+
+          if (letterPart.toLowerCase().startsWith("kelas")) {
+            return letterPart;
+          }
+
+          return `Kelas ${cleanKelas} ${letterPart}`.trim();
+        }
+
+        window.sortPenggunaConfig = {
+          key: null,
+          direction: null // 'asc' | 'desc' | null
+        };
+
+        function updatePenggunaCounters(total, online, offline) {
+          const elTotal = document.getElementById("stat-pengguna-total");
+          const elOnline = document.getElementById("stat-pengguna-online");
+          const elOffline = document.getElementById("stat-pengguna-offline");
+          if (elTotal) elTotal.textContent = total;
+          if (elOnline) elOnline.textContent = online;
+          if (elOffline) elOffline.textContent = offline;
+        }
+
+        window.renderPenggunaTable = function(rawList) {
+          const tbody = document.getElementById("pengguna-table-body");
+          if (!tbody) return;
+
+          const searchVal = (document.getElementById("search-pengguna-input")?.value || "").trim().toLowerCase();
+          const filterStatusVal = document.getElementById("filter-pengguna-status")?.value || "ALL";
+
+          if (!rawList || rawList.length === 0) {
+            tbody.innerHTML = `
+              <tr>
+                <td colspan="17" class="text-center py-16 bg-slate-50/50">
+                  <div class="flex flex-col items-center justify-center opacity-70 py-6">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" class="w-10 h-10 text-slate-300 mb-2.5" stroke-width="1.5">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                    <h4 class="text-slate-600 font-bold text-xs mb-0.5">Belum Ada Data Pengguna di Server Cloud</h4>
+                    <p class="text-slate-400 text-[10.5px]">Tabel "aplikasirapor" di Supabase belum memiliki data atau sedang dimuat.</p>
+                  </div>
+                </td>
+              </tr>
+            `;
+            updatePenggunaCounters(0, 0, 0);
+            return;
+          }
+
+          let totalCount = rawList.length;
+          let onlineCount = 0;
+          let offlineCount = 0;
+
+          // Process records
+          const processed = rawList.map((item, idx) => {
+            const p = item.data_payload || {};
+            const s = p.sekolah || p || {};
+            const status = getPenggunaActivityStatus(item);
+            if (status.isOnline) onlineCount++;
+            else offlineCount++;
+
+            const namaSekolah = s.nama || s["nama-sekolah"] || item.data_payload?.["nama-sekolah"] || "-";
+            const npsn = s.npsn || (item.npsn ? String(item.npsn).split("_")[0] : "-");
+            const rombel = formatRombelDisplay(s.kelas, s.ruangRombel);
+            const kecamatan = s.kecamatan || "-";
+            const kabupaten = s.kabupatenKotaNama || s["kabupaten-kota-nama"] || "-";
+            const provinsi = s.provinsi || "-";
+
+            const kepsekNama = s.kepsek || s.namaKepsek || "-";
+            const kepsekNip = s.nipKepsek || "-";
+            const kepsekWa = s.waKepalaSekolah || s.waKepsek || "-";
+            const kepsekTglLahir = extractBirthDateFromNIP(s.nipKepsek);
+
+            const guruNama = s.waliKelas || s.guru || s.namaGuru || "-";
+            const guruNip = s.nipWaliKelas || s.nipGuru || "-";
+            const guruWa = s.waGuru || "-";
+            const guruTglLahir = extractBirthDateFromNIP(s.nipWaliKelas || s.nipGuru);
+
+            return {
+              raw: item,
+              id: item.id,
+              index: idx + 1,
+              status,
+              namaSekolah,
+              npsn,
+              rombel,
+              kecamatan,
+              kabupaten,
+              provinsi,
+              kepsekNama,
+              kepsekNip,
+              kepsekWa,
+              kepsekTglLahir,
+              guruNama,
+              guruNip,
+              guruWa,
+              guruTglLahir
+            };
+          });
+
+          updatePenggunaCounters(totalCount, onlineCount, offlineCount);
+
+          // Apply filters
+          let filtered = processed.filter(row => {
+            if (filterStatusVal === "ONLINE" && !row.status.isOnline) return false;
+            if (filterStatusVal === "OFFLINE" && row.status.isOnline) return false;
+
+            if (searchVal) {
+              const match =
+                row.namaSekolah.toLowerCase().includes(searchVal) ||
+                row.npsn.toLowerCase().includes(searchVal) ||
+                row.rombel.toLowerCase().includes(searchVal) ||
+                row.kecamatan.toLowerCase().includes(searchVal) ||
+                row.kabupaten.toLowerCase().includes(searchVal) ||
+                row.provinsi.toLowerCase().includes(searchVal) ||
+                row.kepsekNama.toLowerCase().includes(searchVal) ||
+                String(row.kepsekNip).toLowerCase().includes(searchVal) ||
+                row.guruNama.toLowerCase().includes(searchVal) ||
+                String(row.guruNip).toLowerCase().includes(searchVal);
+              if (!match) return false;
+            }
+            return true;
+          });
+
+          // Apply Sorting (3-state cycle: asc -> desc -> unsort/null)
+          if (window.sortPenggunaConfig.key && window.sortPenggunaConfig.direction) {
+            const { key, direction } = window.sortPenggunaConfig;
+            const mult = direction === "asc" ? 1 : -1;
+            filtered.sort((a, b) => {
+              let valA = a[key];
+              let valB = b[key];
+
+              if (key === "status") {
+                valA = a.status.isOnline ? 1 : 0;
+                valB = b.status.isOnline ? 1 : 0;
+              } else if (key === "recordTime") {
+                valA = a.status.recordTime || 0;
+                valB = b.status.recordTime || 0;
+              } else if (key === "kepsekTglLahir") {
+                valA = (a.kepsekTglLahir && a.kepsekTglLahir.valid) ? `${a.kepsekTglLahir.year}${a.kepsekTglLahir.month}${a.kepsekTglLahir.day}` : "";
+                valB = (b.kepsekTglLahir && b.kepsekTglLahir.valid) ? `${b.kepsekTglLahir.year}${b.kepsekTglLahir.month}${b.kepsekTglLahir.day}` : "";
+              } else if (key === "guruTglLahir") {
+                valA = (a.guruTglLahir && a.guruTglLahir.valid) ? `${a.guruTglLahir.year}${a.guruTglLahir.month}${a.guruTglLahir.day}` : "";
+                valB = (b.guruTglLahir && b.guruTglLahir.valid) ? `${b.guruTglLahir.year}${b.guruTglLahir.month}${b.guruTglLahir.day}` : "";
+              }
+
+              if (typeof valA === "number" && typeof valB === "number") {
+                return (valA - valB) * mult;
+              }
+              const strA = String(valA || "").toLowerCase();
+              const strB = String(valB || "").toLowerCase();
+              return strA.localeCompare(strB, undefined, { numeric: true }) * mult;
+            });
+          }
+
+          // Update header indicators
+          document.querySelectorAll("th.pengguna-header").forEach(th => {
+            const sortKey = th.getAttribute("data-sort");
+            const iconSpan = th.querySelector(".sort-icon");
+            if (iconSpan) {
+              if (window.sortPenggunaConfig.key === sortKey) {
+                iconSpan.textContent = window.sortPenggunaConfig.direction === "asc" ? " ▲" : " ▼";
+                iconSpan.className = "sort-icon ml-0.5 text-[9px] text-teal-600 font-black";
+                th.classList.add("active-sort");
+              } else {
+                iconSpan.textContent = "";
+                iconSpan.className = "sort-icon ml-0.5 text-[8px] text-slate-400";
+                th.classList.remove("active-sort");
+              }
+            }
+          });
+
+          if (filtered.length === 0) {
+            tbody.innerHTML = `
+              <tr>
+                <td colspan="17" class="text-center py-12 text-slate-400 bg-slate-50/40">
+                  Tidak ada data pengguna yang sesuai dengan filter/pencarian.
+                </td>
+              </tr>
+            `;
+            return;
+          }
+
+          tbody.innerHTML = filtered.map((row, i) => {
+            return `
+              <tr class="hover:bg-slate-50/80 transition-colors">
+                <td class="px-3 py-2 text-center text-slate-400 sticky left-0 z-10 bg-white border-r border-slate-200 font-mono w-[45px] min-w-[45px] max-w-[45px]">${i + 1}</td>
+                <td class="px-1 py-2 text-center sticky left-[45px] z-10 bg-white border-r border-slate-200 w-[45px] min-w-[45px] max-w-[45px]">
+                  <div class="flex items-center justify-center">
+                    ${row.status.isOnline ? `
+                      <span class="relative flex h-2.5 w-2.5 cursor-pointer" data-tooltip="Sedang Online">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500 shadow-sm ring-2 ring-emerald-100"></span>
+                      </span>
+                    ` : `
+                      <span class="inline-flex rounded-full h-2.5 w-2.5 bg-slate-300 ring-2 ring-slate-100 cursor-pointer" data-tooltip="Offline"></span>
+                    `}
+                  </div>
+                </td>
+                <td class="px-3 py-2 text-center sticky left-[90px] z-10 bg-white border-r border-slate-200 font-mono text-[10.5px] text-slate-600 whitespace-nowrap w-[140px] min-w-[140px] max-w-[140px]">
+                  <div class="font-medium">${row.status.timeFormatted}</div>
+                  <div class="text-[9.5px] text-slate-400">${row.status.subLabel || ""}</div>
+                </td>
+                <td class="px-3 py-2 font-bold text-slate-800 sticky left-[230px] z-10 bg-white border-r border-slate-200 w-[210px] min-w-[210px] max-w-[210px] truncate" data-tooltip="${row.namaSekolah}">
+                  ${row.namaSekolah}
+                </td>
+                <td class="px-3 py-2 text-center font-mono text-slate-600 bg-slate-50/30 font-medium">${row.npsn}</td>
+                <td class="px-3 py-2 text-center font-bold text-teal-800 bg-slate-50/30">
+                  <span class="px-1.5 py-0.5 rounded bg-teal-50 border border-teal-200 text-[10.5px]">${row.rombel}</span>
+                </td>
+                <td class="px-3 py-2 text-center text-slate-600">${row.kecamatan}</td>
+                <td class="px-3 py-2 text-center text-slate-600">${row.kabupaten}</td>
+                <td class="px-3 py-2 text-center text-slate-600">${row.provinsi}</td>
+                
+                <!-- Kepsek -->
+                <td class="px-3 py-2 text-slate-800 font-semibold border-l border-teal-100 bg-teal-50/20">${row.kepsekNama}</td>
+                <td class="px-3 py-2 text-center font-mono text-slate-600 bg-teal-50/20">${row.kepsekNip}</td>
+                <td class="px-3 py-2 text-center bg-teal-50/20">${formatWaLink(row.kepsekWa)}</td>
+                <td class="px-3 py-2 text-center font-semibold bg-emerald-50/40 border-r border-teal-100">
+                  ${renderTglLahirCell(row.kepsekTglLahir)}
+                </td>
+
+                <!-- Guru / Operator -->
+                <td class="px-3 py-2 text-slate-800 font-semibold border-l border-indigo-100 bg-indigo-50/20">${row.guruNama}</td>
+                <td class="px-3 py-2 text-center font-mono text-slate-600 bg-indigo-50/20">${row.guruNip}</td>
+                <td class="px-3 py-2 text-center bg-indigo-50/20">${formatWaLink(row.guruWa)}</td>
+                <td class="px-3 py-2 text-center font-semibold bg-violet-50/40">
+                  ${renderTglLahirCell(row.guruTglLahir)}
+                </td>
+              </tr>
+            `;
+          }).join("");
+        };
+
+        window.fetchPenggunaData = async function(isManualRefresh = false) {
+          if (!supabaseClient) {
+            console.warn("Supabase client is not ready");
+            return;
+          }
+          const refreshIcon = document.getElementById("refresh-pengguna-icon");
+          if (refreshIcon && isManualRefresh) {
+            refreshIcon.classList.add("animate-spin");
+          }
+
+          try {
+            const { data, error } = await supabaseClient
+              .from('aplikasirapor')
+              .select('*')
+              .order('id', { ascending: false });
+
+            if (error) {
+              console.warn("Info pengambilan data aplikasirapor:", error.message || error);
+              // Gunakan cache lokal jika ada saat koneksi terputus
+              try {
+                const cached = localStorage.getItem("cached_pengguna_data");
+                if (cached && (!window.rawPenggunaData || window.rawPenggunaData.length === 0)) {
+                  window.rawPenggunaData = JSON.parse(cached);
+                  window.renderPenggunaTable(window.rawPenggunaData);
+                }
+              } catch(e) {}
+              if (isManualRefresh) showToast("Koneksi ke server aplikasirapor sedang memuat ulang...", false);
+              return;
+            }
+
+            window.rawPenggunaData = data || [];
+            try {
+              localStorage.setItem("cached_pengguna_data", JSON.stringify(window.rawPenggunaData));
+            } catch(e) {}
+
+            window.renderPenggunaTable(window.rawPenggunaData);
+            if (isManualRefresh) {
+              showToast(`Data pengguna berhasil disegarkan (${window.rawPenggunaData.length} data ditemukan)`);
+            }
+          } catch (err) {
+            console.warn("Jaringan/fetch notice aplikasirapor:", err?.message || err);
+            // Fallback ke cache jika offline
+            try {
+              const cached = localStorage.getItem("cached_pengguna_data");
+              if (cached && (!window.rawPenggunaData || window.rawPenggunaData.length === 0)) {
+                window.rawPenggunaData = JSON.parse(cached);
+                window.renderPenggunaTable(window.rawPenggunaData);
+              }
+            } catch(e) {}
+            if (isManualRefresh) showToast("Koneksi jaringan terputus, memuat data tersimpan...", false);
+          } finally {
+            if (refreshIcon) {
+              setTimeout(() => refreshIcon.classList.remove("animate-spin"), 500);
+            }
+          }
+        };
+
+        // Listeners for Pengguna Filters
+        const searchPenggunaInput = document.getElementById("search-pengguna-input");
+        if (searchPenggunaInput) {
+          searchPenggunaInput.addEventListener("input", () => {
+            if (window.rawPenggunaData) window.renderPenggunaTable(window.rawPenggunaData);
+          });
+        }
+        const filterPenggunaStatus = document.getElementById("filter-pengguna-status");
+        if (filterPenggunaStatus) {
+          filterPenggunaStatus.addEventListener("change", () => {
+            if (window.rawPenggunaData) window.renderPenggunaTable(window.rawPenggunaData);
+          });
+        }
+
+        // Export Pengguna Excel
         const exportPenggunaBtn = document.getElementById("export-pengguna-excel-btn");
         if (exportPenggunaBtn) {
           exportPenggunaBtn.addEventListener("click", () => {
-            showToast("Belum ada data pada Tab Data Pengguna untuk diekspor.", false);
+            if (!window.rawPenggunaData || window.rawPenggunaData.length === 0) {
+              showToast("Belum ada data pada Tab Data Pengguna untuk diekspor.", false);
+              return;
+            }
+            if (typeof XLSX === "undefined") {
+              showToast("Pustaka XLSX belum termuat.", false);
+              return;
+            }
+            const exportRows = window.rawPenggunaData.map((item, idx) => {
+              const p = item.data_payload || {};
+              const s = p.sekolah || p || {};
+              const status = getPenggunaActivityStatus(item);
+              const kepsekTgl = extractBirthDateFromNIP(s.nipKepsek);
+              const guruTgl = extractBirthDateFromNIP(s.nipWaliKelas || s.nipGuru);
+
+              return {
+                "No": idx + 1,
+                "Status": status.label,
+                "Terakhir Aktif": status.timeFormatted,
+                "Nama Sekolah": s.nama || s["nama-sekolah"] || item.data_payload?.["nama-sekolah"] || "-",
+                "NPSN": s.npsn || (item.npsn ? String(item.npsn).split("_")[0] : "-"),
+                "Rombel": formatRombelDisplay(s.kelas, s.ruangRombel),
+                "Kecamatan": s.kecamatan || "-",
+                "Kabupaten/Kota": s.kabupatenKotaNama || s["kabupaten-kota-nama"] || "-",
+                "Provinsi": s.provinsi || "-",
+                "Nama Kepsek": s.kepsek || s.namaKepsek || "-",
+                "NIP Kepsek": s.nipKepsek ? String(s.nipKepsek) : "-",
+                "WA Kepsek": s.waKepalaSekolah || s.waKepsek || "-",
+                "Tgl Lahir Kepsek": kepsekTgl.full || "-",
+                "Nama Guru": s.waliKelas || s.guru || s.namaGuru || "-",
+                "NIP Guru": (s.nipWaliKelas || s.nipGuru) ? String(s.nipWaliKelas || s.nipGuru) : "-",
+                "WA Guru": s.waGuru || "-",
+                "Tgl Lahir Guru": guruTgl.full || "-"
+              };
+            });
+
+            const worksheet = XLSX.utils.json_to_sheet(exportRows);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Data Pengguna");
+
+            const now = new Date();
+            const yyyy = now.getFullYear();
+            const mm = String(now.getMonth() + 1).padStart(2, "0");
+            const dd = String(now.getDate()).padStart(2, "0");
+            const hh = String(now.getHours()).padStart(2, "0");
+            const min = String(now.getMinutes()).padStart(2, "0");
+            const ss = String(now.getSeconds()).padStart(2, "0");
+            const exportFileName = `Registrasi E-Rapor Edi Brata Data Pengguna ${yyyy}${mm}${dd} ${hh}.${min}.${ss}.xlsx`;
+
+            XLSX.writeFile(workbook, exportFileName);
+            showToast("Berhasil mengekspor Data Pengguna ke Excel.");
           });
         }
+
+        // Setup Header Click Listeners for Sorting in Tab Data Pengguna
+        document.querySelectorAll("th.pengguna-header").forEach(th => {
+          th.addEventListener("click", () => {
+            const sortKey = th.getAttribute("data-sort");
+            if (!sortKey) return;
+            if (window.sortPenggunaConfig.key === sortKey) {
+              if (window.sortPenggunaConfig.direction === "asc") {
+                window.sortPenggunaConfig.direction = "desc";
+              } else if (window.sortPenggunaConfig.direction === "desc") {
+                window.sortPenggunaConfig.key = null;
+                window.sortPenggunaConfig.direction = null;
+              } else {
+                window.sortPenggunaConfig.direction = "asc";
+              }
+            } else {
+              window.sortPenggunaConfig.key = sortKey;
+              window.sortPenggunaConfig.direction = "asc";
+            }
+            if (window.rawPenggunaData) {
+              window.renderPenggunaTable(window.rawPenggunaData);
+            }
+          });
+        });
+
+        // Live Realtime Channel on aplikasirapor
+        try {
+          if (supabaseClient) {
+            const pChannelName = 'table-rapor-' + Math.random().toString(36).substring(2, 7);
+            supabaseClient.channel(pChannelName)
+              .on('postgres_changes', { event: '*', schema: 'public', table: 'aplikasirapor' }, () => {
+                if (window.fetchPenggunaData) {
+                  window.fetchPenggunaData(false);
+                }
+              })
+              .subscribe();
+          }
+        } catch(e) {
+          console.warn("Realtime error aplikasirapor:", e);
+        }
+
+        // Initial fetch for Tab Pengguna
+        setTimeout(() => {
+          if (window.fetchPenggunaData) {
+            window.fetchPenggunaData(false);
+          }
+        }, 500);
+
+        // Auto refresh pengguna data every 30 seconds if Tab Pengguna is active
+        setInterval(() => {
+          const viewPengguna = document.getElementById("view-pengguna");
+          if (viewPengguna && !viewPengguna.classList.contains("hidden")) {
+            if (window.fetchPenggunaData) {
+              window.fetchPenggunaData(false);
+            }
+          }
+        }, 30000);
 
         const toast = document.getElementById("toast-notification");
         let toastTimeout = null;
@@ -2719,7 +3578,6 @@
           if (aksesTableBody) aksesTableBody.innerHTML = "";
           const penggunaTableBody =
             document.getElementById("pengguna-table-body");
-          if (penggunaTableBody) penggunaTableBody.innerHTML = "";
           let totalBTagihan = 0;
 
           // Build unique schools for Tab 1 (Data Pokok)
@@ -2874,9 +3732,9 @@
 
                 tagihanRow.className = "hover:bg-slate-50/80 transition-colors";
                 tagihanRow.innerHTML = `
-                            <td class="px-3 py-2 text-center text-slate-400 sticky left-0 z-20 bg-white border-r border-slate-100 w-[50px] min-w-[50px] max-w-[50px]">${tagihanIndex++}</td>
-                            <td class="px-3 py-2 text-center text-slate-600 font-mono sticky left-[50px] z-20 bg-white border-r border-slate-100 w-[150px] min-w-[150px] max-w-[150px] whitespace-nowrap font-medium text-[11px]">${tsStr}</td>
-                            <td class="px-3 py-2 font-bold text-slate-800 sticky left-[200px] z-20 bg-white border-r border-slate-200 shadow-[4px_0_12px_-4px_rgba(0,0,0,0.12)] w-[220px] min-w-[220px] max-w-[220px] truncate">${school["nama-sekolah"] || "-"}</td>
+                            <td class="px-3 py-2 text-center text-slate-400 sticky left-0 z-20 bg-white border-r border-slate-200 w-[50px] min-w-[50px] max-w-[50px]">${tagihanIndex++}</td>
+                            <td class="px-3 py-2 text-center text-slate-600 font-mono sticky left-[50px] z-20 bg-white border-r border-slate-200 w-[150px] min-w-[150px] max-w-[150px] whitespace-nowrap font-medium text-[11px]">${tsStr}</td>
+                            <td class="px-3 py-2 font-bold text-slate-800 sticky left-[200px] z-20 bg-white border-r border-slate-200 w-[220px] min-w-[220px] max-w-[220px] truncate">${school["nama-sekolah"] || "-"}</td>
                             <td class="px-4 py-2 text-center font-mono text-slate-500">${school["npsn"] || "-"}</td>
                             <td class="px-4 py-2 text-center">
                                 <div class="flex flex-wrap items-center justify-center gap-1">
@@ -2943,15 +3801,15 @@
                 const aksesRow = document.createElement("tr");
                 aksesRow.className = "hover:bg-slate-50/70 transition-colors";
                 aksesRow.innerHTML = `
-                  <td class="px-2 py-2 text-center sticky left-0 z-20 bg-white border-r border-slate-100 w-[40px] min-w-[40px] max-w-[40px]">
+                  <td class="px-2 py-2 text-center sticky left-0 z-20 bg-white border-r border-slate-200 w-[40px] min-w-[40px] max-w-[40px]">
                     <div class="flex items-center justify-center">
                       <input type="checkbox" class="akses-row-checkbox rounded border-slate-300 text-teal-600 focus:ring-teal-500 cursor-pointer w-3.5 h-3.5" data-id="${school.id}" ${isSelected ? 'checked' : ''} onchange="window.handleAksesRowCheckboxChange(this, '${school.id}')" data-tooltip="Pilih sekolah ini">
                     </div>
                   </td>
-                  <td class="px-2 py-2 text-center text-slate-400 sticky left-[40px] z-20 bg-white border-r border-slate-100 w-[45px] min-w-[45px] max-w-[45px]">
+                  <td class="px-2 py-2 text-center text-slate-400 sticky left-[40px] z-20 bg-white border-r border-slate-200 w-[45px] min-w-[45px] max-w-[45px]">
                     ${index + 1}
                   </td>
-                  <td class="px-3 py-2 sticky left-[85px] z-20 bg-white border-r border-slate-200 shadow-[4px_0_12px_-4px_rgba(0,0,0,0.12)] w-[190px] min-w-[190px] max-w-[190px]">
+                  <td class="px-3 py-2 sticky left-[85px] z-20 bg-white border-r border-slate-200 w-[190px] min-w-[190px] max-w-[190px]">
                     <div class="min-w-0 pr-1 truncate">
                       <div class="font-bold text-slate-800 text-xs truncate cursor-pointer hover:text-teal-600 transition-colors" data-tooltip="Klik untuk Edit Sekolah" onclick="window.openEditTypeModalById('${school.id}')">${school["nama-sekolah"] || "-"}</div>
                       <div class="text-[10px] text-slate-400 font-mono">NPSN: ${school["npsn"] || "-"}</div>
@@ -2995,21 +3853,9 @@
               }
             }
 
-            // Render Pengguna Table (Dikosongkan - tidak dihubungkan dengan isian tab manapun)
-            if (penggunaTableBody) {
-              penggunaTableBody.innerHTML = `
-                <tr>
-                  <td colspan="14" class="text-center py-16 bg-slate-50/40">
-                    <div class="flex flex-col items-center justify-center opacity-70 py-6">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" class="w-10 h-10 text-slate-300 mb-2.5" stroke-width="1.5">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                      </svg>
-                      <h4 class="text-slate-500 font-bold text-xs mb-0.5">Belum Ada Data Pengguna</h4>
-                      <p class="text-slate-400 text-[10.5px]">Data tab ini mandiri dan tidak dihubungkan dengan isian tab lain.</p>
-                    </div>
-                  </td>
-                </tr>
-              `;
+            // Render Pengguna Table (Terhubung ke Supabase aplikasirapor)
+            if (penggunaTableBody && window.renderPenggunaTable && window.rawPenggunaData) {
+              window.renderPenggunaTable(window.rawPenggunaData);
             }
 
             // Render Data Pokok Table
@@ -3050,12 +3896,12 @@
               })();
 
               row.innerHTML = `
-                        <td class="text-center align-middle py-2 sticky left-0 z-20 bg-white border-r border-slate-100 w-[35px] min-w-[35px] max-w-[35px]"><input type="checkbox" ${isSelected ? "checked" : ""} onchange="toggleRowSelection('${item.id}')" class="cursor-pointer" data-tooltip="Pilih baris ini"></td>
-                        <td class="text-center font-bold text-slate-400 border-r border-slate-100 align-middle py-2 sticky left-[35px] z-20 bg-white w-[45px] min-w-[45px] max-w-[45px]">${index + 1}</td>
-                        <td class="text-[9.5px] text-slate-500 font-mono text-center align-middle py-2 sticky left-[80px] z-20 bg-white border-r border-slate-100 w-[140px] min-w-[140px] max-w-[140px] whitespace-nowrap">
+                        <td class="text-center align-middle py-2 sticky left-0 z-20 bg-white border-r border-slate-200 w-[35px] min-w-[35px] max-w-[35px]"><input type="checkbox" ${isSelected ? "checked" : ""} onchange="toggleRowSelection('${item.id}')" class="cursor-pointer" data-tooltip="Pilih baris ini"></td>
+                        <td class="text-center font-bold text-slate-400 border-r border-slate-200 align-middle py-2 sticky left-[35px] z-20 bg-white w-[45px] min-w-[45px] max-w-[45px]">${index + 1}</td>
+                        <td class="text-[9.5px] text-slate-500 font-mono text-center align-middle py-2 sticky left-[80px] z-20 bg-white border-r border-slate-200 w-[140px] min-w-[140px] max-w-[140px] whitespace-nowrap">
                             ${tsHtml}
                         </td>
-                        <td class="font-bold text-teal-700 cursor-pointer transition-all hover:underline hover:text-teal-900 underline-offset-4 decoration-teal-300 decoration-2 align-middle py-2 sticky left-[220px] z-20 bg-white border-r border-slate-200 shadow-[4px_0_12px_-4px_rgba(0,0,0,0.12)] w-[220px] min-w-[220px] max-w-[220px] truncate" data-tooltip="Klik untuk Edit Sekolah">${highlightText(item["nama-sekolah"], searchVal)}</td>
+                        <td class="font-bold text-teal-700 cursor-pointer transition-all hover:underline hover:text-teal-900 underline-offset-4 decoration-teal-300 decoration-2 align-middle py-2 sticky left-[220px] z-20 bg-white border-r border-slate-200 w-[220px] min-w-[220px] max-w-[220px] truncate" data-tooltip="Klik untuk Edit Sekolah">${highlightText(item["nama-sekolah"], searchVal)}</td>
                         <td class="font-mono text-slate-500 text-center align-middle py-2 min-w-[100px]">${highlightText(item["npsn"], searchVal)}</td>
                         <td class="max-w-[150px] min-w-[180px] align-middle py-2 group relative">
                             <span class="block truncate">${highlightText(item["alamat"], searchVal)}</span>
