@@ -3065,6 +3065,18 @@
               const strB = String(valB || "").toLowerCase();
               return strA.localeCompare(strB, undefined, { numeric: true }) * mult;
             });
+          } else {
+            // Default sorting: Online status first, then by recordTime descending (newest first)
+            filtered.sort((a, b) => {
+              const onlineA = a.status.isOnline ? 1 : 0;
+              const onlineB = b.status.isOnline ? 1 : 0;
+              if (onlineA !== onlineB) {
+                return onlineB - onlineA; // Online (1) comes before offline (0)
+              }
+              const timeA = a.status.recordTime || 0;
+              const timeB = b.status.recordTime || 0;
+              return timeB - timeA; // Newest first
+            });
           }
 
           // Update header indicators
