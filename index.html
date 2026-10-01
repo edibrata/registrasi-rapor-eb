@@ -511,6 +511,27 @@
         background-color: #eff6ff !important;
       }
 
+      input.flat-tagihan-input {
+        width: auto !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        border: none !important;
+        border-radius: 0 !important;
+        background-color: transparent !important;
+        background: transparent !important;
+        box-shadow: none !important;
+        font-size: 10px !important;
+        outline: none !important;
+        transition: none !important;
+      }
+      input.flat-tagihan-input:focus,
+      input.flat-tagihan-input:hover {
+        border: none !important;
+        background-color: transparent !important;
+        box-shadow: none !important;
+        outline: none !important;
+      }
+
       input[type="text"],
       select {
         width: 100%;
@@ -1147,23 +1168,29 @@
             >
               <tr>
                 <th
-                  class="px-3 py-3 text-center sticky left-0 z-40 bg-slate-50 border-r border-slate-200 w-[50px] min-w-[50px] max-w-[50px]"
+                  class="px-2 py-2 text-center sticky left-0 z-40 bg-slate-50 border-r border-slate-200 w-[50px] min-w-[50px] max-w-[50px]"
                 >
                   NO
                 </th>
                 <th
-                  class="px-3 py-3 text-center sticky left-[50px] z-40 bg-slate-50 border-r border-slate-200 w-[150px] min-w-[150px] max-w-[150px] whitespace-nowrap"
+                  class="px-2 py-2 text-center sticky left-[50px] z-40 bg-slate-50 border-r border-slate-200 w-[100px] min-w-[100px] max-w-[100px] whitespace-nowrap"
                 >
                   TRANSAKSI
                 </th>
                 <th
-                  class="px-3 py-3 text-center sticky left-[200px] z-40 bg-slate-50 border-r border-slate-200 w-[220px] min-w-[220px] max-w-[220px]"
+                  class="px-2 py-2 text-center sticky left-[150px] z-40 bg-slate-50 border-r border-slate-200 min-w-[180px]"
                 >
                   NAMA SEKOLAH
                 </th>
-                <th class="px-4 py-3 text-center min-w-[110px]">NPSN</th>
-                <th class="px-4 py-3 text-center min-w-[160px]">PENAMBAHAN KELAS</th>
-                <th class="px-4 py-3 text-center min-w-[190px]">PEMASUKAN PERIODE INI (RP)</th>
+                <th class="px-3 py-2 text-center w-[80px] min-w-[80px] max-w-[80px]">NPSN</th>
+                <th class="px-3 py-2 text-center min-w-[120px]">NAMA PEMESAN</th>
+                <th class="px-3 py-2 text-center min-w-[100px]">KELAS DI PESAN</th>
+                <th class="px-3 py-2 text-center min-w-[100px]">BASE TAGIHAN</th>
+                <th class="px-3 py-2 text-center w-[130px] min-w-[130px] max-w-[130px]">DISKON</th>
+                <th class="px-3 py-2 text-center w-[150px] min-w-[150px] max-w-[150px]">BIAYA TAMBAHAN</th>
+                <th class="px-3 py-2 text-center w-[60px] min-w-[60px] max-w-[60px]">STATUS</th>
+                <th class="px-3 py-2 text-center min-w-[110px]">TERBAYAR</th>
+                <th class="px-3 py-2 text-center min-w-[110px]">PIUTANG</th>
               </tr>
             </thead>
             <tbody
@@ -1171,16 +1198,33 @@
               class="divide-y divide-slate-100 text-[11px]"
             ></tbody>
             <tfoot
-              class="bg-teal-50 border-t-2 border-teal-200 text-teal-800 font-bold text-[11px] sticky bottom-0 z-20"
+              class="bg-slate-50 border-t-2 border-slate-200 text-slate-800 font-bold text-[11px] sticky bottom-0 z-20"
             >
-              <tr>
-                <td colspan="5" class="px-4 py-3 text-right">
-                  TOTAL PEMASUKAN AKTIF (PADA PERIODE
-                  <span id="tagihan-periode-label">SEMUA WAKTU</span>)
+              <tr class="bg-slate-100 text-slate-900 border-b border-slate-200">
+                <td colspan="10" class="px-4 py-1.5 text-right font-bold uppercase tracking-wider text-slate-500">
+                  TOTAL
                 </td>
                 <td
                   id="tagihan-total"
-                  class="px-4 py-3 text-right text-teal-700 text-xs font-mono font-bold"
+                  class="px-3 py-1.5 text-right text-teal-700 text-xs font-mono font-black"
+                >
+                  Rp 0
+                </td>
+                <td
+                  id="tagihan-transit"
+                  class="px-3 py-1.5 text-right text-amber-700 text-xs font-mono font-black"
+                >
+                  Rp 0
+                </td>
+              </tr>
+              <tr class="bg-slate-50 text-slate-700">
+                <td colspan="10" class="px-4 py-1.5 text-right font-bold uppercase tracking-wider text-slate-400">
+                  OMSET POTENSIAL (TERBAYAR + PIUTANG)
+                </td>
+                <td
+                  id="tagihan-akumulasi"
+                  colspan="2"
+                  class="px-3 py-1.5 text-right text-slate-800 text-xs font-mono font-black border-l border-slate-200 bg-slate-100/50"
                 >
                   Rp 0
                 </td>
@@ -3543,6 +3587,7 @@
         }
 
         function renderTable(dataToDisplay) {
+          window.renderTable = renderTable;
           const tableBody = document.getElementById("table-body");
           const schoolCount = document.getElementById("school-count");
           tableBody.innerHTML = "";
@@ -3592,7 +3637,8 @@
           if (aksesTableBody) aksesTableBody.innerHTML = "";
           const penggunaTableBody =
             document.getElementById("pengguna-table-body");
-          let totalBTagihan = 0;
+          let totalBTagihanActive = 0;
+          let totalBTagihanTransit = 0;
 
           // Build unique schools for Tab 1 (Data Pokok)
           const uniqueSchoolsMap = new Map();
@@ -3638,7 +3684,7 @@
                 </td></tr>`;
             if (tagihanTableBody)
               tagihanTableBody.innerHTML =
-                '<tr><td colspan="6" class="text-center py-10 text-slate-400">Tidak ada data pesanan</td></tr>';
+                '<tr><td colspan="10" class="text-center py-10 text-slate-400">Tidak ada data pesanan</td></tr>';
             if (aksesTableBody)
               aksesTableBody.innerHTML =
                 '<tr><td colspan="5" class="text-center py-10 text-slate-400">Tidak ada data sekolah</td></tr>';
@@ -3648,6 +3694,10 @@
           } else {
             // Render Tagihan Table
             let tagihanIndex = 1;
+            let tagihanSettings = {};
+            try {
+              tagihanSettings = JSON.parse(localStorage.getItem("aplikasi-rapor-tagihan-settings") || "{}");
+            } catch (e) {}
 
             // Update label periode
             const periodeLabel = document.getElementById(
@@ -3738,32 +3788,121 @@
                   ? '<span class="text-amber-600 font-bold bg-amber-50 px-1 py-0.5 rounded">DRAFT</span>'
                   : formatDisplayDate(latestDocInPeriod.timestamp);
 
-                totalBTagihan += totalSchoolBiaya;
+                 const npsn = school["npsn"] || "-";
+                const setting = tagihanSettings[npsn] || { isLunas: false, diskon: 0, biayaTambahan: 0, pemesan: "" };
+                const isLunas = setting.isLunas === true;
+                const diskon = setting.diskon || 0;
+                const biayaTambahan = setting.biayaTambahan || 0;
+                const savedPemesan = setting.pemesan || "";
+
+                const isGratis = (totalSchoolBiaya === 0 && biayaTambahan === 0);
+                const actualIsLunas = isGratis ? true : isLunas;
+
+                const finalAmount = totalSchoolBiaya - diskon + biayaTambahan;
+                if (actualIsLunas) {
+                  totalBTagihanActive += finalAmount;
+                } else {
+                  totalBTagihanTransit += finalAmount;
+                }
 
                 const combinedClasses = Array.from(aggregatedKelas).sort(
                   (a, b) => a - b,
                 );
 
-                tagihanRow.className = "hover:bg-slate-50/80 transition-colors";
+                 tagihanRow.className = "hover:bg-slate-50/80 transition-colors";
+                
+                const pemesanNama = latestDocInPeriod.pemesan || latestDocInPeriod.waliKelas || latestDocInPeriod.guru || latestDocInPeriod.namaGuru || school.pemesan || school.waliKelas || school.guru || school.namaGuru || "-";
+
                 tagihanRow.innerHTML = `
-                            <td class="px-3 py-2 text-center text-slate-400 sticky left-0 z-20 bg-white border-r border-slate-200 w-[50px] min-w-[50px] max-w-[50px]">${tagihanIndex++}</td>
-                            <td class="px-3 py-2 text-center text-slate-600 font-mono sticky left-[50px] z-20 bg-white border-r border-slate-200 w-[150px] min-w-[150px] max-w-[150px] whitespace-nowrap font-medium text-[11px]">${tsStr}</td>
-                            <td class="px-3 py-2 font-bold text-slate-800 sticky left-[200px] z-20 bg-white border-r border-slate-200 w-[220px] min-w-[220px] max-w-[220px] truncate">${school["nama-sekolah"] || "-"}</td>
-                            <td class="px-4 py-2 text-center font-mono text-slate-500">${school["npsn"] || "-"}</td>
-                            <td class="px-4 py-2 text-center">
+                            <td class="px-2 py-0.5 text-center text-slate-400 sticky left-0 z-20 bg-white border-r border-slate-200 w-[50px] min-w-[50px] max-w-[50px]">${tagihanIndex++}</td>
+                            <td class="px-2 py-0.5 text-center text-slate-600 font-mono sticky left-[50px] z-20 bg-white border-r border-slate-200 w-[100px] min-w-[100px] max-w-[100px] whitespace-nowrap font-medium text-[10.5px]">${tsStr}</td>
+                            <td class="px-2 py-0.5 font-bold text-slate-800 sticky left-[150px] z-20 bg-white border-r border-slate-200 min-w-[180px]">${school["nama-sekolah"] || "-"}</td>
+                            <td class="px-2 py-0.5 text-center font-mono text-slate-500 text-[10.5px]">${npsn}</td>
+                            <td class="px-3 py-0.5 text-center">
+                                <input 
+                                  type="text" 
+                                  value="${savedPemesan}" 
+                                  placeholder="${pemesanNama}" 
+                                  onchange="window.updateTagihanSetting('${npsn}', 'pemesan', this.value)" 
+                                  class="flat-tagihan-input text-left text-slate-700 font-medium text-[10px]"
+                                  style="width: 110px !important; text-align: left !important; background: transparent !important; border: none !important; box-shadow: none !important; outline: none !important;"
+                                />
+                            </td>
+                            <td class="px-2 py-0.5 text-center">
                                 <div class="flex flex-wrap items-center justify-center gap-1">
-                                    ${(combinedClasses.length > 0 ? combinedClasses : []).map((k) => `<div class="w-4 h-4 bg-teal-100 text-teal-800 rounded font-bold text-[9px] flex items-center justify-center shadow-sm">${k}</div>`).join("") || '<span class="text-slate-300 text-xs">Belum ada</span>'}
+                                    ${(combinedClasses.length > 0 ? combinedClasses : []).map((k) => `<div class="w-3.5 h-3.5 bg-teal-100 text-teal-800 rounded font-bold text-[8.5px] flex items-center justify-center shadow-xs">${k}</div>`).join("") || '<span class="text-slate-300 text-[10px]">Belum ada</span>'}
                                 </div>
                             </td>
-                            <td class="px-4 py-2 text-right font-mono font-bold text-slate-700">Rp ${totalSchoolBiaya.toLocaleString("id-ID")}</td>
+                            <td class="px-3 py-0.5 text-right font-mono font-medium text-slate-600 text-[10.5px]">Rp ${totalSchoolBiaya.toLocaleString("id-ID")}</td>
+                            <td class="px-3 py-0.5 text-right w-[130px] min-w-[130px] max-w-[130px]">
+                                <input 
+                                  type="text" 
+                                  value="Rp ${(diskon || 0).toLocaleString("id-ID")}" 
+                                  onfocus="this.value = this.value.replace(/[^0-9]/g, ''); this.select();"
+                                  onblur="window.formatRupiahOnBlur(this, '${npsn}', 'diskon')" 
+                                  class="flat-tagihan-input font-mono font-medium text-[10px] text-slate-700"
+                                  style="width: 100% !important; text-align: right !important; background: transparent !important; border: none !important; box-shadow: none !important; outline: none !important;"
+                                />
+                            </td>
+                            <td class="px-3 py-0.5 text-right w-[150px] min-w-[150px] max-w-[150px]">
+                                <input 
+                                  type="text" 
+                                  value="Rp ${(biayaTambahan || 0).toLocaleString("id-ID")}" 
+                                  onfocus="this.value = this.value.replace(/[^0-9]/g, ''); this.select();"
+                                  onblur="window.formatRupiahOnBlur(this, '${npsn}', 'biayaTambahan')" 
+                                  class="flat-tagihan-input font-mono font-medium text-[10px] text-slate-700"
+                                  style="width: 100% !important; text-align: right !important; background: transparent !important; border: none !important; box-shadow: none !important; outline: none !important;"
+                                />
+                            </td>
+                            <td class="px-2 py-0.5 text-center">
+                              <div class="flex items-center justify-center">
+                                ${isGratis 
+                                  ? `<span class="text-slate-400 font-extrabold text-[9px] tracking-wider uppercase select-none">GRATIS</span>`
+                                  : `
+                                    <label class="relative inline-flex items-center cursor-pointer select-none" data-tooltip="${actualIsLunas ? 'Lunas' : 'Belum Lunas'}">
+                                      <input type="checkbox" class="sr-only peer" ${actualIsLunas ? 'checked' : ''} onchange="window.updateTagihanSetting('${npsn}', 'isLunas', this.checked)">
+                                      <div class="w-7 h-3.5 bg-slate-200 rounded-full peer peer-checked:bg-teal-600 transition-colors duration-200 relative">
+                                        <div class="absolute top-[1px] left-[1px] bg-white rounded-full h-2.5 w-2.5 transition-all duration-200 ${actualIsLunas ? 'translate-x-3.5' : 'translate-x-0'}"></div>
+                                      </div>
+                                    </label>
+                                  `
+                                }
+                              </div>
+                            </td>
+                            <td class="px-3 py-0.5 text-right">
+                              ${actualIsLunas 
+                                ? `<span class="text-teal-700 font-mono font-bold text-[10.5px]">${finalAmount < 0 ? '-Rp ' + Math.abs(finalAmount).toLocaleString("id-ID") : 'Rp ' + finalAmount.toLocaleString("id-ID")}</span>`
+                                : `<span class="text-slate-300 font-mono font-medium text-[10.5px]">-</span>`
+                              }
+                            </td>
+                            <td class="px-3 py-0.5 text-right">
+                              ${!actualIsLunas 
+                                ? `<span class="text-amber-600 font-mono font-bold text-[10.5px]" data-tooltip="Belum Lunas">${finalAmount < 0 ? '-Rp ' + Math.abs(finalAmount).toLocaleString("id-ID") : 'Rp ' + finalAmount.toLocaleString("id-ID")}</span>`
+                                : `<span class="text-slate-300 font-mono font-medium text-[10.5px]">-</span>`
+                              }
+                            </td>
                         `;
                 tagihanTableBody.appendChild(tagihanRow);
               }
             });
 
+            const totalBTagihanAll = totalBTagihanActive + totalBTagihanTransit;
+
+            const formatAccumulated = (val) => {
+              if (val < 0) {
+                return "-Rp " + Math.abs(val).toLocaleString("id-ID");
+              }
+              return "Rp " + val.toLocaleString("id-ID");
+            };
+
             if (document.getElementById("tagihan-total")) {
-              document.getElementById("tagihan-total").textContent =
-                "Rp " + totalBTagihan.toLocaleString("id-ID");
+              document.getElementById("tagihan-total").textContent = formatAccumulated(totalBTagihanActive);
+            }
+            if (document.getElementById("tagihan-transit")) {
+              document.getElementById("tagihan-transit").textContent = formatAccumulated(totalBTagihanTransit);
+            }
+            if (document.getElementById("tagihan-akumulasi")) {
+              document.getElementById("tagihan-akumulasi").textContent = formatAccumulated(totalBTagihanAll);
             }
 
             // Render Akses Table
@@ -4993,6 +5132,50 @@
             `;
             trashBody.appendChild(tr);
           });
+        };
+
+        window.updateTagihanSetting = (npsn, key, val) => {
+          let settings = {};
+          try {
+            settings = JSON.parse(localStorage.getItem("aplikasi-rapor-tagihan-settings") || "{}");
+          } catch(e){}
+          if (!settings[npsn]) {
+            settings[npsn] = { isLunas: false, diskon: 0, biayaTambahan: 0 };
+          }
+          if (key === 'isLunas') {
+            settings[npsn].isLunas = Boolean(val);
+          } else if (key === 'diskon') {
+            settings[npsn].diskon = Math.max(0, parseInt(val, 10) || 0);
+          } else if (key === 'biayaTambahan') {
+            settings[npsn].biayaTambahan = Math.max(0, parseInt(val, 10) || 0);
+          } else if (key === 'pemesan') {
+            settings[npsn].pemesan = String(val || "").trim();
+          }
+          localStorage.setItem("aplikasi-rapor-tagihan-settings", JSON.stringify(settings));
+          
+          if (window.latestUniqueSchools) {
+            // Re-render
+            window.renderTable(window.latestUniqueSchools);
+          } else {
+            refreshFilterAndRender();
+          }
+        };
+
+        window.formatRupiahInput = (input) => {
+          let value = input.value.replace(/[^\d]/g, "");
+          if (value === "") {
+            input.value = "Rp 0";
+          } else {
+            let num = parseInt(value, 10);
+            input.value = "Rp " + num.toLocaleString("id-ID");
+          }
+        };
+
+        window.formatRupiahOnBlur = (input, npsn, key) => {
+          const rawVal = input.value.replace(/[^\d]/g, "");
+          const num = parseInt(rawVal, 10) || 0;
+          input.value = "Rp " + num.toLocaleString("id-ID");
+          window.updateTagihanSetting(npsn, key, num);
         };
 
         window.openTrashModal = () => {
