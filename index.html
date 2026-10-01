@@ -2500,8 +2500,8 @@
             </div>
           </div>
           
-          <!-- Pesanan Fields (Pilih Kelas - Baris Elegan & Rata Sempurna) -->
-          <div id="pesanan-fields" class="pt-1.5 border-t border-slate-100">
+          <!-- Pesanan Fields (Pilih Kelas - Header di Atas & Tombol Rata Tengah) -->
+          <div id="pesanan-fields" class="pt-2 border-t border-slate-100">
             <div id="jenis-pesanan-container" class="hidden">
               <input
                 type="radio"
@@ -2519,15 +2519,19 @@
                 class="sr-only"
               />
             </div>
-            <div class="flex items-center justify-between gap-2 p-2 bg-slate-50/70 border border-slate-200/70 rounded-xl flex-wrap sm:flex-nowrap">
-              <div class="flex items-center gap-1.5 shrink-0">
+            <div class="bg-slate-50/70 border border-slate-200/70 rounded-xl p-2.5 shadow-2xs">
+              <!-- Header: PILIH KELAS di Kiri, Badge di Kanan -->
+              <div class="flex items-center justify-between mb-2">
                 <span class="block font-bold text-slate-600 uppercase tracking-tight text-[10px]">
                   PILIH KELAS
                 </span>
+                <span id="kelas-selected-count" class="text-[9.5px] font-bold text-teal-700 bg-teal-50 px-2 py-0.5 rounded-full border border-teal-200/60 shadow-2xs">
+                  0 Kelas Dipilih
+                </span>
               </div>
 
-              <!-- 6 Comfortable Touch Buttons -->
-              <div class="flex items-center justify-center gap-1.5 sm:gap-2" id="edit-kelas-container">
+              <!-- 6 Comfortable Touch Buttons (Rata Tengah) -->
+              <div class="flex items-center justify-center gap-1.5 sm:gap-2 w-full" id="edit-kelas-container">
                 <button
                   type="button"
                   class="kelas-btn w-10 sm:w-11 h-9 sm:h-9.5 rounded-xl font-bold text-slate-700 bg-white border border-slate-200 hover:border-teal-400 hover:bg-teal-50/50 text-sm cursor-pointer shadow-2xs flex items-center justify-center transition-all shrink-0"
@@ -2577,17 +2581,13 @@
                   6
                 </button>
               </div>
-
-              <span id="kelas-selected-count" class="text-[9.5px] font-bold text-teal-700 bg-teal-50 px-2 py-0.5 rounded-full border border-teal-200/60 shadow-2xs shrink-0">
-                0 Kelas Dipilih
-              </span>
             </div>
           </div>
         </div>
 
-        <!-- Footer Buttons (Adaptive: Center on Mobile, Right on Laptop, Guaranteed Single Row) -->
+        <!-- Footer Buttons (Always Centered & Single Row) -->
         <div
-          class="flex flex-row items-center justify-center sm:justify-end gap-1.5 sm:gap-2 mt-2 pt-2 border-t border-slate-100 flex-nowrap"
+          class="flex flex-row items-center justify-center gap-2 mt-2 pt-2.5 border-t border-slate-100 flex-nowrap w-full"
         >
           <button
             id="save-draft-btn"
