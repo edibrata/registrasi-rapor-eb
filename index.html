@@ -5254,6 +5254,9 @@
           const mainBtn = document.getElementById("save-main-btn");
           const displayId = document.getElementById("display-id");
           const editIdInput = document.getElementById("edit-id");
+          const jpContainer = document.getElementById("jenis-pesanan-container");
+          const jpBaru = document.getElementById("jenis-pesanan-baru");
+          const jpLanjut = document.getElementById("jenis-pesanan-lanjut");
 
           if (backBtn) {
             if (window.openedFromActionSelector && window.currentEditId) {
@@ -5286,8 +5289,6 @@
             });
           };
 
-          const jpBaru = document.getElementById("jenis-pesanan-baru");
-          const jpLanjut = document.getElementById("jenis-pesanan-lanjut");
           if (jpBaru) jpBaru.checked = true;
           window.isEditMode = id !== null;
 
