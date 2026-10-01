@@ -1477,7 +1477,7 @@
                 JENIS WILAYAH
               </th>
               <th class="main-header text-center min-w-[130px] cursor-pointer" data-sort="desa-kelurahan-nama" data-tooltip="Urutkan Desa/Kelurahan">
-                NAMA DESA/KEL.
+                DESA/KEL.
               </th>
               <th class="main-header text-center min-w-[130px] cursor-pointer" data-sort="kecamatan" data-tooltip="Urutkan Kecamatan">KECAMATAN</th>
               <th
@@ -1489,7 +1489,7 @@
                 TIPE DAERAH
               </th>
               <th class="main-header text-center min-w-[140px] cursor-pointer" data-sort="kabupaten-kota-nama" data-tooltip="Urutkan Kabupaten/Kota">
-                NAMA KAB./KOTA
+                KAB./KOTA
               </th>
               <th class="main-header text-center min-w-[120px] cursor-pointer" data-sort="provinsi" data-tooltip="Urutkan Provinsi">PROVINSI</th>
             </tr>
@@ -2238,15 +2238,15 @@
 
     <!-- Modal Confirm -->
     <div id="confirm-modal" class="modal-overlay" style="z-index: 95000">
-      <div class="modal-content max-w-sm shadow-2xl border border-slate-200">
-        <div class="p-6 text-center">
+      <div class="modal-content max-w-[330px] p-4 sm:p-5 shadow-2xl border border-slate-200 text-center">
+        <div>
           <div
             id="confirm-icon-bg"
-            class="mx-auto flex items-center justify-center h-12 w-12 rounded-xl bg-rose-100 mb-4 transition-colors"
+            class="mx-auto flex items-center justify-center h-10 w-10 rounded-xl bg-rose-100 mb-3 transition-colors"
           >
             <div id="confirm-icon-slot" class="flex items-center justify-center">
               <svg
-                class="h-6 w-6 text-rose-600"
+                class="h-5 w-5 text-rose-600"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -2261,25 +2261,25 @@
             </div>
           </div>
           <h3
-            class="text-lg leading-6 font-bold text-slate-900 mb-2"
+            class="text-base font-bold text-slate-900 mb-1.5"
             id="confirm-title"
           >
             Konfirmasi
           </h3>
-          <p class="text-sm text-slate-500 mb-6 whitespace-pre-line leading-relaxed" id="confirm-message">
+          <p class="text-xs text-slate-600 mb-4 whitespace-pre-line leading-relaxed" id="confirm-message">
             Apakah Anda yakin?
           </p>
-          <div class="flex gap-3 justify-center">
+          <div class="flex gap-2 justify-center">
             <button
               id="confirm-cancel-btn"
-              class="w-full inline-flex justify-center rounded-lg border border-slate-300 shadow-sm px-4 py-2 bg-white text-base font-bold text-slate-700 hover:bg-slate-50 focus:outline-none sm:w-auto sm:text-sm cursor-pointer active:scale-95 transition-all"
+              class="w-full inline-flex justify-center rounded-lg border border-slate-300 shadow-2xs px-3.5 py-1.5 bg-white text-xs font-bold text-slate-700 hover:bg-slate-50 focus:outline-none sm:w-auto cursor-pointer active:scale-95 transition-all"
               data-tooltip="Batalkan"
             >
               Batal
             </button>
             <button
               id="confirm-ok-btn"
-              class="w-full inline-flex justify-center rounded-lg border border-transparent shadow-sm px-4 py-2 bg-rose-600 text-base font-bold text-white hover:bg-rose-700 focus:outline-none sm:w-auto sm:text-sm cursor-pointer active:scale-95 transition-all"
+              class="w-full inline-flex justify-center rounded-lg border border-transparent shadow-2xs px-3.5 py-1.5 bg-rose-600 text-xs font-bold text-white hover:bg-rose-700 focus:outline-none sm:w-auto cursor-pointer active:scale-95 transition-all"
               data-tooltip="Konfirmasi"
             >
               Hapus
@@ -5165,7 +5165,7 @@
           }
 
           const isConfirmed = await window.customConfirm(
-            `Batalkan ${bTitle} (${kList}) untuk "${schoolName}" dan pindahkan ke Tempat Sampah?\n\nCATATAN: Sekolah induk beserta pesanan kelas lainnya akan TETAP AKTIF di Data Pokok.`,
+            `Batalkan ${bTitle} (${kList}) untuk "${schoolName}" dan pindahkan ke Tempat Sampah?`,
             {
               title: "Konfirmasi Pembatalan Riwayat",
               okText: "Batalkan Pesanan",
@@ -5328,7 +5328,7 @@
             let iconBgClass = "bg-rose-100";
             let okBtnClass = "bg-rose-600 hover:bg-rose-700 text-white shadow-rose-700/20";
             let iconSvg = `
-              <svg class="h-6 w-6 text-rose-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <svg class="h-5 w-5 text-rose-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
               </svg>
             `;
@@ -5339,7 +5339,7 @@
               iconBgClass = "bg-teal-100";
               okBtnClass = "bg-teal-600 hover:bg-teal-700 text-white shadow-teal-700/20";
               iconSvg = `
-                <svg class="h-6 w-6 text-teal-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <svg class="h-5 w-5 text-teal-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                 </svg>
               `;
@@ -5349,7 +5349,7 @@
               iconBgClass = "bg-amber-100";
               okBtnClass = "bg-amber-600 hover:bg-amber-700 text-white shadow-amber-700/20";
               iconSvg = `
-                <svg class="h-6 w-6 text-amber-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <svg class="h-5 w-5 text-amber-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
                 </svg>
               `;
@@ -5373,14 +5373,14 @@
             if (titleEl) titleEl.textContent = title;
             if (msgEl) msgEl.textContent = message;
             if (iconBgEl) {
-              iconBgEl.className = `mx-auto flex items-center justify-center h-12 w-12 rounded-xl ${iconBgClass} mb-4 transition-colors`;
+              iconBgEl.className = `mx-auto flex items-center justify-center h-10 w-10 rounded-xl ${iconBgClass} mb-3 transition-colors`;
             }
             if (iconSlotEl) iconSlotEl.innerHTML = iconSvg;
 
             if (okBtn) {
               okBtn.textContent = okText;
               okBtn.setAttribute("data-tooltip", title);
-              okBtn.className = `w-full inline-flex justify-center rounded-lg border border-transparent shadow-sm px-4 py-2 ${okBtnClass} text-base font-bold focus:outline-none sm:w-auto sm:text-sm cursor-pointer active:scale-95 transition-all`;
+              okBtn.className = `w-full inline-flex justify-center rounded-lg border border-transparent shadow-2xs px-3.5 py-1.5 ${okBtnClass} text-xs font-bold focus:outline-none sm:w-auto cursor-pointer active:scale-95 transition-all`;
             }
 
             if (cancelBtn) {
@@ -6331,33 +6331,49 @@
         window.getTrashSchools = () => {
           const trashItems = [];
 
-          // 1. Kumpulkan rekaman riwayat pesanan (batch) yang dibatalkan dari sekolah aktif
+          // 1. Kumpulkan rekaman riwayat pesanan (batch) yang dibatalkan dari sekolah aktif dengan deduplikasi unik
+          const batchTrashMap = new Map();
           const allDocsWithBatches = [...drafts, ...allData].filter(d => !d.isDeleted && Array.isArray(d.deleted_batches) && d.deleted_batches.length > 0);
+          
           allDocsWithBatches.forEach(docObj => {
+            const schNpsn = docObj.npsn && String(docObj.npsn).trim() !== "-" ? String(docObj.npsn).trim().toLowerCase() : (docObj["nama-sekolah"] ? String(docObj["nama-sekolah"]).trim().toLowerCase() : docObj.id);
             docObj.deleted_batches.forEach(b => {
-              trashItems.push({
-                trashType: "batch",
-                key: `batch_${docObj.id}_${b.batchId || b.batchNum}`,
-                docId: docObj.id,
-                targetDocId: b.docId || docObj.id,
-                batchId: b.batchId || b.batchNum,
-                batchNum: b.batchNum,
-                "nama-sekolah": docObj["nama-sekolah"] || b.schoolName || "-",
-                npsn: docObj.npsn || b.npsn || "-",
-                title: `${b.label || ('Pesanan #' + b.batchNum)}`,
-                deletedAt: b.deletedAt || Date.now(),
-                timestamp: b.timestamp || 0,
-                kelas: b.kelas || [],
-                isDraft: docObj.id.startsWith("draft-"),
-                docs: [], // JANGAN masukkan docObj ke docs agar tidak pernah terhapus permanen!
-                parentDoc: docObj,
-                batchData: b,
-                alamat: docObj.alamat || "-",
-                kecamatan: docObj.kecamatan || "-",
-                kabupaten: docObj["kabupaten-kota-nama"] || "-"
-              });
+              const bId = String(b.batchId || b.batchNum || "1");
+              const uniqueBatchKey = `batch_${schNpsn}_${bId}`;
+
+              if (!batchTrashMap.has(uniqueBatchKey)) {
+                batchTrashMap.set(uniqueBatchKey, {
+                  trashType: "batch",
+                  key: uniqueBatchKey,
+                  docId: docObj.id,
+                  targetDocId: b.docId || docObj.id,
+                  allDocIds: [docObj.id],
+                  batchId: b.batchId || b.batchNum,
+                  batchNum: b.batchNum,
+                  "nama-sekolah": docObj["nama-sekolah"] || b.schoolName || "-",
+                  npsn: docObj.npsn || b.npsn || "-",
+                  title: `${b.label || ('Pesanan #' + b.batchNum)}`,
+                  deletedAt: b.deletedAt || Date.now(),
+                  timestamp: b.timestamp || 0,
+                  kelas: b.kelas || [],
+                  isDraft: docObj.id.startsWith("draft-"),
+                  docs: [], // JANGAN masukkan docObj ke docs agar tidak pernah terhapus permanen!
+                  parentDoc: docObj,
+                  batchData: b,
+                  alamat: docObj.alamat || "-",
+                  kecamatan: docObj.kecamatan || "-",
+                  kabupaten: docObj["kabupaten-kota-nama"] || "-"
+                });
+              } else {
+                const existing = batchTrashMap.get(uniqueBatchKey);
+                if (!existing.allDocIds.includes(docObj.id)) {
+                  existing.allDocIds.push(docObj.id);
+                }
+              }
             });
           });
+
+          batchTrashMap.forEach(v => trashItems.push(v));
 
           // 2. Kumpulkan dokumen yang isDeleted === true
           const trashDrafts = drafts.filter((d) => d.isDeleted);
@@ -6377,24 +6393,30 @@
             ));
 
             if (hasOtherActiveDocs) {
-              // Ini hanya dokumen versi pesanan yang dibatalkan, sekolah induknya masih aktif di Data Pokok!
-              trashItems.push({
-                trashType: "doc_version",
-                key: `doc_version_${item.id}`,
-                docId: item.id,
-                id: item.id,
-                "nama-sekolah": item["nama-sekolah"] || "-",
-                npsn: item.npsn || "-",
-                title: `Versi Pesanan (Kelas ${(item.kelas || []).join(', ')})`,
-                deletedAt: item.deletedAt || item.timestamp || Date.now(),
-                timestamp: item.timestamp || 0,
-                kelas: Array.isArray(item.kelas) ? [...item.kelas] : [],
-                isDraft: !!item.isDraft,
-                docs: [item],
-                alamat: item.alamat || "-",
-                kecamatan: item.kecamatan || "-",
-                kabupaten: item["kabupaten-kota-nama"] || "-"
-              });
+              // Cek apakah dokumen ini sudah diwakili oleh rekaman batchTrashMap
+              const alreadyHandledInBatch = Array.from(batchTrashMap.values()).some(
+                bt => bt.targetDocId === item.id || bt.allDocIds.includes(item.id) || (bt.npsn === item.npsn && JSON.stringify(bt.kelas) === JSON.stringify(item.kelas))
+              );
+
+              if (!alreadyHandledInBatch) {
+                trashItems.push({
+                  trashType: "doc_version",
+                  key: `doc_version_${item.id}`,
+                  docId: item.id,
+                  id: item.id,
+                  "nama-sekolah": item["nama-sekolah"] || "-",
+                  npsn: item.npsn || "-",
+                  title: `Versi Pesanan (Kelas ${(item.kelas || []).join(', ')})`,
+                  deletedAt: item.deletedAt || item.timestamp || Date.now(),
+                  timestamp: item.timestamp || 0,
+                  kelas: Array.isArray(item.kelas) ? [...item.kelas] : [],
+                  isDraft: !!item.isDraft,
+                  docs: [item],
+                  alamat: item.alamat || "-",
+                  kecamatan: item.kecamatan || "-",
+                  kabupaten: item["kabupaten-kota-nama"] || "-"
+                });
+              }
             } else {
               // Seluruh profil sekolah dihapus
               if (!schoolTrashMap.has(npsnKey)) {
@@ -6812,7 +6834,7 @@
           if (!target) return;
 
           if (target.trashType === "batch") {
-            const docObj = [...drafts, ...allData].find(d => d.id === target.docId);
+            const docObj = [...drafts, ...allData].find(d => d.id === target.docId) || [...drafts, ...allData].find(d => d.npsn && target.npsn && String(d.npsn).toLowerCase() === String(target.npsn).toLowerCase());
             if (!docObj) return showToast("Dokumen induk sekolah tidak ditemukan.", false);
 
             const isConfirmed = await window.customConfirm(
@@ -6826,14 +6848,15 @@
             if (!isConfirmed) return;
 
             showToast(`Memulihkan ${target.title}...`);
-            const remainingDeleted = (docObj.deleted_batches || []).filter(b => (b.batchId || b.batchNum) !== target.batchId);
+            const allTargetDocs = [...drafts, ...allData].filter(d => (target.allDocIds && target.allDocIds.includes(d.id)) || (d.npsn && target.npsn && String(d.npsn).toLowerCase() === String(target.npsn).toLowerCase()) || d.id === target.docId);
+
             const existingBatches = Array.isArray(docObj.order_batches) ? [...docObj.order_batches] : [];
             const restoredBatch = {
-              batch: target.batchData.batchNum || (existingBatches.length + 1),
-              tipe: target.batchData.tipe || "tambah",
-              kelas: target.batchData.kelas || [],
-              timestamp: target.batchData.timestamp || Date.now(),
-              label: target.batchData.label || `Pesanan #${existingBatches.length + 1}`,
+              batch: target.batchData?.batchNum || (existingBatches.length + 1),
+              tipe: target.batchData?.tipe || "tambah",
+              kelas: target.batchData?.kelas || [],
+              timestamp: target.batchData?.timestamp || Date.now(),
+              label: target.batchData?.label || `Pesanan #${existingBatches.length + 1}`,
               docId: target.targetDocId || docObj.id
             };
             existingBatches.push(restoredBatch);
@@ -6841,31 +6864,27 @@
 
             const allCombinedKelas = Array.from(new Set(existingBatches.flatMap(b => b.kelas || []))).sort((a,b)=>a-b);
 
-            if (docObj.id.startsWith("draft-")) {
-              docObj.order_batches = existingBatches;
-              docObj.deleted_batches = remainingDeleted;
-              docObj.kelas = allCombinedKelas;
-              try { localStorage.setItem("aplikasi-rapor-drafts", JSON.stringify(drafts)); } catch(e){}
-            } else {
-              docObj.order_batches = existingBatches;
-              docObj.deleted_batches = remainingDeleted;
-              docObj.kelas = allCombinedKelas;
-              allData.forEach((d) => {
-                if (d.id === docObj.id) {
-                  d.order_batches = existingBatches;
-                  d.deleted_batches = remainingDeleted;
-                  d.kelas = allCombinedKelas;
-                }
-              });
-              const { doc, updateDoc, db, appId, collectionName } = window.fbComponents;
-              await updateDoc(
-                doc(db, "artifacts", appId, "public", "data", collectionName, docObj.id),
-                {
-                  order_batches: existingBatches,
-                  deleted_batches: remainingDeleted,
-                  kelas: allCombinedKelas
-                }
-              );
+            for (const d of allTargetDocs) {
+              const remainingDeleted = (d.deleted_batches || []).filter(b => (b.batchId || b.batchNum) !== target.batchId && (b.batchId !== target.batchData?.batchId));
+              d.order_batches = existingBatches;
+              d.deleted_batches = remainingDeleted;
+              d.kelas = allCombinedKelas;
+
+              if (d.id.startsWith("draft-")) {
+                try { localStorage.setItem("aplikasi-rapor-drafts", JSON.stringify(drafts)); } catch(e){}
+              } else {
+                try {
+                  const { doc, updateDoc, db, appId, collectionName } = window.fbComponents;
+                  await updateDoc(
+                    doc(db, "artifacts", appId, "public", "data", collectionName, d.id),
+                    {
+                      order_batches: existingBatches,
+                      deleted_batches: remainingDeleted,
+                      kelas: allCombinedKelas
+                    }
+                  );
+                } catch(e) {}
+              }
             }
 
             // Jika batch berasal dari dokumen terpisah, pulihkan status isDeleted: false dokumen tersebut
@@ -7022,23 +7041,26 @@
 
           if (target.trashType === "batch") {
             const isConfirmed = await window.customConfirm(
-              `Hapus permanen rekaman riwayat "${target.title}" untuk "${target['nama-sekolah']}"?\n\nCATATAN: Tindakan ini HANYA memusnahkan rekaman riwayat ini dari Tempat Sampah. Sekolah induk beserta versi-versi lainnya di Data Pokok akan TETAP AMAN dan AKTIF.`
+              `Hapus permanen rekaman riwayat "${target.title}" untuk "${target['nama-sekolah']}"?`
             );
             if (!isConfirmed) return;
 
             showToast(`Menghapus permanen rekaman riwayat...`);
-            const docObj = [...drafts, ...allData].find(d => d.id === target.docId);
-            if (docObj) {
-              const remainingDeleted = (docObj.deleted_batches || []).filter(b => (b.batchId || b.batchNum) !== target.batchId);
+            const allTargetDocs = [...drafts, ...allData].filter(d => (target.allDocIds && target.allDocIds.includes(d.id)) || (d.npsn && target.npsn && String(d.npsn).toLowerCase() === String(target.npsn).toLowerCase()) || d.id === target.docId);
+
+            for (const docObj of allTargetDocs) {
+              const remainingDeleted = (docObj.deleted_batches || []).filter(b => (b.batchId || b.batchNum) !== target.batchId && (b.batchId !== target.batchData?.batchId));
+              docObj.deleted_batches = remainingDeleted;
               if (docObj.id.startsWith("draft-")) {
-                docObj.deleted_batches = remainingDeleted;
                 try { localStorage.setItem("aplikasi-rapor-drafts", JSON.stringify(drafts)); } catch(e){}
               } else {
-                const { doc, updateDoc, db, appId, collectionName } = window.fbComponents;
-                await updateDoc(
-                  doc(db, "artifacts", appId, "public", "data", collectionName, docObj.id),
-                  { deleted_batches: remainingDeleted }
-                );
+                try {
+                  const { doc, updateDoc, db, appId, collectionName } = window.fbComponents;
+                  await updateDoc(
+                    doc(db, "artifacts", appId, "public", "data", collectionName, docObj.id),
+                    { deleted_batches: remainingDeleted }
+                  );
+                } catch(e) {}
               }
             }
 
@@ -7063,7 +7085,7 @@
 
           if (target.trashType === "doc_version") {
             const isConfirmed = await window.customConfirm(
-              `Hapus permanen dokumen riwayat "${target.title}" untuk "${target['nama-sekolah']}"?\n\nCATATAN: Tindakan ini HANYA menghapus versi riwayat ini. Dokumen induk sekolah lainnya di Data Pokok akan TETAP AMAN dan AKTIF.`
+              `Hapus permanen dokumen riwayat "${target.title}" untuk "${target['nama-sekolah']}"?`
             );
             if (!isConfirmed) return;
 
