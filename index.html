@@ -3587,6 +3587,12 @@
         }
 
         function renderTable(dataToDisplay) {
+          // Simpan status fokus aktif sebelum pembaruan DOM
+          const activeEl = document.activeElement;
+          const activeId = activeEl ? activeEl.id : null;
+          const selStart = activeEl ? activeEl.selectionStart : null;
+          const selEnd = activeEl ? activeEl.selectionEnd : null;
+
           window.renderTable = renderTable;
           const tableBody = document.getElementById("table-body");
           const schoolCount = document.getElementById("school-count");
@@ -3840,12 +3846,14 @@
                             <td class="px-2 py-0.5 text-center text-slate-600 font-mono sticky left-[50px] z-20 bg-white border-r border-slate-200 w-[100px] min-w-[100px] max-w-[100px] whitespace-nowrap font-medium text-[10.5px]">${tsStr}</td>
                             <td class="px-2 py-0.5 font-bold text-slate-800 sticky left-[150px] z-20 bg-white border-r border-slate-200 min-w-[180px]">${school["nama-sekolah"] || "-"}</td>
                             <td class="px-2 py-0.5 text-center font-mono text-slate-500 text-[10.5px]">${npsn}</td>
-                            <td class="px-3 py-0.5 text-center">
+                             <td class="px-3 py-0.5 text-center">
                                 <input 
                                   type="text" 
+                                  id="pemesan-${npsn}"
                                   value="${savedPemesan}" 
                                   placeholder="${pemesanNama}" 
-                                  onchange="window.updateTagihanSetting('${npsn}', 'pemesan', this.value)" 
+                                  onblur="window.updateTagihanSetting('${npsn}', 'pemesan', this.value)" 
+                                  onkeydown="if(event.key === 'Enter') { this.blur(); }"
                                   class="flat-tagihan-input text-left text-slate-700 font-medium text-[10px]"
                                   style="width: 110px !important; text-align: left !important; background: transparent !important; border: none !important; box-shadow: none !important; outline: none !important;"
                                 />
@@ -3859,9 +3867,11 @@
                             <td class="px-3 py-0.5 text-right w-[130px] min-w-[130px] max-w-[130px]">
                                 <input 
                                   type="text" 
+                                  id="diskon-${npsn}"
                                   value="Rp ${(diskon || 0).toLocaleString("id-ID")}" 
                                   onfocus="this.value = this.value.replace(/[^0-9]/g, ''); this.select();"
                                   onblur="window.formatRupiahOnBlur(this, '${npsn}', 'diskon')" 
+                                  onkeydown="if(event.key === 'Enter') { this.blur(); }"
                                   class="flat-tagihan-input font-mono font-medium text-[10px] text-slate-700"
                                   style="width: 100% !important; text-align: right !important; background: transparent !important; border: none !important; box-shadow: none !important; outline: none !important;"
                                 />
@@ -3869,9 +3879,11 @@
                             <td class="px-3 py-0.5 text-right w-[150px] min-w-[150px] max-w-[150px]">
                                 <input 
                                   type="text" 
+                                  id="biayaTambahan-${npsn}"
                                   value="Rp ${(biayaTambahan || 0).toLocaleString("id-ID")}" 
                                   onfocus="this.value = this.value.replace(/[^0-9]/g, ''); this.select();"
                                   onblur="window.formatRupiahOnBlur(this, '${npsn}', 'biayaTambahan')" 
+                                  onkeydown="if(event.key === 'Enter') { this.blur(); }"
                                   class="flat-tagihan-input font-mono font-medium text-[10px] text-slate-700"
                                   style="width: 100% !important; text-align: right !important; background: transparent !important; border: none !important; box-shadow: none !important; outline: none !important;"
                                 />
@@ -4099,6 +4111,19 @@
               };
               tableBody.appendChild(row);
             });
+          }
+
+          // Restore focus state after DOM updates
+          if (activeId) {
+            const el = document.getElementById(activeId);
+            if (el) {
+              el.focus();
+              if (selStart !== null && selEnd !== null) {
+                try {
+                  el.setSelectionRange(selStart, selEnd);
+                } catch(e) {}
+              }
+            }
           }
         }
 
