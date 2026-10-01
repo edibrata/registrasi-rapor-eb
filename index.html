@@ -3739,9 +3739,9 @@
                   (a, b) => (a.timestamp || 0) - (b.timestamp || 0),
                 );
 
-                let totalSchoolBiaya = 0;
-                let aggregatedKelas = new Set();
+                 let aggregatedKelas = new Set();
                 let hasValidTransactionInPeriod = false;
+                let isSchoolGratis = false;
 
                 sortedDocs.forEach((doc) => {
                   const docDate = doc.timestamp
@@ -3753,25 +3753,28 @@
                     !tagihanEndDate || docDate <= tagihanEndDate;
                   const isWithinRange = isAfterStart && isBeforeEnd;
 
-                  const kCount = Array.isArray(doc.kelas)
-                    ? doc.kelas.length
-                    : 0;
-                  const jp = doc["jenis-pesanan"] || "pesanan_baru";
-
-                  let costForThisDoc = 0;
-                  if (kCount > 0) {
-                    costForThisDoc = 50000 + kCount * 50000;
-                  }
-
-                  if (doc['sekolah-gratis']) costForThisDoc = 0;
                   if (isWithinRange) {
-                    totalSchoolBiaya += costForThisDoc;
                     hasValidTransactionInPeriod = true;
                     if (Array.isArray(doc.kelas)) {
                       doc.kelas.forEach((k) => aggregatedKelas.add(k));
                     }
                   }
+                  if (doc['sekolah-gratis'] === true) {
+                    isSchoolGratis = true;
+                  }
                 });
+
+                if (school['sekolah-gratis'] === true) isSchoolGratis = true;
+
+                // Hitung total base tagihan secara TUNGGAL berdasarkan total kelas unik yang teragregasi!
+                const uniqueClassCount = aggregatedKelas.size;
+                let totalSchoolBiaya = 0;
+                if (uniqueClassCount > 0) {
+                  totalSchoolBiaya = 50000 + uniqueClassCount * 50000;
+                }
+                if (isSchoolGratis) {
+                  totalSchoolBiaya = 0;
+                }
 
                 if (
                   !hasValidTransactionInPeriod &&
@@ -4521,28 +4524,10 @@
                 }
                 showToast("Profil sekolah berhasil diperbarui.");
               } else if (window.currentEditMode === "pesanan") {
-                // In pesanan mode, we don't care about the empty text fields or validation,
-                // but textUpdates is populated with old values since they are hidden (not deleted).
-                // So we can still use textUpdates if building a new doc.
-                const removedParams = window.originalKelas.filter(
-                  (k) => !window.currentSelectedKelas.includes(k),
-                );
-                const newlyAddedClasses = window.currentSelectedKelas.filter(
-                  (k) => !window.originalKelas.includes(k),
-                );
-
-                for (const docObj of window.originalDocs) {
-                  let tempKelas = [...(docObj.kelas || [])];
-                  for (const removed of removedParams) {
-                    const idx = tempKelas.indexOf(removed);
-                    if (idx > -1) {
-                      tempKelas.splice(idx, 1);
-                    }
-                  }
-                  let docUpdates = { kelas: tempKelas };
-                  if (newlyAddedClasses.length === 0) {
-                    docUpdates["jenis-pesanan"] = chosenJenis;
-                  }
+                // Modus Edit Pesanan Kelas: Seluruh kelas yang dipilih (window.currentSelectedKelas)
+                // diperbarui secara langsung ke dokumen utama sekolah. Database tetap TUNGGAL!
+                const primaryDoc = window.originalDocs[0];
+                if (primaryDoc) {
                   await updateDoc(
                     doc(
                       db,
@@ -4551,27 +4536,12 @@
                       "public",
                       "data",
                       collectionName,
-                      docObj.id,
-                    ),
-                    docUpdates,
-                  );
-                }
-
-                if (newlyAddedClasses.length > 0) {
-                  await addDoc(
-                    collection(
-                      db,
-                      "artifacts",
-                      appId,
-                      "public",
-                      "data",
-                      collectionName,
+                      primaryDoc.id,
                     ),
                     {
-                      ...textUpdates, // reusing old text fields
+                      kelas: window.currentSelectedKelas,
                       "jenis-pesanan": chosenJenis,
-                      kelas: newlyAddedClasses,
-                      timestamp: Date.now(),
+                      timestamp: Date.now()
                     },
                   );
                 }
