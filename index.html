@@ -1208,38 +1208,6 @@
             </svg>
           </button>
 
-          <!-- Tombol Undo (Ctrl+Z) -->
-          <button
-            id="undo-btn"
-            type="button"
-            onclick="window.executeUndo()"
-            class="w-8 h-8 bg-white text-slate-400 border border-slate-200 rounded-lg transition-all shadow-2xs flex items-center justify-center cursor-pointer active:scale-95 shrink-0 opacity-40 cursor-not-allowed"
-            data-tooltip="Undo (Ctrl+Z)"
-            disabled
-          >
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
-              <path d="M3 7v6h6"></path>
-              <path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"></path>
-            </svg>
-          </button>
-
-          <!-- Tombol Redo (Ctrl+Y) -->
-          <button
-            id="redo-btn"
-            type="button"
-            onclick="window.executeRedo()"
-            class="w-8 h-8 bg-white text-slate-400 border border-slate-200 rounded-lg transition-all shadow-2xs flex items-center justify-center cursor-pointer active:scale-95 shrink-0 opacity-40 cursor-not-allowed"
-            data-tooltip="Redo (Ctrl+Y)"
-            disabled
-          >
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
-              <path d="M21 7v6h-6"></path>
-              <path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3l3 2.7"></path>
-            </svg>
-          </button>
-
-          <div class="h-5 w-px bg-slate-200 mx-0.5"></div>
-
           <!-- Tombol Template Excel -->
           <button
             id="download-template-btn"
@@ -2295,17 +2263,17 @@
     </div>
 
     <div id="action-modal" class="modal-overlay">
-      <div id="action-modal-card" class="modal-content shadow-2xl border border-slate-200">
+      <div id="action-modal-card" class="modal-content !p-3.5 sm:!p-4 max-w-lg sm:max-w-xl shadow-2xl border border-slate-200">
         <div
-          class="flex justify-between items-center mb-3 border-b border-slate-100 pb-3"
+          class="flex justify-between items-center mb-2 border-b border-slate-100 pb-2"
         >
-          <div class="flex items-center gap-2.5 min-w-0">
+          <div class="flex items-center gap-2 min-w-0">
             <!-- Back Button to Parent Modal -->
             <button
               id="modal-back-btn"
               type="button"
               onclick="window.returnToActionSelector()"
-              class="hidden p-1.5 text-slate-400 hover:text-teal-700 hover:bg-teal-50 rounded-lg transition-colors cursor-pointer active:scale-95 shrink-0"
+              class="hidden p-1 text-slate-400 hover:text-teal-700 hover:bg-teal-50 rounded-lg transition-colors cursor-pointer active:scale-95 shrink-0"
               data-tooltip="Kembali ke Pilihan Tindakan"
             >
               <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -2314,9 +2282,9 @@
             </button>
             <div
               id="modal-icon-bg"
-              class="w-9 h-9 bg-teal-600 text-white rounded-xl flex items-center justify-center shadow-md transition-colors shrink-0"
+              class="w-7 h-7 bg-teal-600 text-white rounded-lg flex items-center justify-center shadow-xs transition-colors shrink-0"
             >
-              <svg id="modal-icon" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <svg id="modal-icon" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path
                   d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"
                 ></path>
@@ -2326,20 +2294,20 @@
               </svg>
             </div>
             <div class="min-w-0">
-              <div class="flex items-center gap-2 flex-wrap">
-                <h2 id="modal-title" class="text-base font-bold text-slate-800 leading-tight">
+              <div class="flex items-center gap-1.5 flex-wrap">
+                <h2 id="modal-title" class="text-sm font-bold text-slate-800 leading-tight">
                   Registrasi Sekolah Baru
                 </h2>
                 <span
                   id="audit-trail"
-                  class="hidden text-[10px] font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full border border-slate-200 shadow-2xs cursor-pointer"
+                  class="hidden text-[9px] font-semibold text-slate-500 bg-slate-100 px-1.5 py-0.2 rounded-full border border-slate-200 shadow-2xs cursor-pointer"
                   data-tooltip="Informasi Pembaruan Data"
                   >Pembaruan</span
                 >
               </div>
               <p
                 id="modal-school-subtitle"
-                class="hidden text-xs text-teal-700 font-bold truncate max-w-[240px] sm:max-w-[340px] mt-0.5"
+                class="hidden text-[11px] text-teal-700 font-bold truncate max-w-[240px] sm:max-w-[340px]"
               ></p>
               <p id="modal-subtitle" class="hidden">
                 <span id="display-id">-</span>
@@ -2349,10 +2317,10 @@
           </div>
           <button
             id="close-modal-btn"
-            class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer active:scale-95 shrink-0 ml-2"
+            class="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer active:scale-95 shrink-0 ml-2"
             data-tooltip="Tutup"
           >
-            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <line x1="18" y1="6" x2="6" y2="18"></line>
               <line x1="6" y1="6" x2="18" y2="18"></line>
             </svg>
@@ -2361,30 +2329,31 @@
 
         <input type="hidden" id="edit-id" />
 
-        <div class="space-y-3 mb-4 text-[11.5px]">
-          <div id="data-sekolah-fields" class="space-y-3 sm:space-y-4">
-            <div class="flex flex-col sm:flex-row gap-3">
+        <div class="space-y-2 mb-2 text-xs">
+          <div id="data-sekolah-fields" class="space-y-2">
+            <!-- Row 1: Nama Satuan Pendidikan & NPSN -->
+            <div class="flex flex-col sm:flex-row gap-2">
               <div class="flex-grow group">
                 <label
-                  class="block font-bold text-slate-500 mb-1 uppercase tracking-tight group-focus-within:text-teal-600 transition-colors"
+                  class="block font-bold text-slate-500 mb-0.5 uppercase tracking-tight text-[10px] group-focus-within:text-teal-600 transition-colors"
                   >Nama Satuan Pendidikan</label
                 >
                 <input
                   type="text"
                   id="edit-nama-sekolah"
-                  class="font-bold text-teal-700 bg-teal-50/50 text-[13px] py-1.5 px-3 w-full border-teal-100 focus:border-teal-400"
+                  class="font-bold text-teal-700 bg-teal-50/50 text-xs py-1.5 px-2.5 w-full border-teal-100 focus:border-teal-400 rounded-lg"
                   placeholder="Contoh: SDN Nusantara"
                 />
               </div>
-              <div class="w-full sm:w-40 group relative">
+              <div class="w-full sm:w-36 group relative">
                 <label
-                  class="block font-bold text-slate-500 mb-1 uppercase tracking-tight group-focus-within:text-teal-600 transition-colors"
+                  class="block font-bold text-slate-500 mb-0.5 uppercase tracking-tight text-[10px] group-focus-within:text-teal-600 transition-colors"
                   >NPSN</label
                 >
                 <input
                   type="text"
                   id="edit-npsn"
-                  class="py-1.5 px-3 w-full"
+                  class="py-1.5 px-2.5 w-full text-xs rounded-lg"
                   placeholder="8 Digit Angka"
                   maxlength="8"
                   pattern="[0-9]*"
@@ -2413,120 +2382,126 @@
                 />
                 <p
                   id="npsn-err"
-                  class="hidden text-rose-500 text-[9.5px] mt-1 absolute -bottom-4 left-0 font-bold tracking-tight z-10"
+                  class="hidden text-rose-500 text-[9px] mt-0.5 absolute -bottom-3.5 left-0 font-bold tracking-tight z-10"
                 >
                   Harus 8 digit angka.
                 </p>
               </div>
             </div>
 
+            <!-- Row 2: Alamat Lengkap -->
             <div class="w-full group">
               <label
-                class="block font-bold text-slate-500 mb-1 uppercase tracking-tight group-focus-within:text-teal-600 transition-colors"
+                class="block font-bold text-slate-500 mb-0.5 uppercase tracking-tight text-[10px] group-focus-within:text-teal-600 transition-colors"
                 >Alamat Lengkap</label
               >
               <input
                 type="text"
                 id="edit-alamat"
-                class="py-1.5 px-3 w-full"
+                class="py-1.5 px-2.5 w-full text-xs rounded-lg"
                 placeholder="Jl. Pendidikan No. 1, RT/RW..."
               />
             </div>
 
-            <div class="flex flex-col sm:flex-row gap-3">
-              <div class="w-full sm:w-28 group">
+            <!-- Row 3: Bentuk Desa, Nama Desa, Kecamatan -->
+            <div class="grid grid-cols-1 sm:grid-cols-12 gap-2">
+              <div class="sm:col-span-3 group">
                 <label
-                  class="block font-bold text-slate-500 mb-1 uppercase tracking-tight group-focus-within:text-teal-600 transition-colors"
+                  class="block font-bold text-slate-500 mb-0.5 uppercase tracking-tight text-[10px] group-focus-within:text-teal-600 transition-colors"
                   >Bentuk Desa</label
                 >
                 <select
                   id="edit-desa-kelurahan-jenis"
-                  class="py-1.5 px-3 w-full"
+                  class="py-1.5 px-2 w-full text-xs rounded-lg"
                 >
                   <option value="">Pilih</option>
                   <option value="Desa">Desa</option>
                   <option value="Kelurahan">Kelurahan</option>
                 </select>
               </div>
-              <div class="flex-grow group">
+              <div class="sm:col-span-5 group">
                 <label
-                  class="block font-bold text-slate-500 mb-1 uppercase tracking-tight group-focus-within:text-teal-600 transition-colors"
+                  class="block font-bold text-slate-500 mb-0.5 uppercase tracking-tight text-[10px] group-focus-within:text-teal-600 transition-colors"
                   >Nama Desa</label
                 >
                 <input
                   type="text"
                   id="edit-desa-kelurahan-nama"
-                  class="py-1.5 px-3 w-full"
+                  class="py-1.5 px-2.5 w-full text-xs rounded-lg"
                   placeholder="Nama Desa atau Kelurahan"
                 />
               </div>
-              <div class="flex-grow group">
+              <div class="sm:col-span-4 group">
                 <label
-                  class="block font-bold text-slate-500 mb-1 uppercase tracking-tight group-focus-within:text-teal-600 transition-colors"
+                  class="block font-bold text-slate-500 mb-0.5 uppercase tracking-tight text-[10px] group-focus-within:text-teal-600 transition-colors"
                   >Kecamatan</label
                 >
                 <input
                   type="text"
                   id="edit-kecamatan"
-                  class="py-1.5 px-3 w-full"
+                  class="py-1.5 px-2.5 w-full text-xs rounded-lg"
                   placeholder="Nama Kecamatan"
                 />
               </div>
             </div>
 
-            <div class="flex flex-col sm:flex-row gap-3">
-              <div class="w-full sm:w-28 group">
+            <!-- Row 4: Bentuk Daerah, Nama Daerah, Provinsi -->
+            <div class="grid grid-cols-1 sm:grid-cols-12 gap-2">
+              <div class="sm:col-span-3 group">
                 <label
-                  class="block font-bold text-slate-500 mb-1 uppercase tracking-tight group-focus-within:text-teal-600 transition-colors"
+                  class="block font-bold text-slate-500 mb-0.5 uppercase tracking-tight text-[10px] group-focus-within:text-teal-600 transition-colors"
                   >Bentuk Daerah</label
                 >
                 <select
                   id="edit-kabupaten-kota-jenis"
-                  class="py-1.5 px-3 w-full"
+                  class="py-1.5 px-2 w-full text-xs rounded-lg"
                 >
                   <option value="">Pilih</option>
                   <option value="Kabupaten">Kabupaten</option>
                   <option value="Kota">Kota</option>
                 </select>
               </div>
-              <div class="flex-grow group">
+              <div class="sm:col-span-5 group">
                 <label
-                  class="block font-bold text-slate-500 mb-1 uppercase tracking-tight group-focus-within:text-teal-600 transition-colors"
+                  class="block font-bold text-slate-500 mb-0.5 uppercase tracking-tight text-[10px] group-focus-within:text-teal-600 transition-colors"
                   >Nama Daerah</label
                 >
                 <input
                   type="text"
                   id="edit-kabupaten-kota-nama"
-                  class="py-1.5 px-3 w-full"
+                  class="py-1.5 px-2.5 w-full text-xs rounded-lg"
                   placeholder="Nama Kabupaten atau Kota"
                 />
               </div>
-              <div class="flex-grow group">
+              <div class="sm:col-span-4 group">
                 <label
-                  class="block font-bold text-slate-500 mb-1 uppercase tracking-tight group-focus-within:text-teal-600 transition-colors"
+                  class="block font-bold text-slate-500 mb-0.5 uppercase tracking-tight text-[10px] group-focus-within:text-teal-600 transition-colors"
                   >Provinsi</label
                 >
                 <input
                   type="text"
                   id="edit-provinsi"
-                  class="py-1.5 px-3 w-full"
+                  class="py-1.5 px-2.5 w-full text-xs rounded-lg"
                   placeholder="Nama Provinsi"
                 />
               </div>
             </div>
-            
-            <div class="flex items-center gap-2 mt-4 pt-4 border-t border-slate-100">
+
+            <!-- Opsi SEKOLAH GRATIS -->
+            <div class="flex items-center gap-2 pt-0.5">
               <input 
                 type="checkbox" 
                 id="edit-sekolah-gratis" 
-                class="w-4 h-4 text-teal-600 border-slate-300 rounded focus:ring-teal-500" 
+                class="w-4 h-4 text-teal-600 border-slate-300 rounded focus:ring-teal-500 cursor-pointer" 
               />
-              <label for="edit-sekolah-gratis" class="font-bold text-slate-500 uppercase tracking-tight text-[11px] cursor-pointer">
-                Sekolah Gratis
+              <label for="edit-sekolah-gratis" class="block font-bold text-slate-500 uppercase tracking-tight text-[10px] cursor-pointer select-none">
+                SEKOLAH GRATIS
               </label>
             </div>
           </div>
-          <div id="pesanan-fields" class="space-y-3">
+          
+          <!-- Pesanan Fields (Pilih Kelas) -->
+          <div id="pesanan-fields" class="space-y-1.5 pt-1.5 border-t border-slate-100">
             <div id="jenis-pesanan-container" class="hidden">
               <input
                 type="radio"
@@ -2544,19 +2519,19 @@
                 class="sr-only"
               />
             </div>
-            <div class="bg-slate-50/80 border border-slate-200/80 rounded-2xl p-3.5 sm:p-4 shadow-2xs">
-              <div class="flex items-center justify-between mb-2.5">
-                <label class="block font-bold text-slate-600 uppercase tracking-tight text-[11px]"
-                  >Pilih Kelas</label
-                >
-                <span id="kelas-selected-count" class="text-[10px] font-bold text-teal-700 bg-teal-50 px-2.5 py-0.5 rounded-full border border-teal-200/60 shadow-2xs">
+            <div class="space-y-1.5">
+              <div class="flex items-center justify-between">
+                <label class="block font-bold text-slate-500 uppercase tracking-tight text-[10px]">
+                  PILIH KELAS
+                </label>
+                <span id="kelas-selected-count" class="text-[9.5px] font-bold text-teal-700 bg-teal-50 px-2 py-0.5 rounded-full border border-teal-200/60 shadow-2xs">
                   0 Kelas Dipilih
                 </span>
               </div>
               <div class="grid grid-cols-6 gap-1.5 sm:gap-2" id="edit-kelas-container">
                 <button
                   type="button"
-                  class="kelas-btn h-11 sm:h-12 rounded-xl font-bold text-slate-600 bg-white border border-slate-200 transition-all hover:border-teal-500 hover:bg-teal-50/30 text-sm cursor-pointer shadow-2xs flex items-center justify-center"
+                  class="kelas-btn h-8.5 rounded-lg font-bold text-slate-600 bg-white border border-slate-200 transition-all hover:border-teal-500 hover:bg-teal-50/30 text-xs cursor-pointer shadow-2xs flex items-center justify-center"
                   data-val="1"
                   data-tooltip="Pilih Kelas 1"
                 >
@@ -2564,7 +2539,7 @@
                 </button>
                 <button
                   type="button"
-                  class="kelas-btn h-11 sm:h-12 rounded-xl font-bold text-slate-600 bg-white border border-slate-200 transition-all hover:border-teal-500 hover:bg-teal-50/30 text-sm cursor-pointer shadow-2xs flex items-center justify-center"
+                  class="kelas-btn h-8.5 rounded-lg font-bold text-slate-600 bg-white border border-slate-200 transition-all hover:border-teal-500 hover:bg-teal-50/30 text-xs cursor-pointer shadow-2xs flex items-center justify-center"
                   data-val="2"
                   data-tooltip="Pilih Kelas 2"
                 >
@@ -2572,7 +2547,7 @@
                 </button>
                 <button
                   type="button"
-                  class="kelas-btn h-11 sm:h-12 rounded-xl font-bold text-slate-600 bg-white border border-slate-200 transition-all hover:border-teal-500 hover:bg-teal-50/30 text-sm cursor-pointer shadow-2xs flex items-center justify-center"
+                  class="kelas-btn h-8.5 rounded-lg font-bold text-slate-600 bg-white border border-slate-200 transition-all hover:border-teal-500 hover:bg-teal-50/30 text-xs cursor-pointer shadow-2xs flex items-center justify-center"
                   data-val="3"
                   data-tooltip="Pilih Kelas 3"
                 >
@@ -2580,7 +2555,7 @@
                 </button>
                 <button
                   type="button"
-                  class="kelas-btn h-11 sm:h-12 rounded-xl font-bold text-slate-600 bg-white border border-slate-200 transition-all hover:border-teal-500 hover:bg-teal-50/30 text-sm cursor-pointer shadow-2xs flex items-center justify-center"
+                  class="kelas-btn h-8.5 rounded-lg font-bold text-slate-600 bg-white border border-slate-200 transition-all hover:border-teal-500 hover:bg-teal-50/30 text-xs cursor-pointer shadow-2xs flex items-center justify-center"
                   data-val="4"
                   data-tooltip="Pilih Kelas 4"
                 >
@@ -2588,7 +2563,7 @@
                 </button>
                 <button
                   type="button"
-                  class="kelas-btn h-11 sm:h-12 rounded-xl font-bold text-slate-600 bg-white border border-slate-200 transition-all hover:border-teal-500 hover:bg-teal-50/30 text-sm cursor-pointer shadow-2xs flex items-center justify-center"
+                  class="kelas-btn h-8.5 rounded-lg font-bold text-slate-600 bg-white border border-slate-200 transition-all hover:border-teal-500 hover:bg-teal-50/30 text-xs cursor-pointer shadow-2xs flex items-center justify-center"
                   data-val="5"
                   data-tooltip="Pilih Kelas 5"
                 >
@@ -2596,7 +2571,7 @@
                 </button>
                 <button
                   type="button"
-                  class="kelas-btn h-11 sm:h-12 rounded-xl font-bold text-slate-600 bg-white border border-slate-200 transition-all hover:border-teal-500 hover:bg-teal-50/30 text-sm cursor-pointer shadow-2xs flex items-center justify-center"
+                  class="kelas-btn h-8.5 rounded-lg font-bold text-slate-600 bg-white border border-slate-200 transition-all hover:border-teal-500 hover:bg-teal-50/30 text-xs cursor-pointer shadow-2xs flex items-center justify-center"
                   data-val="6"
                   data-tooltip="Pilih Kelas 6"
                 >
@@ -2607,44 +2582,38 @@
           </div>
         </div>
 
+        <!-- Footer Buttons (Adaptive: Center on Mobile, Right on Laptop, Guaranteed Single Row) -->
         <div
-          class="flex flex-row items-center justify-end gap-2 mt-4 pt-3 border-t border-slate-100"
+          class="flex flex-row items-center justify-center sm:justify-end gap-1.5 sm:gap-2 mt-2 pt-2 border-t border-slate-100 flex-nowrap"
         >
-          <button
-            id="modal-cancel-btn"
-            type="button"
-            class="text-slate-600 bg-slate-100 hover:bg-slate-200 text-xs font-bold px-4 py-2 rounded-xl transition-all cursor-pointer active:scale-95"
-            data-tooltip="Batalkan"
-          >
-            Batal
-          </button>
-
           <button
             id="save-draft-btn"
             type="button"
-            class="hidden bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100 text-xs font-bold px-3.5 sm:px-4 py-2 rounded-xl transition-all cursor-pointer active:scale-95 shadow-2xs"
+            class="hidden h-8 sm:h-8.5 px-3 sm:px-3.5 bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100 text-xs font-bold rounded-lg transition-all cursor-pointer active:scale-95 shadow-2xs inline-flex flex-row items-center justify-center gap-1.5 shrink-0"
             data-tooltip="Simpan Draft"
           >
-            Draft
+            <svg class="w-3.5 h-3.5 shrink-0 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path></svg>
+            <span>Draft</span>
           </button>
 
           <button
             id="save-add-more-btn"
             type="button"
-            class="hidden bg-teal-50 text-teal-700 border border-teal-200 hover:bg-teal-100 text-xs font-bold px-3.5 sm:px-4 py-2 rounded-xl transition-all whitespace-nowrap cursor-pointer active:scale-95 shadow-2xs"
+            class="hidden h-8 sm:h-8.5 px-3 sm:px-3.5 bg-teal-50 text-teal-700 border border-teal-200 hover:bg-teal-100 text-xs font-bold rounded-lg transition-all whitespace-nowrap cursor-pointer active:scale-95 shadow-2xs inline-flex flex-row items-center justify-center gap-1.5 shrink-0"
             data-tooltip="Simpan & Buka Form Baru"
           >
-            Simpan & Tambah
+            <svg class="w-3.5 h-3.5 shrink-0 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path></svg>
+            <span>Tambah</span>
           </button>
 
           <button
             id="save-main-btn"
             type="button"
-            class="bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold px-5 py-2 rounded-xl shadow-sm transition-all cursor-pointer active:scale-95 flex items-center gap-1.5"
+            class="h-8 sm:h-8.5 px-4 sm:px-4.5 bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold rounded-lg shadow-xs transition-all cursor-pointer active:scale-95 inline-flex flex-row items-center justify-center gap-1.5 shrink-0"
             data-tooltip="Simpan Data"
           >
-            <svg class="w-3.5 h-3.5 shrink-0 hidden sm:inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-            <span>Simpan</span>
+            <svg class="w-3.5 h-3.5 shrink-0 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
+            <span id="save-main-btn-text">Simpan</span>
           </button>
         </div>
       </div>
@@ -4804,9 +4773,9 @@
             document.querySelectorAll(".kelas-btn").forEach((b) => {
               const bVal = parseInt(b.getAttribute("data-val"));
               if (window.currentSelectedKelas.includes(bVal)) {
-                b.className = "kelas-btn h-11 sm:h-12 rounded-xl font-bold bg-teal-600 text-white border border-teal-600 shadow-sm scale-105 transition-all text-sm cursor-pointer flex items-center justify-center";
+                b.className = "kelas-btn h-8.5 rounded-lg font-bold bg-teal-600 text-white border border-teal-600 shadow-2xs scale-102 transition-all text-xs cursor-pointer flex items-center justify-center";
               } else {
-                b.className = "kelas-btn h-11 sm:h-12 rounded-xl font-bold bg-white text-slate-600 hover:bg-teal-50/40 hover:text-teal-700 hover:border-teal-300 border border-slate-200 shadow-2xs transition-all text-sm cursor-pointer flex items-center justify-center";
+                b.className = "kelas-btn h-8.5 rounded-lg font-bold bg-white text-slate-600 hover:bg-teal-50/40 hover:text-teal-700 hover:border-teal-300 border border-slate-200 shadow-2xs transition-all text-xs cursor-pointer flex items-center justify-center";
               }
             });
           };
@@ -5282,9 +5251,9 @@
             document.querySelectorAll(".kelas-btn").forEach((btn) => {
               const val = parseInt(btn.getAttribute("data-val"));
               if (window.currentSelectedKelas && window.currentSelectedKelas.includes(val)) {
-                btn.className = "kelas-btn h-11 sm:h-12 rounded-xl font-bold bg-teal-600 text-white border border-teal-600 shadow-sm scale-105 transition-all text-sm cursor-pointer flex items-center justify-center";
+                btn.className = "kelas-btn h-8.5 rounded-lg font-bold bg-teal-600 text-white border border-teal-600 shadow-2xs scale-102 transition-all text-xs cursor-pointer flex items-center justify-center";
               } else {
-                btn.className = "kelas-btn h-11 sm:h-12 rounded-xl font-bold bg-white text-slate-600 hover:bg-teal-50/40 hover:text-teal-700 hover:border-teal-300 border border-slate-200 shadow-2xs transition-all text-sm cursor-pointer flex items-center justify-center";
+                btn.className = "kelas-btn h-8.5 rounded-lg font-bold bg-white text-slate-600 hover:bg-teal-50/40 hover:text-teal-700 hover:border-teal-300 border border-slate-200 shadow-2xs transition-all text-xs cursor-pointer flex items-center justify-center";
               }
             });
           };
@@ -5343,12 +5312,15 @@
             if (editActions) editActions.classList.add("hidden");
             if (addMoreBtn) addMoreBtn.classList.add("hidden");
 
+            const mainBtnText = document.getElementById("save-main-btn-text");
             if (item.isDraft) {
               if (draftBtn) draftBtn.classList.remove("hidden");
-              if (mainBtn) mainBtn.textContent = "Kirim Data";
+              if (mainBtnText) mainBtnText.textContent = "Kirim";
+              else if (mainBtn) mainBtn.textContent = "Kirim Data";
             } else {
               if (draftBtn) draftBtn.classList.add("hidden");
-              if (mainBtn) mainBtn.textContent = "Simpan";
+              if (mainBtnText) mainBtnText.textContent = "Simpan";
+              else if (mainBtn) mainBtn.textContent = "Simpan";
             }
 
             fieldIds.forEach((fid) => {
@@ -5379,9 +5351,11 @@
                 "w-9 h-9 bg-[#00897b] text-white rounded-xl flex items-center justify-center shadow-md transition-colors shrink-0";
             }
             if (editActions) editActions.classList.add("hidden");
+            const mainBtnText = document.getElementById("save-main-btn-text");
             if (addMoreBtn) addMoreBtn.classList.remove("hidden");
             if (draftBtn) draftBtn.classList.remove("hidden");
-            if (mainBtn) mainBtn.textContent = "Simpan";
+            if (mainBtnText) mainBtnText.textContent = "Simpan";
+            else if (mainBtn) mainBtn.textContent = "Simpan";
           }
 
           // Hide elements based on mode and adjust modal width
@@ -5389,19 +5363,19 @@
           const pesananFields = document.getElementById("pesanan-fields");
 
           if (editModeType === "data") {
-            if (modalCard) modalCard.className = "modal-content max-w-xl sm:max-w-2xl shadow-2xl border border-slate-200";
+            if (modalCard) modalCard.className = "modal-content !p-3.5 sm:!p-4 max-w-lg sm:max-w-xl shadow-2xl border border-slate-200";
             if (dataFields) dataFields.style.display = "block";
             if (pesananFields) pesananFields.style.display = "none";
             if (title) title.textContent = "Edit Data Pokok";
             if (modeDesc) modeDesc.classList.add("hidden");
           } else if (editModeType === "koreksi" || editModeType === "pesanan") {
-            if (modalCard) modalCard.className = "modal-content max-w-sm sm:max-w-md shadow-2xl border border-slate-200";
+            if (modalCard) modalCard.className = "modal-content !p-3.5 sm:!p-4 max-w-sm sm:max-w-md shadow-2xl border border-slate-200";
             if (dataFields) dataFields.style.display = "none";
             if (pesananFields) pesananFields.style.display = "block";
             if (title) title.textContent = "Koreksi Pesanan";
             if (modeDesc) modeDesc.classList.add("hidden");
           } else if (editModeType === "tambah_pesanan") {
-            if (modalCard) modalCard.className = "modal-content max-w-sm sm:max-w-md shadow-2xl border border-slate-200";
+            if (modalCard) modalCard.className = "modal-content !p-3.5 sm:!p-4 max-w-sm sm:max-w-md shadow-2xl border border-slate-200";
             if (dataFields) dataFields.style.display = "none";
             if (pesananFields) pesananFields.style.display = "block";
             if (title) title.textContent = "Tambah Pesanan";
@@ -5409,7 +5383,7 @@
             if (jpLanjut) jpLanjut.checked = true;
             window.currentSelectedKelas = [];
           } else {
-            if (modalCard) modalCard.className = "modal-content max-w-xl sm:max-w-2xl shadow-2xl border border-slate-200";
+            if (modalCard) modalCard.className = "modal-content !p-3.5 sm:!p-4 max-w-lg sm:max-w-xl shadow-2xl border border-slate-200";
             if (dataFields) dataFields.style.display = "block";
             if (pesananFields) pesananFields.style.display = "block";
             if (modeDesc) modeDesc.classList.add("hidden");
@@ -5436,8 +5410,10 @@
           }
         };
 
-        document.getElementById("close-modal-btn").onclick = () => closeModal(false);
-        document.getElementById("modal-cancel-btn").onclick = () => closeModal(false);
+        const closeBtn = document.getElementById("close-modal-btn");
+        if (closeBtn) closeBtn.onclick = () => closeModal(false);
+        const cancelBtn = document.getElementById("modal-cancel-btn");
+        if (cancelBtn) cancelBtn.onclick = () => closeModal(false);
         document.addEventListener("keydown", (e) => {
           if (e.key === "Escape") {
             const activeModals = document.querySelectorAll(
