@@ -2500,8 +2500,8 @@
             </div>
           </div>
           
-          <!-- Pesanan Fields (Pilih Kelas) -->
-          <div id="pesanan-fields" class="space-y-1.5 pt-1.5 border-t border-slate-100">
+          <!-- Pesanan Fields (Pilih Kelas - Baris Elegan & Rata Sempurna) -->
+          <div id="pesanan-fields" class="pt-1.5 border-t border-slate-100">
             <div id="jenis-pesanan-container" class="hidden">
               <input
                 type="radio"
@@ -2519,19 +2519,18 @@
                 class="sr-only"
               />
             </div>
-            <div class="space-y-1.5">
-              <div class="flex items-center justify-between">
-                <label class="block font-bold text-slate-500 uppercase tracking-tight text-[10px]">
+            <div class="flex items-center justify-between gap-2 p-2 bg-slate-50/70 border border-slate-200/70 rounded-xl flex-wrap sm:flex-nowrap">
+              <div class="flex items-center gap-1.5 shrink-0">
+                <span class="block font-bold text-slate-600 uppercase tracking-tight text-[10px]">
                   PILIH KELAS
-                </label>
-                <span id="kelas-selected-count" class="text-[9.5px] font-bold text-teal-700 bg-teal-50 px-2 py-0.5 rounded-full border border-teal-200/60 shadow-2xs">
-                  0 Kelas Dipilih
                 </span>
               </div>
-              <div class="grid grid-cols-6 gap-1.5 sm:gap-2" id="edit-kelas-container">
+
+              <!-- 6 Comfortable Touch Buttons -->
+              <div class="flex items-center justify-center gap-1.5 sm:gap-2" id="edit-kelas-container">
                 <button
                   type="button"
-                  class="kelas-btn h-8.5 rounded-lg font-bold text-slate-600 bg-white border border-slate-200 transition-all hover:border-teal-500 hover:bg-teal-50/30 text-xs cursor-pointer shadow-2xs flex items-center justify-center"
+                  class="kelas-btn w-10 sm:w-11 h-9 sm:h-9.5 rounded-xl font-bold text-slate-700 bg-white border border-slate-200 hover:border-teal-400 hover:bg-teal-50/50 text-sm cursor-pointer shadow-2xs flex items-center justify-center transition-all shrink-0"
                   data-val="1"
                   data-tooltip="Pilih Kelas 1"
                 >
@@ -2539,7 +2538,7 @@
                 </button>
                 <button
                   type="button"
-                  class="kelas-btn h-8.5 rounded-lg font-bold text-slate-600 bg-white border border-slate-200 transition-all hover:border-teal-500 hover:bg-teal-50/30 text-xs cursor-pointer shadow-2xs flex items-center justify-center"
+                  class="kelas-btn w-10 sm:w-11 h-9 sm:h-9.5 rounded-xl font-bold text-slate-700 bg-white border border-slate-200 hover:border-teal-400 hover:bg-teal-50/50 text-sm cursor-pointer shadow-2xs flex items-center justify-center transition-all shrink-0"
                   data-val="2"
                   data-tooltip="Pilih Kelas 2"
                 >
@@ -2547,7 +2546,7 @@
                 </button>
                 <button
                   type="button"
-                  class="kelas-btn h-8.5 rounded-lg font-bold text-slate-600 bg-white border border-slate-200 transition-all hover:border-teal-500 hover:bg-teal-50/30 text-xs cursor-pointer shadow-2xs flex items-center justify-center"
+                  class="kelas-btn w-10 sm:w-11 h-9 sm:h-9.5 rounded-xl font-bold text-slate-700 bg-white border border-slate-200 hover:border-teal-400 hover:bg-teal-50/50 text-sm cursor-pointer shadow-2xs flex items-center justify-center transition-all shrink-0"
                   data-val="3"
                   data-tooltip="Pilih Kelas 3"
                 >
@@ -2555,7 +2554,7 @@
                 </button>
                 <button
                   type="button"
-                  class="kelas-btn h-8.5 rounded-lg font-bold text-slate-600 bg-white border border-slate-200 transition-all hover:border-teal-500 hover:bg-teal-50/30 text-xs cursor-pointer shadow-2xs flex items-center justify-center"
+                  class="kelas-btn w-10 sm:w-11 h-9 sm:h-9.5 rounded-xl font-bold text-slate-700 bg-white border border-slate-200 hover:border-teal-400 hover:bg-teal-50/50 text-sm cursor-pointer shadow-2xs flex items-center justify-center transition-all shrink-0"
                   data-val="4"
                   data-tooltip="Pilih Kelas 4"
                 >
@@ -2563,7 +2562,7 @@
                 </button>
                 <button
                   type="button"
-                  class="kelas-btn h-8.5 rounded-lg font-bold text-slate-600 bg-white border border-slate-200 transition-all hover:border-teal-500 hover:bg-teal-50/30 text-xs cursor-pointer shadow-2xs flex items-center justify-center"
+                  class="kelas-btn w-10 sm:w-11 h-9 sm:h-9.5 rounded-xl font-bold text-slate-700 bg-white border border-slate-200 hover:border-teal-400 hover:bg-teal-50/50 text-sm cursor-pointer shadow-2xs flex items-center justify-center transition-all shrink-0"
                   data-val="5"
                   data-tooltip="Pilih Kelas 5"
                 >
@@ -2571,13 +2570,17 @@
                 </button>
                 <button
                   type="button"
-                  class="kelas-btn h-8.5 rounded-lg font-bold text-slate-600 bg-white border border-slate-200 transition-all hover:border-teal-500 hover:bg-teal-50/30 text-xs cursor-pointer shadow-2xs flex items-center justify-center"
+                  class="kelas-btn w-10 sm:w-11 h-9 sm:h-9.5 rounded-xl font-bold text-slate-700 bg-white border border-slate-200 hover:border-teal-400 hover:bg-teal-50/50 text-sm cursor-pointer shadow-2xs flex items-center justify-center transition-all shrink-0"
                   data-val="6"
                   data-tooltip="Pilih Kelas 6"
                 >
                   6
                 </button>
               </div>
+
+              <span id="kelas-selected-count" class="text-[9.5px] font-bold text-teal-700 bg-teal-50 px-2 py-0.5 rounded-full border border-teal-200/60 shadow-2xs shrink-0">
+                0 Kelas Dipilih
+              </span>
             </div>
           </div>
         </div>
@@ -4773,9 +4776,9 @@
             document.querySelectorAll(".kelas-btn").forEach((b) => {
               const bVal = parseInt(b.getAttribute("data-val"));
               if (window.currentSelectedKelas.includes(bVal)) {
-                b.className = "kelas-btn h-8.5 rounded-lg font-bold bg-teal-600 text-white border border-teal-600 shadow-2xs scale-102 transition-all text-xs cursor-pointer flex items-center justify-center";
+                b.className = "kelas-btn w-10 sm:w-11 h-9 sm:h-9.5 rounded-xl font-bold bg-teal-600 text-white border border-teal-600 shadow-xs scale-105 transition-all text-sm cursor-pointer flex items-center justify-center shrink-0";
               } else {
-                b.className = "kelas-btn h-8.5 rounded-lg font-bold bg-white text-slate-600 hover:bg-teal-50/40 hover:text-teal-700 hover:border-teal-300 border border-slate-200 shadow-2xs transition-all text-xs cursor-pointer flex items-center justify-center";
+                b.className = "kelas-btn w-10 sm:w-11 h-9 sm:h-9.5 rounded-xl font-bold bg-white text-slate-700 hover:bg-teal-50/50 hover:text-teal-700 hover:border-teal-400 border border-slate-200 shadow-2xs transition-all text-sm cursor-pointer flex items-center justify-center shrink-0";
               }
             });
           };
@@ -5251,9 +5254,9 @@
             document.querySelectorAll(".kelas-btn").forEach((btn) => {
               const val = parseInt(btn.getAttribute("data-val"));
               if (window.currentSelectedKelas && window.currentSelectedKelas.includes(val)) {
-                btn.className = "kelas-btn h-8.5 rounded-lg font-bold bg-teal-600 text-white border border-teal-600 shadow-2xs scale-102 transition-all text-xs cursor-pointer flex items-center justify-center";
+                btn.className = "kelas-btn w-10 sm:w-11 h-9 sm:h-9.5 rounded-xl font-bold bg-teal-600 text-white border border-teal-600 shadow-xs scale-105 transition-all text-sm cursor-pointer flex items-center justify-center shrink-0";
               } else {
-                btn.className = "kelas-btn h-8.5 rounded-lg font-bold bg-white text-slate-600 hover:bg-teal-50/40 hover:text-teal-700 hover:border-teal-300 border border-slate-200 shadow-2xs transition-all text-xs cursor-pointer flex items-center justify-center";
+                btn.className = "kelas-btn w-10 sm:w-11 h-9 sm:h-9.5 rounded-xl font-bold bg-white text-slate-700 hover:bg-teal-50/50 hover:text-teal-700 hover:border-teal-400 border border-slate-200 shadow-2xs transition-all text-sm cursor-pointer flex items-center justify-center shrink-0";
               }
             });
           };
