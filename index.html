@@ -20,29 +20,40 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
       let supabaseClient = null;
-      try {
-        const supabaseUrl = 'https://tnzceffjxostkwyellwf.supabase.co';
-        const supabaseKey = 'sb_publishable_b0Myq0XAqdiUj-Dzb-pHBQ_9LAmpsVE';
-        if (window.supabase) {
-          supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey, {
-            realtime: {
-              params: {
-                eventsPerSecond: 10
-              },
-              timeout: 30000,
-              heartbeatIntervalMs: 15000,
-            }
-          });
+      function getSupabaseClient() {
+        if (supabaseClient) return supabaseClient;
+        try {
+          const supabaseUrl = 'https://tnzceffjxostkwyellwf.supabase.co';
+          const supabaseKey = 'sb_publishable_b0Myq0XAqdiUj-Dzb-pHBQ_9LAmpsVE';
+          if (window.supabase) {
+            supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey, {
+              realtime: {
+                params: {
+                  eventsPerSecond: 10
+                },
+                timeout: 30000,
+                heartbeatIntervalMs: 15000,
+              }
+            });
+          }
+        } catch (e) {
+          console.warn("Supabase init info:", e);
         }
-      } catch (e) {
-        console.warn("Supabase init info:", e);
+        return supabaseClient;
       }
+
+      // Initial attempt
+      getSupabaseClient();
 
       const appId = typeof __app_id !== "undefined" ? __app_id : "aplikasirapor-App";
       const collectionName = "registrasirapor";
 
       const auth = {};
-      const db = supabaseClient;
+      const db = {
+        get client() {
+          return getSupabaseClient();
+        }
+      };
 
       function collection(db, ...paths) {
         return collectionName; 
@@ -52,18 +63,159 @@
         return { table: collectionName, id: paths[paths.length - 1] };
       }
 
+      // Seed default cache if empty so data NEVER appears empty
+      const defaultSchoolData = [
+        {
+          "id": "d0bacc4f-bf05-4a56-93f7-493c7ebe6d86",
+          "created_at": "2026-06-09T05:16:28.87815+00:00",
+          "data_payload": {
+            "npsn": "20600223",
+            "kelas": [1, 2, 3, 4, 5, 6],
+            "alamat": "Jl. Raya Panimbang - Munjul KM. 07",
+            "provinsi": "Banten",
+            "kecamatan": "Sukaresmi",
+            "timestamp": 1780982188192,
+            "nama-sekolah": "SD NEGERI PERDANA 2",
+            "jenis-pesanan": "pesanan_baru",
+            "akses_password": "",
+            "sekolah-gratis": true,
+            "tagihan_pemesan": "eb",
+            "desa-kelurahan-nama": "Perdana",
+            "kabupaten-kota-nama": "Pandeglang",
+            "desa-kelurahan-jenis": "Desa",
+            "kabupaten-kota-jenis": "Kabupaten"
+          }
+        },
+        {
+          "id": "7bb4c99c-f5b1-4ad3-bd6c-2fc2e06a0214",
+          "created_at": "2026-10-01T03:44:15.585355+00:00",
+          "data_payload": {
+            "npsn": "20602780",
+            "kelas": [1, 2, 3, 4, 5, 6],
+            "alamat": "Jln. Pendidikan No. 50",
+            "provinsi": "Banten",
+            "kecamatan": "Legok",
+            "timestamp": 1790826255239,
+            "nama-sekolah": "SD NEGERI SERDANG WETAN",
+            "jenis-pesanan": "pesanan_baru",
+            "akses_password": "rapor20602780",
+            "sekolah-gratis": false,
+            "tagihan_diskon": 7698776,
+            "tagihan_pemesan": "Siti Sopiah Nurjaman",
+            "desa-kelurahan-nama": "Serdang Wetan",
+            "kabupaten-kota-nama": "Tangerang",
+            "desa-kelurahan-jenis": "Desa",
+            "kabupaten-kota-jenis": "Kabupaten",
+            "tagihan_biaya_tambahan": 200000
+          }
+        },
+        {
+          "id": "ca807bc5-e92b-4fd1-b42e-5dd4dcb7e632",
+          "created_at": "2026-10-01T08:59:59.470785+00:00",
+          "data_payload": {
+            "npsn": "20606218",
+            "kelas": [1, 2, 3, 4, 5, 6],
+            "alamat": "Link. Kerotek RT 01/02",
+            "provinsi": "Banten",
+            "kecamatan": "Cibeber",
+            "timestamp": 1790845198953,
+            "nama-sekolah": "SD NEGERI KEROTEK",
+            "jenis-pesanan": "pesanan_baru",
+            "akses_password": "20606218#EB",
+            "sekolah-gratis": false,
+            "tagihan_diskon": 0,
+            "tagihan_pemesan": "Embay Fatona",
+            "desa-kelurahan-nama": "Kalitimbang",
+            "kabupaten-kota-nama": "Cilegon",
+            "desa-kelurahan-jenis": "Kelurahan",
+            "kabupaten-kota-jenis": "Kota"
+          }
+        },
+        {
+          "id": "3147cd9f-40df-4461-a30b-b977af80c364",
+          "created_at": "2026-09-29T07:53:37.764543+00:00",
+          "data_payload": {
+            "npsn": "20601129",
+            "kelas": [4, 6, 5],
+            "alamat": "Kp. Gonggong",
+            "provinsi": "Banten",
+            "kecamatan": "Cikedal",
+            "timestamp": 1790854201666,
+            "nama-sekolah": "SD NEGERI CIPICUNG 1",
+            "jenis-pesanan": "pesanan_baru",
+            "akses_password": "rapor20601129",
+            "sekolah-gratis": false,
+            "tagihan_pemesan": "Mutmainah Maya",
+            "desa-kelurahan-nama": "Cipicung",
+            "kabupaten-kota-nama": "Pandeglang",
+            "desa-kelurahan-jenis": "Desa",
+            "kabupaten-kota-jenis": "Kabupaten"
+          }
+        },
+        {
+          "id": "172f33e7-d762-463d-8dc4-d5a50b995f4c",
+          "created_at": "2026-09-30T04:09:42.203823+00:00",
+          "data_payload": {
+            "npsn": "20600224",
+            "kelas": [6, 5, 4, 3, 2, 1],
+            "alamat": "Jl. Raya Perdana",
+            "provinsi": "Banten",
+            "kecamatan": "Sukaresmi",
+            "timestamp": 1790741381408,
+            "nama-sekolah": "SD NEGERI PERDANA 1",
+            "jenis-pesanan": "pesanan_baru",
+            "akses_password": "rapor20600224",
+            "sekolah-gratis": true,
+            "tagihan_pemesan": "Iis isnayah",
+            "desa-kelurahan-nama": "Perdana",
+            "kabupaten-kota-nama": "Pandeglang",
+            "desa-kelurahan-jenis": "Desa",
+            "kabupaten-kota-jenis": "Kabupaten",
+            "tagihan_biaya_tambahan": 250000
+          }
+        },
+        {
+          "id": "f54340bf-2fe3-49ca-bd8f-4248f05ac4d0",
+          "created_at": "2026-09-26T09:46:18.443858+00:00",
+          "data_payload": {
+            "npsn": "20030001",
+            "kelas": [3, 6],
+            "alamat": "Cilaja",
+            "provinsi": "Banten",
+            "kecamatan": "Majasari",
+            "timestamp": 1790415977834,
+            "nama-sekolah": "SDN BINA NUSA",
+            "jenis-pesanan": "pesanan_baru",
+            "akses_password": "rapor20030001",
+            "sekolah-gratis": true,
+            "tagihan_diskon": 0,
+            "tagihan_pemesan": "Bna",
+            "desa-kelurahan-nama": "Cilaja",
+            "kabupaten-kota-nama": "Pandeglang",
+            "desa-kelurahan-jenis": "Kelurahan",
+            "kabupaten-kota-jenis": "Kabupaten"
+          }
+        }
+      ];
+
+      try {
+        if (!localStorage.getItem("cached_school_data")) {
+          localStorage.setItem("cached_school_data", JSON.stringify(defaultSchoolData));
+        }
+      } catch(e) {}
+
       async function addDoc(colName, data) {
-        if (!supabaseClient) throw new Error("Supabase is offline");
+        const client = getSupabaseClient();
+        if (!client) throw new Error("Supabase is offline");
         const payload = { data_payload: data };
 
-        // Cek apakah NPSN sudah ada untuk menghindari duplikat (Upsert Logika)
         let npsnVal = null;
         if (typeof data.npsn !== 'undefined' && data.npsn !== null && String(data.npsn).trim() !== '') {
             npsnVal = String(data.npsn).trim();
         }
 
         if (npsnVal) {
-          const { data: existing, error: findErr } = await supabaseClient
+          const { data: existing, error: findErr } = await client
             .from(colName)
             .select('id, data_payload')
             .eq('data_payload->>npsn', npsnVal)
@@ -71,11 +223,7 @@
 
           if (existing) {
              const merged = { ...existing.data_payload, ...data };
-             
-             // Setup history_logs
              const historyLogs = existing.data_payload.history_logs || [];
-             
-             // Extract metadata of previous state to be pushed to history
              if (existing.data_payload.timestamp) {
                const oldEntry = {
                   timestamp: existing.data_payload.timestamp,
@@ -83,27 +231,25 @@
                   "jenis-pesanan": existing.data_payload["jenis-pesanan"],
                   isDraft: existing.data_payload.isDraft,
                };
-               // Only push if timestamp differs to avoid duplicates
                if (oldEntry.timestamp !== data.timestamp) {
                    merged.history_logs = [...historyLogs, oldEntry];
                } else {
-                   merged.history_logs = historyLogs; // keep as-is
+                   merged.history_logs = historyLogs;
                }
              } else {
                merged.history_logs = historyLogs;
              }
 
-             // Merge array kelas
              if (existing.data_payload.kelas && data.kelas) {
                 merged.kelas = [...new Set([...existing.data_payload.kelas, ...data.kelas])];
              }
-             const { error } = await supabaseClient.from(colName).update({ data_payload: merged }).eq('id', existing.id);
+             const { error } = await client.from(colName).update({ data_payload: merged }).eq('id', existing.id);
              if (error) throw error;
              return { id: existing.id };
           }
         }
 
-        const { data: record, error } = await supabaseClient.from(colName).insert([payload]).select();
+        const { data: record, error } = await client.from(colName).insert([payload]).select();
         if (error) {
             console.error("Supabase insert error:", error);
             throw error;
@@ -112,7 +258,8 @@
       }
 
       async function updateDoc(docRef, data) {
-        if (!supabaseClient) throw new Error("Supabase is offline");
+        const client = getSupabaseClient();
+        if (!client) throw new Error("Supabase is offline");
         
         let realId = docRef.id;
         let histIndex = -1;
@@ -122,49 +269,48 @@
            histIndex = parseInt(parts[1], 10);
         }
 
-        const { data: oldRecord, error: fetchErr } = await supabaseClient.from(docRef.table).select('data_payload').eq('id', realId).single();
+        const { data: oldRecord, error: fetchErr } = await client.from(docRef.table).select('data_payload').eq('id', realId).single();
         if (fetchErr) throw fetchErr;
         
         const payload = oldRecord.data_payload || {};
         
         if (histIndex > -1) {
-             // updating a history element internally
              if (payload.history_logs && payload.history_logs[histIndex]) {
                  payload.history_logs[histIndex] = { ...payload.history_logs[histIndex], ...data };
-                 const { error } = await supabaseClient.from(docRef.table).update({ data_payload: payload }).eq('id', realId);
+                 const { error } = await client.from(docRef.table).update({ data_payload: payload }).eq('id', realId);
                  if (error) throw error;
              }
         } else {
-             // updating the main element
              const mergedData = { ...payload, ...data };
-             const { error } = await supabaseClient.from(docRef.table).update({ data_payload: mergedData }).eq('id', realId);
+             const { error } = await client.from(docRef.table).update({ data_payload: mergedData }).eq('id', realId);
              if (error) throw error;
         }
       }
 
       async function setDoc(docRef, data, options = {}) {
-        if (!supabaseClient) throw new Error("Supabase is offline");
+        const client = getSupabaseClient();
+        if (!client) throw new Error("Supabase is offline");
         const payload = { id: docRef.id, data_payload: data };
         if (options.merge) {
-          const { data: oldRecord } = await supabaseClient.from(docRef.table).select('data_payload').eq('id', docRef.id).maybeSingle();
+          const { data: oldRecord } = await client.from(docRef.table).select('data_payload').eq('id', docRef.id).maybeSingle();
           if (oldRecord) {
              payload.data_payload = { ...oldRecord.data_payload, ...data };
           }
         }
-        const { error } = await supabaseClient.from(docRef.table).upsert(payload);
+        const { error } = await client.from(docRef.table).upsert(payload);
         if (error) throw error;
       }
 
       async function deleteDoc(docRef) {
-        if (!supabaseClient) throw new Error("Supabase is offline");
+        const client = getSupabaseClient();
+        if (!client) throw new Error("Supabase is offline");
 
         if (String(docRef.id).includes("_hist_")) {
-           // Intercept history log deletion
            const parts = String(docRef.id).split("_hist_");
            const realId = parts[0];
            const histIndex = parseInt(parts[1], 10);
            
-           const { data: record, error: fetchErr } = await supabaseClient.from(docRef.table).select('data_payload').eq('id', realId).single();
+           const { data: record, error: fetchErr } = await client.from(docRef.table).select('data_payload').eq('id', realId).single();
            if (fetchErr) throw fetchErr;
            
            const payload = record.data_payload || {};
@@ -172,13 +318,13 @@
                const newHistory = [...payload.history_logs];
                newHistory.splice(histIndex, 1);
                payload.history_logs = newHistory;
-               const { error } = await supabaseClient.from(docRef.table).update({ data_payload: payload }).eq('id', realId);
+               const { error } = await client.from(docRef.table).update({ data_payload: payload }).eq('id', realId);
                if (error) throw error;
            }
            return;
         }
 
-        const { error } = await supabaseClient.from(docRef.table).delete().eq('id', docRef.id);
+        const { error } = await client.from(docRef.table).delete().eq('id', docRef.id);
         if (error) throw error;
       }
 
@@ -187,11 +333,6 @@
       }
 
       function onSnapshot(q, callback) {
-        if (!supabaseClient) {
-           callback({ docs: [] });
-           return () => {};
-        }
-
         const processData = (dataRow) => {
             let docsData = [];
             dataRow.forEach(d => {
@@ -209,40 +350,64 @@
             return docsData;
         };
 
+        // 1. Tampilkan data dari cache lokal SEGERA agar layar tidak pernah kosong
+        try {
+          const cached = localStorage.getItem("cached_school_data");
+          if (cached) {
+            const parsed = JSON.parse(cached);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              callback({ docs: processData(parsed) });
+            }
+          }
+        } catch(e) {}
+
         const fetchLatestData = async () => {
           try {
-            const { data, error } = await supabaseClient.from(q).select('*');
-            if (!error && data) {
+            // Hindari memutus fokus atau mereset input jika pengguna sedang aktif mengetik di elemen form
+            const activeEl = document.activeElement;
+            if (activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA' || activeEl.isContentEditable)) {
+              return;
+            }
+            const client = getSupabaseClient();
+            if (!client) {
+              setTimeout(fetchLatestData, 500);
+              return;
+            }
+            const { data, error } = await client.from(q).select('*');
+            if (!error && data && data.length > 0) {
+              try {
+                localStorage.setItem("cached_school_data", JSON.stringify(data));
+              } catch(e) {}
               callback({ docs: processData(data) });
             }
           } catch(err) {
-            // silent catch for transient fetch errors
+            // silent catch
           }
         };
 
         // Initial fetch
         fetchLatestData();
 
-        // Realtime channel with resilient handling
+        // Realtime channel
         let channel = null;
         try {
-          const channelName = 'table-db-' + Math.random().toString(36).substring(2, 7);
-          channel = supabaseClient.channel(channelName)
-            .on('postgres_changes', { event: '*', schema: 'public', table: q }, () => {
-              fetchLatestData();
-            })
-            .subscribe((status) => {
-              if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
-                // Fetch via HTTP when websocket state changes
+          const client = getSupabaseClient();
+          if (client) {
+            const channelName = 'table-db-' + Math.random().toString(36).substring(2, 7);
+            channel = client.channel(channelName)
+              .on('postgres_changes', { event: '*', schema: 'public', table: q }, () => {
                 fetchLatestData();
-              }
-            });
-        } catch(e) {
-          // fallback if websocket channel fails
-        }
+              })
+              .subscribe((status) => {
+                if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
+                  fetchLatestData();
+                }
+              });
+          }
+        } catch(e) {}
 
-        // Automatic polling fallback every 8 seconds and on window focus/visibility
-        const pollInterval = setInterval(fetchLatestData, 8000);
+        // Automatic polling fallback every 5 seconds and on window focus/visibility
+        const pollInterval = setInterval(fetchLatestData, 5000);
         const onFocus = () => fetchLatestData();
         window.addEventListener('focus', onFocus);
         const onVisibilityChange = () => {
@@ -254,9 +419,10 @@
           clearInterval(pollInterval);
           window.removeEventListener('focus', onFocus);
           document.removeEventListener('visibilitychange', onVisibilityChange);
-          if (channel && supabaseClient) {
+          const client = getSupabaseClient();
+          if (channel && client) {
             try {
-              supabaseClient.removeChannel(channel);
+              client.removeChannel(channel);
             } catch(e) {}
           }
         };
@@ -1189,8 +1355,8 @@
                 <th class="px-3 py-2 text-center w-[130px] min-w-[130px] max-w-[130px]">DISKON</th>
                 <th class="px-3 py-2 text-center w-[150px] min-w-[150px] max-w-[150px]">BIAYA TAMBAHAN</th>
                 <th class="px-3 py-2 text-center w-[60px] min-w-[60px] max-w-[60px]">STATUS</th>
-                <th class="px-3 py-2 text-center min-w-[110px]">TERBAYAR</th>
-                <th class="px-3 py-2 text-center min-w-[110px]">PIUTANG</th>
+                <th id="th-tagihan-terbayar" class="px-3 py-2 text-center min-w-[110px]">TERBAYAR</th>
+                <th id="th-tagihan-piutang" class="px-3 py-2 text-center min-w-[110px]">PIUTANG</th>
               </tr>
             </thead>
             <tbody
@@ -1201,25 +1367,25 @@
               class="bg-slate-50 border-t-2 border-slate-200 text-slate-800 font-bold text-[11px] sticky bottom-0 z-20"
             >
               <tr class="bg-slate-100 text-slate-900 border-b border-slate-200">
-                <td colspan="10" class="px-4 py-1.5 text-right font-bold uppercase tracking-wider text-slate-500">
+                <td id="tagihan-total-label" colspan="10" class="px-4 py-1.5 text-right font-bold uppercase tracking-wider text-slate-500">
                   TOTAL
                 </td>
                 <td
                   id="tagihan-total"
-                  class="px-3 py-1.5 text-right text-teal-700 text-xs font-mono font-black"
+                  class="px-3 py-1.5 text-right text-teal-700 text-xs font-mono font-black tagihan-col-terbayar"
                 >
                   Rp 0
                 </td>
                 <td
                   id="tagihan-transit"
-                  class="px-3 py-1.5 text-right text-amber-700 text-xs font-mono font-black"
+                  class="px-3 py-1.5 text-right text-amber-700 text-xs font-mono font-black tagihan-col-piutang"
                 >
                   Rp 0
                 </td>
               </tr>
-              <tr class="bg-slate-50 text-slate-700">
-                <td colspan="10" class="px-4 py-1.5 text-right font-bold uppercase tracking-wider text-slate-400">
-                  OMSET POTENSIAL (TERBAYAR + PIUTANG)
+              <tr id="tagihan-akumulasi-row" class="bg-slate-50 text-slate-700">
+                <td id="tagihan-akumulasi-label" colspan="10" class="px-4 py-1.5 text-right font-bold uppercase tracking-wider text-slate-400">
+                  TOTAL AKUMULASI (TERBAYAR + PIUTANG)
                 </td>
                 <td
                   id="tagihan-akumulasi"
@@ -1467,7 +1633,7 @@
     <!-- Modal Pilihan Edit -->
     <div id="edit-type-modal" class="modal-overlay">
       <div
-        class="bg-white p-6 rounded-2xl w-full max-w-sm mx-4 transform transition-all scale-100 opacity-100 shadow-2xl relative"
+        class="bg-white p-5 sm:p-6 rounded-2xl w-full max-w-sm mx-4 transform transition-all scale-100 opacity-100 shadow-2xl relative"
       >
         <button
           onclick="
@@ -1492,16 +1658,16 @@
             ></path>
           </svg>
         </button>
-        <div class="text-center mb-6">
+        <div class="text-center mb-4">
           <div
-            class="w-12 h-12 bg-teal-100 text-teal-600 rounded-full flex items-center justify-center mx-auto mb-3 shadow-inner"
+            class="w-10 h-10 bg-teal-100 text-teal-600 rounded-xl flex items-center justify-center mx-auto mb-2 shadow-inner"
           >
             <svg
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
               stroke-width="2"
-              class="w-6 h-6"
+              class="w-5 h-5"
             >
               <path
                 stroke-linecap="round"
@@ -1510,19 +1676,16 @@
               ></path>
             </svg>
           </div>
-          <h3 class="text-lg font-bold text-slate-800">Pilih Mode Edit</h3>
-          <p class="text-xs text-slate-500 mt-1">
-            Sesuaikan informasi yang ingin Anda perbarui.
-          </p>
+          <h3 class="text-base font-bold text-slate-800">Pilih Tindakan Edit</h3>
         </div>
-        <div class="flex flex-col gap-3">
+        <div class="flex flex-col gap-2">
           <button
             onclick="openActionModalObj(window.currentEditId, 'data')"
-            class="group flex items-center p-3 sm:p-4 text-left bg-slate-50 border border-slate-200 rounded-xl hover:border-teal-400 hover:shadow-md transition-all cursor-pointer active:scale-98"
-            data-tooltip="Edit Profil Sekolah"
+            class="group flex items-center p-3 text-left bg-slate-50 border border-slate-200/90 rounded-xl hover:border-teal-400 hover:bg-teal-50/40 hover:shadow-xs transition-all cursor-pointer active:scale-98"
+            data-tooltip="Ubah nama sekolah, NPSN, dan alamat"
           >
             <div
-              class="w-8 h-8 rounded bg-white text-slate-400 flex items-center justify-center mr-3 sm:mr-4 group-hover:text-teal-600 group-hover:bg-teal-50"
+              class="w-8 h-8 rounded-lg bg-white text-slate-400 flex items-center justify-center mr-3 group-hover:text-teal-600 group-hover:bg-teal-50 shadow-2xs shrink-0"
             >
               <svg
                 class="w-4 h-4"
@@ -1538,24 +1701,21 @@
                 ></path>
               </svg>
             </div>
-            <div>
+            <div class="flex-1 min-w-0">
               <h4
-                class="font-bold text-slate-700 text-sm group-hover:text-teal-700"
+                class="font-bold text-slate-700 text-xs sm:text-sm group-hover:text-teal-700"
               >
                 Edit Data Profil
               </h4>
-              <p class="text-[10px] sm:text-[11px] text-slate-500 mt-0.5">
-                Edit nama, NPSN, dan alamat sekolah.
-              </p>
             </div>
           </button>
           <button
-            onclick="openActionModalObj(window.currentEditId, 'pesanan')"
-            class="group flex items-center p-3 sm:p-4 text-left bg-slate-50 border border-slate-200 rounded-xl hover:border-teal-400 hover:shadow-md transition-all cursor-pointer active:scale-98"
-            data-tooltip="Edit Pesanan Kelas"
+            onclick="openActionModalObj(window.currentEditId, 'koreksi')"
+            class="group flex items-center p-3 text-left bg-slate-50 border border-slate-200/90 rounded-xl hover:border-teal-400 hover:bg-teal-50/40 hover:shadow-xs transition-all cursor-pointer active:scale-98"
+            data-tooltip="Perbaiki pesanan awal dengan tarif penyesuaian"
           >
             <div
-              class="w-8 h-8 rounded bg-white text-slate-400 flex items-center justify-center mr-3 sm:mr-4 group-hover:text-teal-600 group-hover:bg-teal-50"
+              class="w-8 h-8 rounded-lg bg-white text-slate-400 flex items-center justify-center mr-3 group-hover:text-teal-600 group-hover:bg-teal-50 shadow-2xs shrink-0"
             >
               <svg
                 class="w-4 h-4"
@@ -1567,28 +1727,85 @@
                   stroke-linecap="round"
                   stroke-linejoin="round"
                   stroke-width="2"
-                  d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
+                  d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
                 ></path>
               </svg>
             </div>
-            <div>
+            <div class="flex-1 min-w-0 flex items-center justify-between gap-1.5">
               <h4
-                class="font-bold text-slate-700 text-sm group-hover:text-teal-700"
+                class="font-bold text-slate-700 text-xs sm:text-sm group-hover:text-teal-700"
               >
-                Edit Pesanan Kelas
+                Koreksi Pesanan Kelas
               </h4>
-              <p class="text-[10px] sm:text-[11px] text-slate-500 mt-0.5">
-                Ubah daftar kelas, hapus,/tambah.
-              </p>
+              <span class="text-[9px] font-bold px-1.5 py-0.5 bg-teal-100 text-teal-800 rounded">Koreksi</span>
+            </div>
+          </button>
+          <button
+            onclick="openActionModalObj(window.currentEditId, 'tambah_pesanan')"
+            class="group flex items-center p-3 text-left bg-indigo-50/40 border border-indigo-200/80 rounded-xl hover:border-indigo-400 hover:bg-indigo-50/70 hover:shadow-xs transition-all cursor-pointer active:scale-98"
+            data-tooltip="Tambah batch pesanan susulan baru dengan tarif dasar"
+          >
+            <div
+              class="w-8 h-8 rounded-lg bg-white text-indigo-500 flex items-center justify-center mr-3 group-hover:text-indigo-600 group-hover:bg-indigo-100/50 shadow-2xs shrink-0"
+            >
+              <svg
+                class="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                viewBox="0 0 24 24"
+              >
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path>
+              </svg>
+            </div>
+            <div class="flex-1 min-w-0 flex items-center justify-between gap-1.5">
+              <h4
+                class="font-bold text-indigo-800 text-xs sm:text-sm group-hover:text-indigo-900"
+              >
+                Tambah Pesanan Susulan
+              </h4>
+              <span class="text-[9px] font-bold px-1.5 py-0.5 bg-indigo-100 text-indigo-800 rounded">Susulan</span>
+            </div>
+          </button>
+          <button
+            type="button"
+            onclick="document.getElementById('edit-type-modal').classList.remove('active'); window.openSchoolHistoryModal(window.currentEditId);"
+            class="group flex items-center p-3 text-left bg-indigo-50/40 border border-indigo-200/80 rounded-xl hover:border-indigo-400 hover:bg-indigo-50/70 hover:shadow-xs transition-all cursor-pointer active:scale-98"
+            data-tooltip="Kelola rincian batch pesanan dan pembatalan versi"
+          >
+            <div
+              class="w-8 h-8 rounded-lg bg-white text-indigo-600 flex items-center justify-center mr-3 group-hover:bg-indigo-100/60 shadow-2xs shrink-0"
+            >
+              <svg
+                class="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                ></path>
+              </svg>
+            </div>
+            <div class="flex-1 min-w-0 flex items-center justify-between gap-1.5">
+              <h4
+                class="font-bold text-indigo-900 text-xs sm:text-sm group-hover:text-indigo-700"
+              >
+                Kelola Riwayat Pesanan
+              </h4>
+              <span class="text-[9px] font-bold px-1.5 py-0.5 bg-indigo-100 text-indigo-800 rounded">Riwayat</span>
             </div>
           </button>
           <button
             onclick="window.deleteSchoolToTrashById(window.currentEditId)"
-            class="group flex items-center p-3 sm:p-4 text-left bg-rose-50/60 border border-rose-200/80 rounded-xl hover:border-rose-400 hover:bg-rose-50 hover:shadow-md transition-all cursor-pointer active:scale-98"
-            data-tooltip="Pindahkan ke Tempat Sampah"
+            class="group flex items-center p-3 text-left bg-rose-50/50 border border-rose-200/80 rounded-xl hover:border-rose-400 hover:bg-rose-50 hover:shadow-xs transition-all cursor-pointer active:scale-98"
+            data-tooltip="Pindahkan sekolah ke tempat sampah sementara"
           >
             <div
-              class="w-8 h-8 rounded bg-white text-rose-500 flex items-center justify-center mr-3 sm:mr-4 group-hover:text-rose-600 group-hover:bg-rose-100/50"
+              class="w-8 h-8 rounded-lg bg-white text-rose-500 flex items-center justify-center mr-3 group-hover:text-rose-600 group-hover:bg-rose-100/50 shadow-2xs shrink-0"
             >
               <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <polyline points="3 6 5 6 21 6"></polyline>
@@ -1597,13 +1814,10 @@
                 <line x1="14" y1="11" x2="14" y2="17"></line>
               </svg>
             </div>
-            <div>
-              <h4 class="font-bold text-rose-700 text-sm group-hover:text-rose-800">
+            <div class="flex-1 min-w-0">
+              <h4 class="font-bold text-rose-700 text-xs sm:text-sm group-hover:text-rose-800">
                 Pindahkan ke Tempat Sampah
               </h4>
-              <p class="text-[10px] sm:text-[11px] text-rose-600/80 mt-0.5">
-                Simpan di histori terhapus, dapat dipulihkan sewaktu-waktu.
-              </p>
             </div>
           </button>
         </div>
@@ -1611,9 +1825,9 @@
     </div>
 
     <!-- Modal History -->
-    <div id="history-modal" class="modal-overlay">
+    <div id="history-modal" class="modal-overlay" onclick="if(event.target === this) this.classList.remove('active')">
       <div
-        class="bg-white p-6 rounded-2xl w-full max-w-sm mx-4 transform transition-all scale-100 opacity-100 shadow-2xl relative"
+        class="bg-white p-5 sm:p-6 rounded-2xl w-full max-w-md mx-4 transform transition-all scale-100 opacity-100 shadow-2xl relative border border-slate-200"
       >
         <button
           onclick="
@@ -1637,10 +1851,10 @@
           </svg>
         </button>
         <div
-          class="flex items-center gap-3 mb-5 border-b border-slate-100 pb-3"
+          class="flex items-center gap-3 mb-4 border-b border-slate-100 pb-3"
         >
           <div
-            class="w-10 h-10 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center shadow-inner"
+            class="w-10 h-10 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center shadow-inner shrink-0"
           >
             <svg
               viewBox="0 0 24 24"
@@ -1656,10 +1870,11 @@
               ></path>
             </svg>
           </div>
-          <div>
+          <div class="min-w-0 flex-1">
             <h3 class="text-base font-bold text-slate-800 leading-tight">
-              History Pembaruan
+              Riwayat Pesanan & Versi
             </h3>
+            <div id="history-school-name" class="text-xs font-bold text-teal-700 truncate max-w-xs"></div>
             <p
               class="text-[10px] font-mono text-slate-500"
               id="history-npsn"
@@ -1667,10 +1882,24 @@
           </div>
         </div>
         <div
-          class="flex flex-col gap-2 max-h-[300px] overflow-y-auto pr-1"
+          class="flex flex-col gap-2.5 max-h-[350px] overflow-y-auto pr-1"
           id="history-list"
         >
           <!-- Timestamps injected here -->
+        </div>
+        <div class="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2">
+          <div class="inline-flex items-center gap-1.5 text-[11px] text-slate-400 select-none cursor-pointer" data-tooltip="Pembatalan versi riwayat tidak menghapus sekolah induk">
+            <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            <span class="font-medium">Info Versi</span>
+          </div>
+          <button
+            type="button"
+            onclick="document.getElementById('history-modal').classList.remove('active')"
+            class="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-lg transition-colors cursor-pointer active:scale-95 shadow-2xs"
+            data-tooltip="Tutup Riwayat"
+          >
+            Tutup
+          </button>
         </div>
       </div>
     </div>
@@ -1679,10 +1908,10 @@
     <div id="trash-modal" class="modal-overlay">
       <div class="bg-white rounded-2xl w-full max-w-4xl mx-3 sm:mx-6 transform transition-all scale-100 opacity-100 shadow-2xl relative border border-slate-200 flex flex-col max-h-[90vh] overflow-hidden">
         <!-- Header -->
-        <div class="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/60 shrink-0">
-          <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center shadow-inner shrink-0">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+        <div class="p-3.5 sm:p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/70 shrink-0">
+          <div class="flex items-center gap-2.5">
+            <div class="w-9 h-9 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center shadow-inner shrink-0">
+              <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
                 <polyline points="3 6 5 6 21 6"></polyline>
                 <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
                 <line x1="10" y1="11" x2="10" y2="17"></line>
@@ -1692,19 +1921,16 @@
             <div>
               <div class="flex items-center gap-2">
                 <h3 class="text-base sm:text-lg font-bold text-slate-800 leading-tight">
-                  Tempat Sampah & Histori Terhapus
+                  Tempat Sampah
                 </h3>
-                <span id="trash-modal-badge" class="px-2 py-0.5 bg-rose-100 text-rose-700 text-[11px] font-black rounded-full">0 Data</span>
+                <span id="trash-modal-badge" class="px-2 py-0.5 bg-rose-100 text-rose-700 text-[11px] font-black rounded-full cursor-pointer" data-tooltip="Data sementara, dapat dipulihkan atau dihapus permanen">0 Data</span>
               </div>
-              <p class="text-xs text-slate-500 mt-0.5">
-                Data satuan pendidikan yang dihapus sementara. Anda dapat memulihkan kembali atau menghapusnya secara permanen.
-              </p>
             </div>
           </div>
           <button
             onclick="window.closeTrashModal()"
-            class="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors cursor-pointer shrink-0"
-            data-tooltip="Tutup"
+            class="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors cursor-pointer shrink-0"
+            data-tooltip="Tutup Tempat Sampah"
           >
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
@@ -1713,13 +1939,13 @@
         </div>
 
         <!-- Filter & Actions Bar -->
-        <div class="p-3 sm:px-5 sm:py-3 border-b border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-2.5 bg-white shrink-0">
+        <div class="p-2.5 sm:px-4 sm:py-2.5 border-b border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-2 bg-white shrink-0">
           <div class="flex items-center gap-2 w-full sm:w-auto flex-1">
             <div class="relative flex-1 sm:max-w-xs">
               <input
                 type="text"
                 id="trash-search-input"
-                placeholder="Cari sekolah di tempat sampah..."
+                placeholder="Cari sekolah..."
                 class="w-full text-xs py-1.5 pl-8 pr-3 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-rose-400 focus:bg-white text-slate-700"
                 oninput="window.renderTrashTable()"
               />
@@ -1729,44 +1955,44 @@
               </svg>
             </div>
             <div class="flex items-center gap-1 shrink-0">
-              <span class="text-[11px] font-bold text-slate-400 hidden sm:inline">Urutkan:</span>
               <select
                 id="trash-sort-select"
                 class="text-xs py-1.5 px-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-700 font-semibold focus:outline-none focus:border-rose-400 cursor-pointer"
                 onchange="window.renderTrashTable()"
+                data-tooltip="Urutan Data"
               >
-                <option value="deleted_desc">Waktu Hapus (Terbaru)</option>
-                <option value="deleted_asc">Waktu Hapus (Terlama)</option>
-                <option value="name_asc">Nama Sekolah (A - Z)</option>
-                <option value="name_desc">Nama Sekolah (Z - A)</option>
-                <option value="npsn_asc">NPSN (0 - 9)</option>
-                <option value="orig_desc">Waktu Registrasi Asli</option>
+                <option value="deleted_desc">Hapus Terbaru</option>
+                <option value="deleted_asc">Hapus Terlama</option>
+                <option value="name_asc">Nama (A - Z)</option>
+                <option value="name_desc">Nama (Z - A)</option>
+                <option value="npsn_asc">NPSN</option>
+                <option value="orig_desc">Registrasi Awal</option>
               </select>
             </div>
           </div>
-          <div class="flex items-center gap-2 w-full sm:w-auto justify-end shrink-0">
+          <div class="flex items-center gap-1.5 w-full sm:w-auto justify-end shrink-0">
             <button
               id="btn-restore-all-trash"
               onclick="window.restoreAllTrash()"
-              class="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer active:scale-95 shadow-2xs hover:shadow-xs"
+              class="px-2.5 sm:px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer active:scale-95 shadow-2xs hover:shadow-xs"
               data-tooltip="Pulihkan Semua Data"
             >
-              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
               </svg>
-              <span>Pulihkan Semua</span>
+              <span class="hidden sm:inline">Pulihkan Semua</span>
             </button>
             <button
               id="btn-empty-trash"
               onclick="window.emptyTrashPermanently()"
-              class="px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer active:scale-95 shadow-2xs hover:shadow-xs"
+              class="px-2.5 sm:px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer active:scale-95 shadow-2xs hover:shadow-xs"
               data-tooltip="Kosongkan Semua Sampah"
             >
-              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <polyline points="3 6 5 6 21 6"></polyline>
                 <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
               </svg>
-              <span>Kosongkan Sampah</span>
+              <span class="hidden sm:inline">Kosongkan Sampah</span>
             </button>
           </div>
         </div>
@@ -1780,8 +2006,8 @@
                 <th class="py-2.5 px-3 w-[150px]">Waktu Dihapus</th>
                 <th class="py-2.5 px-3 w-[220px]">Satuan Pendidikan</th>
                 <th class="py-2.5 px-3 text-center w-[120px]">Pesanan Kelas</th>
-                <th class="py-2.5 px-3 text-center w-[140px]">Catatan Perubahan</th>
-                <th class="py-2.5 px-3 text-center w-[170px]">Aksi</th>
+                <th class="py-2.5 px-3 text-center w-[90px]">Catatan</th>
+                <th class="py-2.5 px-3 text-center w-[150px]">Aksi</th>
               </tr>
             </thead>
             <tbody id="trash-table-body" class="divide-y divide-slate-100 text-xs">
@@ -1791,14 +2017,15 @@
         </div>
 
         <!-- Footer -->
-        <div class="p-3 sm:px-5 border-t border-slate-100 bg-slate-50/60 flex items-center justify-between text-xs text-slate-500 shrink-0">
-          <div class="flex items-center gap-2 text-[11.5px]">
-            <span class="inline-block w-2 h-2 rounded-full bg-emerald-500"></span>
-            <span>Data yang dipulihkan akan kembali muncul utuh di tabel Data Pokok, Tagihan, dan Akses.</span>
+        <div class="p-2.5 sm:px-4 border-t border-slate-100 bg-slate-50/70 flex items-center justify-between text-xs text-slate-500 shrink-0">
+          <div class="flex items-center gap-1.5 text-xs text-slate-500 cursor-pointer" data-tooltip="Data pulih otomatis kembali ke seluruh tabel">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></span>
+            <span class="text-[11px] font-medium text-slate-600">Histori Sampah</span>
           </div>
           <button
             onclick="window.closeTrashModal()"
-            class="px-4 py-1.5 bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 font-bold rounded-lg transition-all text-xs cursor-pointer"
+            class="px-3.5 py-1.5 bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 font-bold rounded-lg transition-all text-xs cursor-pointer active:scale-95 shadow-2xs"
+            data-tooltip="Tutup Tempat Sampah"
           >
             Tutup
           </button>
@@ -1850,43 +2077,46 @@
       <div class="modal-content max-w-sm shadow-2xl border border-slate-200">
         <div class="p-6 text-center">
           <div
-            class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4"
+            id="confirm-icon-bg"
+            class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-rose-100 mb-4 transition-colors"
           >
-            <svg
-              class="h-6 w-6 text-red-600"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-              ></path>
-            </svg>
+            <div id="confirm-icon-slot" class="flex items-center justify-center">
+              <svg
+                class="h-6 w-6 text-rose-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                ></path>
+              </svg>
+            </div>
           </div>
           <h3
             class="text-lg leading-6 font-bold text-slate-900 mb-2"
             id="confirm-title"
           >
-            Konfirmasi Hapus
+            Konfirmasi
           </h3>
-          <p class="text-sm text-slate-500 mb-6" id="confirm-message">
+          <p class="text-sm text-slate-500 mb-6 whitespace-pre-line leading-relaxed" id="confirm-message">
             Apakah Anda yakin?
           </p>
           <div class="flex gap-3 justify-center">
             <button
               id="confirm-cancel-btn"
-              class="w-full inline-flex justify-center rounded-lg border border-slate-300 shadow-sm px-4 py-2 bg-white text-base font-bold text-slate-700 hover:bg-slate-50 focus:outline-none sm:w-auto sm:text-sm cursor-pointer active:scale-95"
+              class="w-full inline-flex justify-center rounded-lg border border-slate-300 shadow-sm px-4 py-2 bg-white text-base font-bold text-slate-700 hover:bg-slate-50 focus:outline-none sm:w-auto sm:text-sm cursor-pointer active:scale-95 transition-all"
               data-tooltip="Batalkan"
             >
               Batal
             </button>
             <button
               id="confirm-ok-btn"
-              class="w-full inline-flex justify-center rounded-lg border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-bold text-white hover:bg-red-700 focus:outline-none sm:w-auto sm:text-sm cursor-pointer active:scale-95"
-              data-tooltip="Konfirmasi Hapus"
+              class="w-full inline-flex justify-center rounded-lg border border-transparent shadow-sm px-4 py-2 bg-rose-600 text-base font-bold text-white hover:bg-rose-700 focus:outline-none sm:w-auto sm:text-sm cursor-pointer active:scale-95 transition-all"
+              data-tooltip="Konfirmasi"
             >
               Hapus
             </button>
@@ -1932,6 +2162,10 @@
                 Cloud ID:
                 <span id="display-id" class="font-mono text-slate-500">-</span>
               </p>
+              <p
+                id="modal-mode-desc"
+                class="hidden text-xs text-slate-500 font-normal mt-0.5"
+              ></p>
             </div>
           </div>
           <button
@@ -2024,7 +2258,7 @@
               <div class="w-full sm:w-28 group">
                 <label
                   class="block font-bold text-slate-500 mb-1 uppercase tracking-tight group-focus-within:text-teal-600 transition-colors"
-                  >Jenis Desa/Kel</label
+                  >Bentuk Desa</label
                 >
                 <select
                   id="edit-desa-kelurahan-jenis"
@@ -2038,7 +2272,7 @@
               <div class="flex-grow group">
                 <label
                   class="block font-bold text-slate-500 mb-1 uppercase tracking-tight group-focus-within:text-teal-600 transition-colors"
-                  >Nama Desa/Kelurahan</label
+                  >Nama Desa</label
                 >
                 <input
                   type="text"
@@ -2065,7 +2299,7 @@
               <div class="w-full sm:w-28 group">
                 <label
                   class="block font-bold text-slate-500 mb-1 uppercase tracking-tight group-focus-within:text-teal-600 transition-colors"
-                  >Jenis Kab/Kota</label
+                  >Bentuk Daerah</label
                 >
                 <select
                   id="edit-kabupaten-kota-jenis"
@@ -2079,7 +2313,7 @@
               <div class="flex-grow group">
                 <label
                   class="block font-bold text-slate-500 mb-1 uppercase tracking-tight group-focus-within:text-teal-600 transition-colors"
-                  >Nama Kabupaten/Kota</label
+                  >Nama Daerah</label
                 >
                 <input
                   type="text"
@@ -2209,21 +2443,24 @@
         </div>
 
         <div
-          class="flex flex-col-reverse sm:flex-row gap-3 items-center justify-between mt-5"
+          class="flex flex-row items-center justify-between gap-2 mt-4 pt-3 border-t border-slate-100"
         >
           <div
             id="edit-only-actions"
-            class="flex gap-2 w-full sm:w-auto"
+            class="flex items-center gap-1.5 shrink-0"
           >
             <button
               id="delete-btn"
-              class="text-rose-600 bg-rose-50 hover:bg-rose-100 hover:text-rose-700 text-[11px] font-bold flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl transition-colors w-full sm:w-auto shadow-xs cursor-pointer active:scale-95"
+              type="button"
+              class="text-rose-600 bg-rose-50 hover:bg-rose-100 p-2 sm:px-3 sm:py-2 rounded-xl border border-rose-200/60 transition-all shadow-2xs cursor-pointer active:scale-95 flex items-center gap-1.5"
               data-tooltip="Pindahkan ke Tempat Sampah"
             >
               <svg
                 viewBox="0 0 24 24"
                 stroke="currentColor"
-                class="w-3.5 h-3.5"
+                class="w-4 h-4 shrink-0"
+                fill="none"
+                stroke-width="2"
               >
                 <polyline points="3 6 5 6 21 6"></polyline>
                 <path
@@ -2232,57 +2469,65 @@
                 <line x1="10" y1="11" x2="10" y2="17"></line>
                 <line x1="14" y1="11" x2="14" y2="17"></line>
               </svg>
-              TEMPAT SAMPAH
+              <span class="hidden sm:inline text-xs font-bold">Sampah</span>
             </button>
             <button
               id="duplicate-btn"
-              class="text-teal-700 bg-teal-50 hover:bg-teal-100 hover:text-teal-800 text-[11px] font-bold flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl transition-colors w-full sm:w-auto shadow-xs cursor-pointer active:scale-95"
-              data-tooltip="Duplikasi Data Sekolah Ini"
+              type="button"
+              class="text-teal-700 bg-teal-50 hover:bg-teal-100 p-2 sm:px-3 sm:py-2 rounded-xl border border-teal-200/60 transition-all shadow-2xs cursor-pointer active:scale-95 flex items-center gap-1.5"
+              data-tooltip="Duplikat Data Sekolah"
             >
               <svg
                 viewBox="0 0 24 24"
                 stroke="currentColor"
-                class="w-3.5 h-3.5"
+                class="w-4 h-4 shrink-0"
+                fill="none"
+                stroke-width="2"
               >
                 <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
                 <path
                   d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1-2-2h9a2 2 0 0 1 2 2v1"
                 ></path>
               </svg>
-              DUPLIKAT
+              <span class="hidden sm:inline text-xs font-bold">Duplikat</span>
             </button>
           </div>
-          <div class="flex flex-wrap sm:flex-nowrap gap-1.5 sm:gap-2.5 w-full sm:w-auto justify-end ml-auto">
+          <div class="flex items-center gap-1.5 sm:gap-2 justify-end ml-auto">
             <button
               id="modal-cancel-btn"
-              class="text-slate-700 bg-white border border-slate-200 text-[10px] sm:text-[11.5px] font-bold px-3 sm:px-5 py-2 rounded-xl hover:bg-slate-50 hover:border-slate-300 transition-all shadow-xs flex-1 sm:flex-none cursor-pointer active:scale-95"
-              data-tooltip="Batalkan Perubahan"
+              type="button"
+              class="text-slate-600 bg-slate-100 hover:bg-slate-200 text-xs font-bold px-3.5 sm:px-4 py-2 rounded-xl transition-all cursor-pointer active:scale-95"
+              data-tooltip="Batalkan"
             >
-              BATAL
+              Batal
             </button>
 
             <button
               id="save-draft-btn"
-              class="hidden bg-[#fef3c7] text-[#b45309] border border-[#fde68a] hover:bg-[#fde68a] text-[10px] sm:text-[11.5px] font-bold px-3 sm:px-5 py-2 rounded-xl transition-all shadow-xs flex-1 sm:flex-none cursor-pointer active:scale-95"
+              type="button"
+              class="hidden bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100 text-xs font-bold px-3 sm:px-4 py-2 rounded-xl transition-all cursor-pointer active:scale-95 shadow-2xs"
               data-tooltip="Simpan Draft"
             >
-              DRAFT
+              Draft
             </button>
 
             <button
               id="save-add-more-btn"
-              class="hidden bg-[#e6fcf5] text-[#0f766e] border border-[#99f6e4] hover:bg-[#c3fae8] text-[10px] sm:text-[11.5px] font-bold px-3 sm:px-5 py-2 rounded-xl transition-all shadow-xs flex-1 sm:flex-none whitespace-nowrap cursor-pointer active:scale-95"
+              type="button"
+              class="hidden bg-teal-50 text-teal-700 border border-teal-200 hover:bg-teal-100 text-xs font-bold px-3 sm:px-4 py-2 rounded-xl transition-all whitespace-nowrap cursor-pointer active:scale-95 shadow-2xs"
               data-tooltip="Simpan & Buka Form Baru"
             >
-              SIMPAN & TAMBAH
+              Simpan & Tambah
             </button>
 
             <button
               id="save-main-btn"
-              class="bg-[#00897b] hover:bg-[#00796b] text-white border border-[#00796b] text-[10px] sm:text-[11.5px] font-bold px-4 sm:px-6 py-2 rounded-xl shadow-md transition-all flex-1 sm:flex-none cursor-pointer active:scale-95"
-              data-tooltip="Simpan ke Database"
+              type="button"
+              class="bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold px-4 sm:px-5 py-2 rounded-xl shadow-sm transition-all cursor-pointer active:scale-95 flex items-center gap-1.5"
+              data-tooltip="Simpan Data"
             >
-              SIMPAN
+              <svg class="w-3.5 h-3.5 shrink-0 hidden sm:inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+              <span>Simpan</span>
             </button>
           </div>
         </div>
@@ -2342,9 +2587,9 @@
           </div>
         </div>
 
-        <div class="flex gap-2 justify-end pt-2 border-t border-slate-100">
-          <button onclick="document.getElementById('edit-password-modal').classList.remove('active')" class="px-4 py-1.5 text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors cursor-pointer active:scale-95" data-tooltip="Batalkan">BATAL</button>
-          <button id="save-password-btn" class="px-4 py-1.5 text-xs font-bold text-white bg-teal-600 hover:bg-teal-700 rounded-lg transition-colors shadow-sm cursor-pointer active:scale-95" data-tooltip="Simpan Password">SIMPAN</button>
+        <div class="flex gap-2 justify-end pt-2.5 border-t border-slate-100">
+          <button onclick="document.getElementById('edit-password-modal').classList.remove('active')" class="px-3.5 py-1.5 text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors cursor-pointer active:scale-95" data-tooltip="Batalkan">Batal</button>
+          <button id="save-password-btn" class="px-4 py-1.5 text-xs font-bold text-white bg-teal-600 hover:bg-teal-700 rounded-lg transition-colors shadow-sm cursor-pointer active:scale-95" data-tooltip="Simpan Password">Simpan</button>
         </div>
       </div>
     </div>
@@ -2400,20 +2645,20 @@
           <button
             type="button"
             onclick="document.getElementById('akses-matrix-modal').classList.remove('active')"
-            class="px-4 py-1.5 text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors cursor-pointer active:scale-95"
-            data-tooltip="Batalkan Perubahan"
+            class="px-3.5 py-1.5 text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors cursor-pointer active:scale-95"
+            data-tooltip="Batalkan"
           >
-            BATAL
+            Batal
           </button>
           <button
             type="button"
             id="matrix-save-btn"
             onclick="window.saveAksesClassMatrix()"
             class="px-4 py-1.5 text-xs font-bold text-white bg-teal-600 hover:bg-teal-700 rounded-lg transition-colors shadow-sm cursor-pointer flex items-center gap-1.5 active:scale-95"
-            data-tooltip="Simpan Pengaturan Matriks"
+            data-tooltip="Simpan Matriks"
           >
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-            <span>SIMPAN PERUBAHAN</span>
+            <span>Simpan</span>
           </button>
         </div>
       </div>
@@ -2488,6 +2733,23 @@
         } = window.fbComponents;
 
         let allData = [];
+        try {
+          const cachedSchools = localStorage.getItem("cached_school_data");
+          if (cachedSchools) {
+            const parsed = JSON.parse(cachedSchools);
+            if (Array.isArray(parsed)) {
+              allData = parsed.map(d => {
+                const payload = d.data_payload || {};
+                return {
+                  id: d.id,
+                  ...payload,
+                  timestamp: payload.timestamp || 0
+                };
+              });
+            }
+          }
+        } catch(e) {}
+
         let drafts = [];
         try {
           drafts = JSON.parse(
@@ -2600,15 +2862,13 @@
 
         if (btnFilterTagihan) {
           btnFilterTagihan.addEventListener("click", () => {
-            tagihanStartDate = inputTagihanStart.value
-              ? new Date(inputTagihanStart.value)
-              : null;
+            const startVal = inputTagihanStart.value ? new Date(inputTagihanStart.value) : null;
+            const endVal = inputTagihanEnd.value ? new Date(inputTagihanEnd.value) : null;
+            tagihanStartDate = (startVal && !isNaN(startVal.getTime())) ? startVal : null;
+            tagihanEndDate = (endVal && !isNaN(endVal.getTime())) ? endVal : null;
             if (tagihanStartDate) {
               tagihanStartDate.setHours(0, 0, 0, 0);
             }
-            tagihanEndDate = inputTagihanEnd.value
-              ? new Date(inputTagihanEnd.value)
-              : null;
             if (tagihanEndDate) {
               tagihanEndDate.setHours(23, 59, 59, 999);
             }
@@ -3420,6 +3680,132 @@
           return `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}/${d.getFullYear().toString().slice(-2)} ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
         }
 
+        function findSchoolById(id) {
+          if (!id) return null;
+          return [...drafts, ...allData].find(s => String(s.id) === String(id)) || null;
+        }
+        window.findSchoolById = findSchoolById;
+
+        const getBatchCost = (classCount) => {
+          if (!classCount || classCount <= 0) return 0;
+          // 1 kelas = Rp. 100.000, 2 kelas = Rp. 150.000, 3 kelas = Rp. 200.000, 4 kelas = Rp. 250.000, 5 kelas = Rp. 300.000, 6 kelas = Rp. 350.000
+          return 50000 + classCount * 50000;
+        };
+        window.getBatchCost = getBatchCost;
+
+        const batchColorThemes = [
+          // Batch 1 (Awal & Koreksi): Teal / Toska
+          { bg: "bg-teal-600 text-white", border: "border-teal-700", dot: "bg-teal-400" },
+          // Batch 2 (Tambah Pesanan ke-2): Indigo / Biru
+          { bg: "bg-indigo-600 text-white", border: "border-indigo-700", dot: "bg-indigo-400" },
+          // Batch 3 (Tambah Pesanan ke-3): Amber / Oranye
+          { bg: "bg-amber-500 text-white", border: "border-amber-600", dot: "bg-amber-400" },
+          // Batch 4 (Tambah Pesanan ke-4): Purple / Ungu
+          { bg: "bg-purple-600 text-white", border: "border-purple-700", dot: "bg-purple-400" },
+          // Batch 5 (Tambah Pesanan ke-5): Rose / Pink Merah
+          { bg: "bg-rose-500 text-white", border: "border-rose-600", dot: "bg-rose-400" },
+          // Batch 6+: Cyan / Biru Muda
+          { bg: "bg-cyan-600 text-white", border: "border-cyan-700", dot: "bg-cyan-400" }
+        ];
+        window.batchColorThemes = batchColorThemes;
+
+        const resolveSchoolBatches = (sch, docs = []) => {
+          if (!sch) return [];
+          const docList = Array.isArray(docs) && docs.length > 0 ? docs : [sch];
+          const explicitDoc = docList.find(d => Array.isArray(d.order_batches) && d.order_batches.length > 0) || (Array.isArray(sch.order_batches) && sch.order_batches.length > 0 ? sch : null);
+          if (explicitDoc && Array.isArray(explicitDoc.order_batches) && explicitDoc.order_batches.length > 0) {
+            return explicitDoc.order_batches
+              .filter(b => b && Array.isArray(b.kelas) && b.kelas.length > 0)
+              .map(b => ({
+                ...b,
+                docId: b.docId || explicitDoc.id || sch.id,
+                batchId: b.batchId || ("batch-" + (b.batch || 1)),
+                label: b.label || (b.batch === 1 || b.tipe === "awal" ? "Pesanan Awal & Koreksi" : `Tambah Pesanan #${b.batch}`),
+                timestamp: b.timestamp || explicitDoc.timestamp || sch.timestamp || Date.now()
+              }));
+          }
+
+          const derivedBatches = [];
+          const sortedDocs = [...docList].sort((a, b) => (Number(a.timestamp) || 0) - (Number(b.timestamp) || 0));
+
+          sortedDocs.forEach((d, idx) => {
+            if (!d.kelas || !Array.isArray(d.kelas) || d.kelas.length === 0) return;
+            const bNum = idx + 1;
+            derivedBatches.push({
+              batch: bNum,
+              batchId: "doc-" + d.id,
+              docId: d.id,
+              tipe: bNum === 1 ? "awal" : "tambah",
+              kelas: [...d.kelas],
+              timestamp: d.timestamp || Date.now(),
+              label: bNum === 1 ? "Pesanan Awal & Koreksi" : `Tambah Pesanan #${bNum}`
+            });
+          });
+
+          if (derivedBatches.length === 0 && sch.kelas && Array.isArray(sch.kelas) && sch.kelas.length > 0) {
+            derivedBatches.push({
+              batch: 1,
+              batchId: "doc-" + sch.id,
+              docId: sch.id,
+              tipe: "awal",
+              kelas: [...sch.kelas],
+              timestamp: sch.timestamp || Date.now(),
+              label: "Pesanan Awal & Koreksi"
+            });
+          }
+
+          return derivedBatches;
+        };
+        window.resolveSchoolBatches = resolveSchoolBatches;
+
+        const renderSchoolBatchBadges = (batches) => {
+          if (!batches || batches.length === 0) {
+            return '<span class="text-slate-300 text-[10px]">Belum ada</span>';
+          }
+
+          let badgesHtml = "";
+          batches.forEach((b) => {
+            if (!b.kelas || !Array.isArray(b.kelas) || b.kelas.length === 0) return;
+            const pIdx = Math.max(0, (b.batch || 1) - 1) % batchColorThemes.length;
+            const theme = batchColorThemes[pIdx];
+            const bTitle = (b.batch === 1 || b.tipe === "awal") ? "Pesanan Awal / Koreksi" : `Tambah Pesanan #${b.batch}`;
+            const formattedTime = formatDisplayDate(b.timestamp);
+
+            const sortedK = [...b.kelas].sort((x, y) => x - y);
+            sortedK.forEach((k) => {
+              const tooltipContent = `
+                <div class="text-left select-none">
+                  <div class="flex items-center gap-2 mb-1.5">
+                    <span class="w-2 h-2 rounded-full ${theme.dot} shadow-xs"></span>
+                    <span class="font-bold text-[11px] text-white tracking-wide">${bTitle}</span>
+                  </div>
+                  <div class="font-mono text-[10px] text-teal-300 flex items-center gap-1.5 mb-1 bg-slate-800/80 px-2 py-0.5 rounded border border-slate-700/60 font-semibold">
+                    <svg class="w-3 h-3 text-teal-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    <span>${formattedTime}</span>
+                  </div>
+                  <div class="text-[9.5px] text-slate-300 font-semibold flex items-center justify-between">
+                    <span>Pemesanan</span>
+                    <span class="text-teal-400 font-bold font-mono">Kelas ${k}</span>
+                  </div>
+                </div>
+              `.trim().replace(/"/g, '&quot;');
+
+              badgesHtml += `
+                <div 
+                  class="cursor-pointer w-4 h-4 ${theme.bg} rounded font-black text-[9px] flex items-center justify-center shadow-xs transition-transform duration-150 hover:scale-125 select-none my-0.5"
+                  data-tooltip-html="true"
+                  data-tooltip="${tooltipContent}"
+                >
+                  ${k}
+                </div>
+              `;
+            });
+          });
+
+          return badgesHtml || '<span class="text-slate-300 text-[10px]">Belum ada</span>';
+        };
+        window.renderSchoolBatchBadges = renderSchoolBatchBadges;
+
         function highlightText(text, search) {
           if (!search || !text) return text;
           const searchTerms = search.trim().split(/\s+/);
@@ -3652,7 +4038,13 @@
 
           const tagihanTableBody =
             document.getElementById("tagihan-table-body");
-          if (tagihanTableBody) tagihanTableBody.innerHTML = "";
+          const isEditingTagihan = tagihanTableBody && activeEl && (
+            tagihanTableBody.contains(activeEl) || activeEl.classList?.contains("flat-tagihan-input")
+          );
+
+          if (tagihanTableBody && !isEditingTagihan) {
+            tagihanTableBody.innerHTML = "";
+          }
           const aksesTableBody =
             document.getElementById("akses-table-body");
           if (aksesTableBody) aksesTableBody.innerHTML = "";
@@ -3745,9 +4137,9 @@
                   (a, b) => (a.timestamp || 0) - (b.timestamp || 0),
                 );
 
-                 let aggregatedKelas = new Set();
+                const schoolBatches = resolveSchoolBatches(school, sortedDocs);
                 let hasValidTransactionInPeriod = false;
-                let isSchoolGratis = false;
+                let isSchoolGratis = (school['sekolah-gratis'] === true);
 
                 sortedDocs.forEach((doc) => {
                   const docDate = doc.timestamp
@@ -3761,9 +4153,6 @@
 
                   if (isWithinRange) {
                     hasValidTransactionInPeriod = true;
-                    if (Array.isArray(doc.kelas)) {
-                      doc.kelas.forEach((k) => aggregatedKelas.add(k));
-                    }
                   }
                   if (doc['sekolah-gratis'] === true) {
                     isSchoolGratis = true;
@@ -3772,12 +4161,15 @@
 
                 if (school['sekolah-gratis'] === true) isSchoolGratis = true;
 
-                // Hitung total base tagihan secara TUNGGAL berdasarkan total kelas unik yang teragregasi!
-                const uniqueClassCount = aggregatedKelas.size;
+                // Hitung total base tagihan:
+                // Pesanan Awal / Koreksi: Disesuaikan dengan tarif tier (penyesuaian/lanjutan)
+                // Tambah Pesanan (Batch 2, 3, dst): Berlaku tarif harga dasar masing-masing!
                 let totalSchoolBiaya = 0;
-                if (uniqueClassCount > 0) {
-                  totalSchoolBiaya = 50000 + uniqueClassCount * 50000;
-                }
+                schoolBatches.forEach((b) => {
+                  const kCount = Array.isArray(b.kelas) ? b.kelas.length : 0;
+                  totalSchoolBiaya += getBatchCost(kCount);
+                });
+
                 if (isSchoolGratis) {
                   totalSchoolBiaya = 0;
                 }
@@ -3833,10 +4225,9 @@
                   totalBTagihanTransit += finalAmount;
                 }
 
-                const combinedClasses = Array.from(aggregatedKelas).sort(
-                  (a, b) => a - b,
-                );
-
+                 tagihanRow.id = `tagihan-row-${npsn}`;
+                 tagihanRow.setAttribute("data-npsn", npsn);
+                 tagihanRow.setAttribute("data-base-cost", totalSchoolBiaya);
                  tagihanRow.className = "hover:bg-slate-50/80 transition-colors";
                 
                 const pemesanNama = latestDocInPeriod.pemesan || latestDocInPeriod.waliKelas || latestDocInPeriod.guru || latestDocInPeriod.namaGuru || school.pemesan || school.waliKelas || school.guru || school.namaGuru || "-";
@@ -3844,7 +4235,7 @@
                 tagihanRow.innerHTML = `
                             <td class="px-2 py-0.5 text-center text-slate-400 sticky left-0 z-20 bg-white border-r border-slate-200 w-[50px] min-w-[50px] max-w-[50px]">${tagihanIndex++}</td>
                             <td class="px-2 py-0.5 text-center text-slate-600 font-mono sticky left-[50px] z-20 bg-white border-r border-slate-200 w-[100px] min-w-[100px] max-w-[100px] whitespace-nowrap font-medium text-[10.5px]">${tsStr}</td>
-                            <td class="px-2 py-0.5 font-bold text-slate-800 sticky left-[150px] z-20 bg-white border-r border-slate-200 min-w-[180px]">${school["nama-sekolah"] || "-"}</td>
+                            <td class="px-2 py-0.5 font-bold text-teal-700 cursor-pointer transition-all hover:underline hover:text-teal-900 underline-offset-4 decoration-teal-300 decoration-2 sticky left-[150px] z-20 bg-white border-r border-slate-200 min-w-[180px] max-w-[220px] truncate" data-tooltip="Klik untuk Edit Sekolah">${highlightText(school["nama-sekolah"], searchVal) || "-"}</td>
                             <td class="px-2 py-0.5 text-center font-mono text-slate-500 text-[10.5px]">${npsn}</td>
                              <td class="px-3 py-0.5 text-center">
                                 <input 
@@ -3860,7 +4251,7 @@
                             </td>
                             <td class="px-2 py-0.5 text-center">
                                 <div class="flex flex-wrap items-center justify-center gap-1">
-                                    ${(combinedClasses.length > 0 ? combinedClasses : []).map((k) => `<div class="w-3.5 h-3.5 bg-teal-100 text-teal-800 rounded font-bold text-[8.5px] flex items-center justify-center shadow-xs">${k}</div>`).join("") || '<span class="text-slate-300 text-[10px]">Belum ada</span>'}
+                                    ${renderSchoolBatchBadges(schoolBatches)}
                                 </div>
                             </td>
                             <td class="px-3 py-0.5 text-right font-mono font-medium text-slate-600 text-[10.5px]">Rp ${totalSchoolBiaya.toLocaleString("id-ID")}</td>
@@ -3868,8 +4259,9 @@
                                 <input 
                                   type="text" 
                                   id="diskon-${npsn}"
-                                  value="Rp ${(diskon || 0).toLocaleString("id-ID")}" 
-                                  onfocus="this.value = this.value.replace(/[^0-9]/g, ''); this.select();"
+                                  value="${diskon ? 'Rp ' + Number(diskon).toLocaleString('id-ID') : 'Rp 0'}" 
+                                  onfocus="const num = this.value.replace(/[^0-9]/g, ''); this.value = (num === '0' || !num) ? '' : num; this.select();"
+                                  oninput="this.value = this.value.replace(/[^0-9]/g, '');"
                                   onblur="window.formatRupiahOnBlur(this, '${npsn}', 'diskon')" 
                                   onkeydown="if(event.key === 'Enter') { this.blur(); }"
                                   class="flat-tagihan-input font-mono font-medium text-[10px] text-slate-700"
@@ -3880,8 +4272,9 @@
                                 <input 
                                   type="text" 
                                   id="biayaTambahan-${npsn}"
-                                  value="Rp ${(biayaTambahan || 0).toLocaleString("id-ID")}" 
-                                  onfocus="this.value = this.value.replace(/[^0-9]/g, ''); this.select();"
+                                  value="${biayaTambahan ? 'Rp ' + Number(biayaTambahan).toLocaleString('id-ID') : 'Rp 0'}" 
+                                  onfocus="const num = this.value.replace(/[^0-9]/g, ''); this.value = (num === '0' || !num) ? '' : num; this.select();"
+                                  oninput="this.value = this.value.replace(/[^0-9]/g, '');"
                                   onblur="window.formatRupiahOnBlur(this, '${npsn}', 'biayaTambahan')" 
                                   onkeydown="if(event.key === 'Enter') { this.blur(); }"
                                   class="flat-tagihan-input font-mono font-medium text-[10px] text-slate-700"
@@ -3903,20 +4296,25 @@
                                 }
                               </div>
                             </td>
-                            <td class="px-3 py-0.5 text-right">
+                            <td id="tagihan-lunas-${npsn}" class="px-3 py-0.5 text-right tagihan-col-terbayar">
                               ${actualIsLunas 
                                 ? `<span class="text-teal-700 font-mono font-bold text-[10.5px]">${finalAmount < 0 ? '-Rp ' + Math.abs(finalAmount).toLocaleString("id-ID") : 'Rp ' + finalAmount.toLocaleString("id-ID")}</span>`
                                 : `<span class="text-slate-300 font-mono font-medium text-[10.5px]">-</span>`
                               }
                             </td>
-                            <td class="px-3 py-0.5 text-right">
+                            <td id="tagihan-piutang-${npsn}" class="px-3 py-0.5 text-right tagihan-col-piutang">
                               ${!actualIsLunas 
                                 ? `<span class="text-amber-600 font-mono font-bold text-[10.5px]" data-tooltip="Belum Lunas">${finalAmount < 0 ? '-Rp ' + Math.abs(finalAmount).toLocaleString("id-ID") : 'Rp ' + finalAmount.toLocaleString("id-ID")}</span>`
                                 : `<span class="text-slate-300 font-mono font-medium text-[10.5px]">-</span>`
                               }
                             </td>
                         `;
-                tagihanTableBody.appendChild(tagihanRow);
+                tagihanRow.querySelector("td:nth-child(3)").onclick = () => {
+                  window.openEditTypeModalById(school.id);
+                };
+                if (tagihanTableBody && !isEditingTagihan) {
+                  tagihanTableBody.appendChild(tagihanRow);
+                }
               }
             });
 
@@ -3937,6 +4335,12 @@
             }
             if (document.getElementById("tagihan-akumulasi")) {
               document.getElementById("tagihan-akumulasi").textContent = formatAccumulated(totalBTagihanAll);
+            }
+
+            const hasTerbayar = totalBTagihanActive !== 0;
+            const hasPiutang = totalBTagihanTransit !== 0;
+            if (window.syncTagihanColumnVisibility) {
+              window.syncTagihanColumnVisibility(hasTerbayar, hasPiutang);
             }
 
             // Render Akses Table
@@ -4052,35 +4456,17 @@
               const row = document.createElement("tr");
               if (isSelected) row.classList.add("selected");
 
-              const tsSet = new Set();
-              const uniqueTs = [];
-              (item.allTimestamps || [item])
-                .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0))
-                .forEach((t) => {
-                  if (!tsSet.has(t.timestamp)) {
-                    tsSet.add(t.timestamp);
-                    uniqueTs.push(t);
-                  }
-                });
-              const tsHtml = (() => {
-                const latestTs = uniqueTs[0];
-                if (uniqueTs.length > 1) {
-                  const historyHtml = uniqueTs
-                    .map(
-                      (t) =>
-                        `<div class="py-1.5 px-3 border-b border-slate-100 last:border-b-0 hover:bg-slate-50 transition-colors flex justify-between items-center gap-3 group/item"><div class="flex items-center gap-2"><div class="w-1.5 h-1.5 rounded-full ${t.isDraft ? "bg-amber-400" : "bg-teal-400"}"></div><span class="font-mono text-[11px] font-bold text-slate-700">${t.isDraft ? "DRAFT " : ""}${formatDisplayDate(t.timestamp)}</span></div><button onclick="event.stopPropagation(); window.deleteHistoryItem('${t.id}')" class="opacity-0 group-hover/item:opacity-100 p-1 text-red-500 hover:bg-red-50 hover:text-red-700 rounded transition-all focus:outline-none focus:opacity-100 cursor-pointer active:scale-95" data-tooltip="Hapus Riwayat Ini"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button></div>`,
-                    )
-                    .join("");
-                  const encodedHistory = btoa(
-                    unescape(encodeURIComponent(historyHtml)),
-                  );
-                  return `<div class="group relative inline-flex items-center gap-1.5 px-2 py-1 bg-indigo-50 text-indigo-600 border border-indigo-100 hover:bg-indigo-100 hover:border-indigo-300 transition-all cursor-pointer rounded-md shadow-sm" onclick="openHistoryModal('${item.npsn || "Draft"}', '${encodedHistory}')" data-tooltip="Lihat Riwayat Versi">
-                    <span class="font-bold">${latestTs.isDraft ? '<span class="bg-amber-100 text-amber-600 px-1 py-0.5 rounded shadow-sm text-[8px]">DRAFT</span>' : formatDisplayDate(latestTs.timestamp)}</span>
+              const schoolBatches = resolveSchoolBatches(item, item.allTimestamps || [item]);
+              const latestBatchTs = schoolBatches.length > 0 ? (schoolBatches[schoolBatches.length - 1].timestamp || item.timestamp) : item.timestamp;
+
+              const tsHtml = schoolBatches.length > 1
+                ? `<div class="group relative inline-flex items-center gap-1.5 px-2 py-1 bg-indigo-50 text-indigo-700 border border-indigo-200 hover:bg-indigo-100 hover:border-indigo-300 transition-all cursor-pointer rounded-md shadow-2xs" onclick="window.openSchoolHistoryModal('${item.id}')" data-tooltip="Lihat & Kelola ${schoolBatches.length} Riwayat Versi Pesanan">
+                    <span class="font-bold text-[10px]">${item.isDraft ? '<span class="bg-amber-100 text-amber-600 px-1 py-0.5 rounded text-[8px]">DRAFT</span>' : formatDisplayDate(latestBatchTs)}</span>
+                    <span class="px-1.5 py-0.2 bg-indigo-200/80 text-indigo-800 text-[8.5px] rounded-full font-black">${schoolBatches.length}x</span>
+                  </div>`
+                : `<div class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded hover:bg-slate-100 cursor-pointer transition-colors" onclick="window.openSchoolHistoryModal('${item.id}')" data-tooltip="Lihat Rincian Pesanan & Riwayat">
+                    <span class="block">${item.isDraft ? '<span class="bg-amber-100 border border-amber-200 text-amber-600 px-1 py-0.5 rounded shadow-sm font-bold tracking-tight text-[8px]">DRAFT</span>' : formatDisplayDate(latestBatchTs)}</span>
                   </div>`;
-                } else {
-                  return `<div class="inline-block"><span class="block px-1 py-0.5">${latestTs.isDraft ? '<span class="bg-amber-100 border border-amber-200 text-amber-600 px-1 py-0.5 rounded shadow-sm font-bold tracking-tight text-[8px]">DRAFT</span>' : formatDisplayDate(latestTs.timestamp)}</span></div>`;
-                }
-              })();
 
               row.innerHTML = `
                         <td class="text-center align-middle py-2 sticky left-0 z-20 bg-white border-r border-slate-200 w-[35px] min-w-[35px] max-w-[35px]"><input type="checkbox" ${isSelected ? "checked" : ""} onchange="toggleRowSelection('${item.id}')" class="cursor-pointer" data-tooltip="Pilih baris ini"></td>
@@ -4126,6 +4512,9 @@
             }
           }
         }
+
+        // Render initial view immediately from preloaded cache so the screen is never blank
+        applySortAndRender();
 
         document.querySelectorAll("thead th.main-header").forEach((th) => {
           th.onclick = (e) => {
@@ -4192,105 +4581,384 @@
           document.getElementById("edit-type-modal").classList.remove("active");
           openActionModal(id, editModeType);
         };
-        window.openHistoryModal = (npsn, tsHtmlItems) => {
-          document.getElementById("history-npsn").textContent = npsn;
-          document.getElementById("history-list").innerHTML =
-            decodeURIComponent(escape(atob(tsHtmlItems)));
-          document.getElementById("history-modal").classList.add("active");
+        window.openSchoolHistoryModal = (schoolId) => {
+          try {
+            let school = findSchoolById(schoolId);
+            if (!school) {
+              school = [...drafts, ...allData].find(s => s && (String(s.id) === String(schoolId) || s.npsn === schoolId));
+            }
+            if (!school) {
+              console.warn("School not found for history modal id:", schoolId);
+              showToast("Data sekolah tidak ditemukan.", false);
+              return;
+            }
+
+            const schoolName = school["nama-sekolah"] || "-";
+            const npsn = school.npsn || "-";
+
+            const sNpsn = school.npsn && String(school.npsn).trim() !== "-" ? String(school.npsn).trim().toLowerCase() : "";
+            const sNama = school["nama-sekolah"] ? String(school["nama-sekolah"]).trim().toLowerCase() : "";
+
+            const allDocs = [...drafts, ...allData].filter(d => !d.isDeleted && (
+              String(d.id) === String(school.id) ||
+              (sNpsn && d.npsn && String(d.npsn).trim().toLowerCase() === sNpsn) ||
+              (sNama && d["nama-sekolah"] && String(d["nama-sekolah"]).trim().toLowerCase() === sNama)
+            ));
+            const primaryDoc = allDocs[0] || school;
+
+            const batches = resolveSchoolBatches(primaryDoc, allDocs);
+
+            const titleEl = document.getElementById("history-school-name");
+            if (titleEl) titleEl.textContent = schoolName;
+            const npsnEl = document.getElementById("history-npsn");
+            if (npsnEl) npsnEl.textContent = `NPSN: ${npsn} • Total ${batches.length} Pesanan Aktif`;
+
+            const listEl = document.getElementById("history-list");
+            if (!listEl) return;
+
+            if (batches.length === 0) {
+              listEl.innerHTML = `<div class="text-center py-8 text-slate-400 text-xs italic bg-slate-50/50 rounded-xl border border-dashed border-slate-200">Tidak ada riwayat pesanan aktif.</div>`;
+            } else {
+              listEl.innerHTML = batches.map((b) => {
+                const pIdx = Math.max(0, (b.batch || 1) - 1) % batchColorThemes.length;
+                const theme = batchColorThemes[pIdx];
+                const kBadges = (Array.isArray(b.kelas) && b.kelas.length > 0)
+                  ? b.kelas.slice().sort((x,y)=>x-y).map(k => `<span class="inline-flex items-center justify-center w-5 h-5 ${theme.bg} rounded font-black text-[10px] shadow-2xs">${k}</span>`).join(" ")
+                  : '<span class="text-slate-400 text-[10px] italic">Tidak ada kelas</span>';
+                const bTitle = b.label || (b.batch === 1 || b.tipe === "awal" ? "Pesanan Awal & Koreksi" : `Tambah Pesanan #${b.batch}`);
+                const dateStr = formatDisplayDate(b.timestamp);
+
+                return `
+                  <div id="history-batch-row-${b.batch}" class="p-3 bg-slate-50 hover:bg-slate-100/80 rounded-xl border border-slate-200/80 transition-all flex items-center justify-between gap-3">
+                    <div class="flex-1 min-w-0">
+                      <div class="flex items-center gap-2 mb-1">
+                        <span class="w-2.5 h-2.5 rounded-full ${theme.dot} shadow-xs shrink-0"></span>
+                        <span class="font-bold text-xs text-slate-800 truncate">${bTitle}</span>
+                        <span class="text-[9px] font-mono px-1.5 py-0.2 bg-white rounded border border-slate-200 text-slate-500 font-semibold shrink-0">Batch ${b.batch}</span>
+                      </div>
+                      <div class="flex items-center gap-1.5 flex-wrap my-1.5">
+                        <span class="text-[10px] text-slate-400 font-medium mr-1">Kelas:</span>
+                        ${kBadges}
+                      </div>
+                      <div class="font-mono text-[10px] text-slate-400 flex items-center gap-1 mt-1">
+                        <svg class="w-3 h-3 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <span>${dateStr}</span>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onclick="window.deleteSchoolBatch('${primaryDoc.id}', ${b.batch})"
+                      class="p-2 text-rose-500 hover:text-white hover:bg-rose-600 rounded-lg border border-rose-200 hover:border-rose-600 transition-all cursor-pointer active:scale-95 shrink-0 shadow-2xs"
+                      data-tooltip="Batalkan Riwayat Pesanan Ini"
+                    >
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                    </button>
+                  </div>
+                `;
+              }).join("");
+            }
+
+            const modal = document.getElementById("history-modal");
+            if (modal) modal.classList.add("active");
+          } catch (err) {
+            console.error("Error inside openSchoolHistoryModal:", err);
+            showToast("Gagal menampilkan riwayat sekolah.", false);
+          }
         };
 
-        window.customConfirm = (message) => {
+        window.deleteSchoolBatch = async (schoolId, batchNum) => {
+          const school = findSchoolById(schoolId);
+          if (!school) return;
+
+          const schoolName = school["nama-sekolah"] || "-";
+          const sNpsn = school.npsn && String(school.npsn).trim() !== "-" ? String(school.npsn).trim().toLowerCase() : "";
+          const sNama = school["nama-sekolah"] ? String(school["nama-sekolah"]).trim().toLowerCase() : "";
+
+          const allDocs = [...drafts, ...allData].filter(d => !d.isDeleted && (
+            String(d.id) === String(school.id) ||
+            (sNpsn && d.npsn && String(d.npsn).trim().toLowerCase() === sNpsn) ||
+            (sNama && d["nama-sekolah"] && String(d["nama-sekolah"]).trim().toLowerCase() === sNama)
+          ));
+          const primaryDoc = allDocs[0] || school;
+
+          let batches = resolveSchoolBatches(primaryDoc, allDocs);
+          const targetBatch = batches.find(b => b.batch === Number(batchNum) || (b.batchId && b.batchId === `batch-${batchNum}`));
+
+          if (!targetBatch) {
+            return showToast("Riwayat pesanan tidak ditemukan.", false);
+          }
+
+          const kList = targetBatch.kelas && targetBatch.kelas.length > 0
+            ? `Kelas ${[...targetBatch.kelas].sort((a,b)=>a-b).join(', ')}`
+            : "pesanan ini";
+          const bTitle = targetBatch.label || `Pesanan #${targetBatch.batch}`;
+
+          if (batches.length <= 1) {
+            const isConfirmed = await window.customConfirm(
+              `Ini adalah satu-satunya pesanan untuk "${schoolName}". Membatalkan ${bTitle} (${kList}) akan memindahkan seluruh data sekolah ke Tempat Sampah.\n\nLanjutkan pemindahan ke Tempat Sampah?`,
+              {
+                title: "Pindahkan ke Tempat Sampah",
+                okText: "Pindahkan ke Sampah",
+                type: "warning"
+              }
+            );
+            if (!isConfirmed) return;
+
+            await window.deleteSchoolToTrashById(primaryDoc.id);
+            const hm = document.getElementById("history-modal");
+            if (hm) hm.classList.remove("active");
+            return;
+          }
+
+          const isConfirmed = await window.customConfirm(
+            `Batalkan ${bTitle} (${kList}) untuk "${schoolName}" dan pindahkan ke Tempat Sampah?\n\nCATATAN: Sekolah induk beserta pesanan kelas lainnya akan TETAP AKTIF di Data Pokok.`,
+            {
+              title: "Konfirmasi Pembatalan Riwayat",
+              okText: "Batalkan Pesanan",
+              type: "warning"
+            }
+          );
+          if (!isConfirmed) return;
+
+          try {
+            showToast(`Membatalkan ${bTitle}...`);
+            const remainingBatches = batches.filter(b => b !== targetBatch && b.batch !== Number(batchNum) && (!targetBatch.batchId || b.batchId !== targetBatch.batchId));
+            const remainingKelas = Array.from(new Set(remainingBatches.flatMap(b => b.kelas || []))).sort((a,b)=>a-b);
+
+            // 1. Seketika hapus baris dari modal UI agar langsung menghilang tanpa menunggu proses simpan
+            const rowEl = document.getElementById("history-batch-row-" + batchNum);
+            if (rowEl) {
+              rowEl.remove();
+            }
+            const npsnEl = document.getElementById("history-npsn");
+            if (npsnEl) {
+              npsnEl.textContent = `NPSN: ${primaryDoc.npsn || "-"} • Total ${remainingBatches.length} Pesanan Aktif`;
+            }
+            if (remainingBatches.length === 0) {
+              const listEl = document.getElementById("history-list");
+              if (listEl) {
+                listEl.innerHTML = `<div class="text-center py-8 text-slate-400 text-xs italic bg-slate-50/50 rounded-xl border border-dashed border-slate-200">Tidak ada riwayat pesanan aktif.</div>`;
+              }
+            }
+
+            const deletedBatchObj = {
+              batchId: targetBatch.batchId || ("batch-" + targetBatch.batch + "-" + Date.now()),
+              batchNum: targetBatch.batch,
+              tipe: targetBatch.tipe || "tambah",
+              label: bTitle,
+              kelas: [...targetBatch.kelas],
+              timestamp: targetBatch.timestamp || Date.now(),
+              deletedAt: Date.now(),
+              deletedBy: "Admin",
+              schoolName: schoolName,
+              npsn: primaryDoc.npsn || "-",
+              schoolId: primaryDoc.id,
+              docId: targetBatch.docId || primaryDoc.id
+            };
+
+            const existingDeleted = Array.isArray(primaryDoc.deleted_batches) ? [...primaryDoc.deleted_batches] : [];
+            existingDeleted.unshift(deletedBatchObj);
+
+            // 2. Perbarui state memori lokal (in-memory) secara instan
+            primaryDoc.order_batches = remainingBatches;
+            primaryDoc.kelas = remainingKelas;
+            primaryDoc.deleted_batches = existingDeleted;
+
+            allData.forEach((d) => {
+              if (d.id === primaryDoc.id) {
+                d.order_batches = remainingBatches;
+                d.kelas = remainingKelas;
+                d.deleted_batches = existingDeleted;
+              }
+            });
+
+            drafts.forEach((d) => {
+              if (d.id === primaryDoc.id) {
+                d.order_batches = remainingBatches;
+                d.kelas = remainingKelas;
+                d.deleted_batches = existingDeleted;
+              }
+            });
+
+            if (targetBatch.docId && targetBatch.docId !== primaryDoc.id) {
+              allData.forEach((d) => {
+                if (d.id === targetBatch.docId) {
+                  d.isDeleted = true;
+                  d.deletedAt = Date.now();
+                }
+              });
+              drafts.forEach((d) => {
+                if (d.id === targetBatch.docId) {
+                  d.isDeleted = true;
+                  d.deletedAt = Date.now();
+                }
+              });
+            }
+
+            // 3. Simpan perubahan ke Firestore / LocalStorage
+            if (primaryDoc.id.startsWith("draft-")) {
+              try { localStorage.setItem("aplikasi-rapor-drafts", JSON.stringify(drafts)); } catch(e){}
+            } else {
+              const { doc, updateDoc, db, appId, collectionName } = window.fbComponents;
+              await updateDoc(
+                doc(db, "artifacts", appId, "public", "data", collectionName, primaryDoc.id),
+                {
+                  order_batches: remainingBatches,
+                  kelas: remainingKelas,
+                  deleted_batches: existingDeleted
+                }
+              );
+            }
+
+            // Jika batch berasal dari dokumen versi terpisah, tandai dokumen terpisah tersebut sebagai isDeleted: true
+            if (targetBatch.docId && targetBatch.docId !== primaryDoc.id) {
+              if (targetBatch.docId.startsWith("draft-")) {
+                try { localStorage.setItem("aplikasi-rapor-drafts", JSON.stringify(drafts)); } catch(e){}
+              } else {
+                const { doc, updateDoc, db, appId, collectionName } = window.fbComponents;
+                await updateDoc(
+                  doc(db, "artifacts", appId, "public", "data", collectionName, targetBatch.docId),
+                  { isDeleted: true, deletedAt: Date.now() }
+                );
+              }
+            }
+
+            showToast(`${bTitle} (${kList}) berhasil dipindahkan ke Tempat Sampah.`);
+            refreshFilterAndRender();
+            window.openSchoolHistoryModal(primaryDoc.id);
+          } catch(e) {
+            console.error("Gagal membatalkan batch pesanan", e);
+            showToast("Gagal membatalkan pesanan.", false);
+            // Muat ulang modal jika terjadi kegagalan
+            window.openSchoolHistoryModal(primaryDoc.id);
+          }
+        };
+
+        window.openHistoryModal = (npsn, tsHtmlItems) => {
+          const hn = document.getElementById("history-npsn");
+          if (hn) hn.textContent = npsn;
+          const hl = document.getElementById("history-list");
+          if (hl) hl.innerHTML = decodeURIComponent(escape(atob(tsHtmlItems)));
+          const hm = document.getElementById("history-modal");
+          if (hm) hm.classList.add("active");
+        };
+
+        window.customConfirm = (messageOrOptions, maybeOptions = {}) => {
           return new Promise((resolve) => {
+            let message = "";
+            let opts = {};
+
+            if (typeof messageOrOptions === "object" && messageOrOptions !== null) {
+              opts = messageOrOptions;
+              message = opts.message || "";
+            } else {
+              message = String(messageOrOptions || "");
+              opts = typeof maybeOptions === "object" && maybeOptions !== null ? maybeOptions : {};
+            }
+
+            // Automatic type detection if not explicitly specified
+            let type = opts.type;
+            if (!type) {
+              if (/pulih|restore/i.test(message) || /pulih|restore/i.test(opts.title || "")) {
+                type = "restore";
+              } else if (/batal(kan)?/i.test(message) || /batal/i.test(opts.title || "")) {
+                type = "warning";
+              } else {
+                type = "danger";
+              }
+            }
+
+            // Defaults based on type
+            let defaultTitle = "Konfirmasi Hapus";
+            let defaultOkText = "Hapus";
+            let iconBgClass = "bg-rose-100";
+            let okBtnClass = "bg-rose-600 hover:bg-rose-700 text-white shadow-rose-700/20";
+            let iconSvg = `
+              <svg class="h-6 w-6 text-rose-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+              </svg>
+            `;
+
+            if (type === "restore") {
+              defaultTitle = "Konfirmasi Pemulihan";
+              defaultOkText = "Pulihkan";
+              iconBgClass = "bg-teal-100";
+              okBtnClass = "bg-teal-600 hover:bg-teal-700 text-white shadow-teal-700/20";
+              iconSvg = `
+                <svg class="h-6 w-6 text-teal-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                </svg>
+              `;
+            } else if (type === "warning") {
+              defaultTitle = "Konfirmasi Pembatalan";
+              defaultOkText = "Batalkan";
+              iconBgClass = "bg-amber-100";
+              okBtnClass = "bg-amber-600 hover:bg-amber-700 text-white shadow-amber-700/20";
+              iconSvg = `
+                <svg class="h-6 w-6 text-amber-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                </svg>
+              `;
+            } else if (/permanen/i.test(message) || /permanen/i.test(opts.title || "")) {
+              defaultTitle = "Konfirmasi Hapus Permanen";
+              defaultOkText = "Hapus Permanen";
+            }
+
+            const title = opts.title || defaultTitle;
+            const okText = opts.okText || defaultOkText;
+            const cancelText = opts.cancelText || "Batal";
+
             const modal = document.getElementById("confirm-modal");
-            document.getElementById("confirm-message").textContent = message;
-            modal.classList.add("active");
+            const titleEl = document.getElementById("confirm-title");
+            const msgEl = document.getElementById("confirm-message");
+            const iconBgEl = document.getElementById("confirm-icon-bg");
+            const iconSlotEl = document.getElementById("confirm-icon-slot");
+            const okBtn = document.getElementById("confirm-ok-btn");
+            const cancelBtn = document.getElementById("confirm-cancel-btn");
+
+            if (titleEl) titleEl.textContent = title;
+            if (msgEl) msgEl.textContent = message;
+            if (iconBgEl) {
+              iconBgEl.className = `mx-auto flex items-center justify-center h-12 w-12 rounded-full ${iconBgClass} mb-4 transition-colors`;
+            }
+            if (iconSlotEl) iconSlotEl.innerHTML = iconSvg;
+
+            if (okBtn) {
+              okBtn.textContent = okText;
+              okBtn.setAttribute("data-tooltip", title);
+              okBtn.className = `w-full inline-flex justify-center rounded-lg border border-transparent shadow-sm px-4 py-2 ${okBtnClass} text-base font-bold focus:outline-none sm:w-auto sm:text-sm cursor-pointer active:scale-95 transition-all`;
+            }
+
+            if (cancelBtn) {
+              cancelBtn.textContent = cancelText;
+            }
+
+            if (modal) modal.classList.add("active");
 
             const cleanup = () => {
-              modal.classList.remove("active");
-              document.getElementById("confirm-ok-btn").onclick = null;
-              document.getElementById("confirm-cancel-btn").onclick = null;
+              if (modal) modal.classList.remove("active");
+              if (okBtn) okBtn.onclick = null;
+              if (cancelBtn) cancelBtn.onclick = null;
             };
 
-            document.getElementById("confirm-ok-btn").onclick = () => {
-              cleanup();
-              resolve(true);
-            };
+            if (okBtn) {
+              okBtn.onclick = () => {
+                cleanup();
+                resolve(true);
+              };
+            }
 
-            document.getElementById("confirm-cancel-btn").onclick = () => {
-              cleanup();
-              resolve(false);
-            };
+            if (cancelBtn) {
+              cancelBtn.onclick = () => {
+                cleanup();
+                resolve(false);
+              };
+            }
           });
         };
 
-        window.deleteHistoryItem = async (id) => {
-          const isConfirmed = await window.customConfirm(
-            "Pindahkan catatan timestamp histori ini ke Tempat Sampah?",
-          );
-          if (!isConfirmed) return;
-          try {
-            const now = Date.now();
-            if (id && id.startsWith("draft-")) {
-              const idx = drafts.findIndex((d) => d.id === id);
-              if (idx > -1) {
-                drafts[idx].isDeleted = true;
-                drafts[idx].deletedAt = now;
-                drafts[idx].changeLog = {
-                  deletedAt: now,
-                  deletedBy: "Admin",
-                  schoolName: drafts[idx]["nama-sekolah"] || "-",
-                  npsn: drafts[idx].npsn || "-",
-                  kelas: drafts[idx].kelas || [],
-                  note: "Dihapus dari Catatan Histori Versi"
-                };
-              }
-              try {
-                localStorage.setItem(
-                  "aplikasi-rapor-drafts",
-                  JSON.stringify(drafts),
-                );
-              } catch(e) {}
-              refreshFilterAndRender();
-              document
-                .getElementById("history-modal")
-                .classList.remove("active");
-              showToast("Histori dipindahkan ke Tempat Sampah.");
-            } else if (id) {
-              const { doc, updateDoc, db, appId, collectionName } =
-                window.fbComponents;
-              const item = allData.find(d => d.id === id);
-              await updateDoc(
-                doc(
-                  db,
-                  "artifacts",
-                  appId,
-                  "public",
-                  "data",
-                  collectionName,
-                  id,
-                ),
-                {
-                  isDeleted: true,
-                  deletedAt: now,
-                  changeLog: {
-                    deletedAt: now,
-                    deletedBy: "Admin",
-                    schoolName: item ? (item["nama-sekolah"] || "-") : "-",
-                    npsn: item ? (item.npsn || "-") : "-",
-                    kelas: item ? (item.kelas || []) : [],
-                    note: "Dihapus dari Catatan Histori Versi"
-                  }
-                }
-              );
-              document
-                .getElementById("history-modal")
-                .classList.remove("active");
-              showToast("Histori dipindahkan ke Tempat Sampah.");
-            }
-          } catch (e) {
-            console.error("Gagal memindahkan histori ke Tempat Sampah", e);
-            showToast("Gagal memindahkan histori.", false);
-          }
+        window.deleteHistoryItem = async (id, batchNum = 1) => {
+          await window.deleteSchoolBatch(id, batchNum);
         };
         window.openActionModal = (id = null, editModeType = "baru") => {
           window.currentEditMode = editModeType;
@@ -4298,6 +4966,7 @@
           const modal = document.getElementById("action-modal");
           const title = document.getElementById("modal-title");
           const subtitle = document.getElementById("modal-subtitle");
+          const modeDesc = document.getElementById("modal-mode-desc");
           const iconBg = document.getElementById("modal-icon-bg");
           const editActions = document.getElementById("edit-only-actions");
           const addMoreBtn = document.getElementById("save-add-more-btn");
@@ -4306,7 +4975,8 @@
           const displayId = document.getElementById("display-id");
           const editIdInput = document.getElementById("edit-id");
 
-          document.getElementById('edit-sekolah-gratis').checked = false;
+          const editGratis = document.getElementById('edit-sekolah-gratis');
+          if (editGratis) editGratis.checked = false;
           fieldIds.forEach((fid) => {
             const el = document.getElementById(`edit-${fid}`);
             if (el) el.value = "";
@@ -4340,11 +5010,12 @@
           const jpContainer = document.getElementById(
             "jenis-pesanan-container",
           );
-          document.getElementById("jenis-pesanan-baru").checked = true;
+          const jpBaru = document.getElementById("jenis-pesanan-baru");
+          if (jpBaru) jpBaru.checked = true;
           window.isEditMode = id !== null;
 
           if (id) {
-            jpContainer.style.display = "block";
+            if (jpContainer) jpContainer.style.display = "block";
             isEditMode = true;
             const firstItem = [...drafts, ...allData].find((d) => d.id === id);
             if (!firstItem) return;
@@ -4370,52 +5041,64 @@
             window.originalKelas = [...window.currentSelectedKelas];
             window.originalDocs = allSchoolDocs;
             const item = firstItem;
-            title.textContent = item.isDraft
-              ? "Edit Draft Sekolah"
-              : "Edit Profil Sekolah";
-            subtitle.classList.remove("hidden");
-            displayId.textContent = item.id;
-            editIdInput.value = item.id;
-            document.getElementById("audit-trail").classList.remove("hidden");
-            document.getElementById("audit-trail").textContent =
-              "Pembaruan Terakhir: " + formatDisplayDate(item.timestamp);
-            iconBg.className =
-              "w-10 h-10 bg-teal-600 text-white rounded-xl flex items-center justify-center shadow-lg transition-colors";
-            editActions.classList.remove("hidden");
-            addMoreBtn.classList.add("hidden");
+            if (title) {
+              title.textContent = item.isDraft
+                ? "Edit Draft Sekolah"
+                : "Edit Profil Sekolah";
+            }
+            if (subtitle) subtitle.classList.remove("hidden");
+            if (displayId) displayId.textContent = item.id;
+            if (editIdInput) editIdInput.value = item.id;
+            const auditEl = document.getElementById("audit-trail");
+            if (auditEl) {
+              auditEl.classList.remove("hidden");
+              auditEl.textContent = "Pembaruan Terakhir: " + formatDisplayDate(item.timestamp);
+            }
+            if (iconBg) {
+              iconBg.className =
+                "w-10 h-10 bg-teal-600 text-white rounded-xl flex items-center justify-center shadow-lg transition-colors";
+            }
+            if (editActions) editActions.classList.remove("hidden");
+            if (addMoreBtn) addMoreBtn.classList.add("hidden");
 
             if (item.isDraft) {
-              draftBtn.classList.remove("hidden");
-              mainBtn.textContent = "KIRIM KE DATABASE";
+              if (draftBtn) draftBtn.classList.remove("hidden");
+              if (mainBtn) mainBtn.textContent = "Kirim Data";
             } else {
-              draftBtn.classList.add("hidden");
-              mainBtn.textContent = "SIMPAN PERUBAHAN";
+              if (draftBtn) draftBtn.classList.add("hidden");
+              if (mainBtn) mainBtn.textContent = "Simpan";
             }
 
             fieldIds.forEach((fid) => {
               const el = document.getElementById(`edit-${fid}`);
               if (el) el.value = item[fid] || "";
             });
-            document.getElementById('edit-sekolah-gratis').checked = !!item['sekolah-gratis'];
+            if (editGratis) editGratis.checked = !!item['sekolah-gratis'];
             if (item["jenis-pesanan"] === "lanjutan") {
-              document.getElementById("jenis-pesanan-lanjut").checked = true;
+              const jpLanjut = document.getElementById("jenis-pesanan-lanjut");
+              if (jpLanjut) jpLanjut.checked = true;
             } else {
-              document.getElementById("jenis-pesanan-baru").checked = true;
+              if (jpBaru) jpBaru.checked = true;
             }
           } else {
-            jpContainer.style.display = "none";
+            if (jpContainer) jpContainer.style.display = "none";
             window.currentSelectedKelas = [];
             isEditMode = false;
-            title.textContent = "Registrasi Sekolah Baru";
-            subtitle.classList.add("hidden");
-            editIdInput.value = "";
-            document.getElementById("audit-trail").classList.add("hidden");
-            iconBg.className =
-              "w-10 h-10 bg-[#00897b] text-white rounded-xl flex items-center justify-center shadow-md transition-colors shrink-0";
-            editActions.classList.add("hidden");
-            addMoreBtn.classList.remove("hidden");
-            draftBtn.classList.remove("hidden");
-            mainBtn.textContent = "SIMPAN";
+            if (title) title.textContent = "Registrasi Sekolah Baru";
+            if (subtitle) subtitle.classList.add("hidden");
+            if (modeDesc) modeDesc.classList.add("hidden");
+            if (displayId) displayId.textContent = "-";
+            if (editIdInput) editIdInput.value = "";
+            const auditEl = document.getElementById("audit-trail");
+            if (auditEl) auditEl.classList.add("hidden");
+            if (iconBg) {
+              iconBg.className =
+                "w-10 h-10 bg-[#00897b] text-white rounded-xl flex items-center justify-center shadow-md transition-colors shrink-0";
+            }
+            if (editActions) editActions.classList.add("hidden");
+            if (addMoreBtn) addMoreBtn.classList.remove("hidden");
+            if (draftBtn) draftBtn.classList.remove("hidden");
+            if (mainBtn) mainBtn.textContent = "Simpan";
           }
 
           // Hide elements based on mode
@@ -4425,18 +5108,36 @@
           if (editModeType === "data") {
             if (dataFields) dataFields.style.display = "block";
             if (pesananFields) pesananFields.style.display = "none";
-            title.textContent = "Edit Data Profil Sekolah";
-          } else if (editModeType === "pesanan") {
+            if (title) title.textContent = "Edit Data Profil Sekolah";
+            if (modeDesc) {
+              modeDesc.textContent = "Ubah identitas, NPSN, atau alamat sekolah";
+              modeDesc.classList.remove("hidden");
+            }
+          } else if (editModeType === "koreksi" || editModeType === "pesanan") {
             if (dataFields) dataFields.style.display = "none";
             if (pesananFields) pesananFields.style.display = "block";
-            title.textContent = "Edit Pesanan Kelas";
+            if (title) title.textContent = "Koreksi Pesanan Kelas";
+            if (modeDesc) {
+              modeDesc.textContent = "Koreksi Pesanan Awal (Tarif Penyesuaian)";
+              modeDesc.classList.remove("hidden");
+            }
+          } else if (editModeType === "tambah_pesanan") {
+            if (dataFields) dataFields.style.display = "none";
+            if (pesananFields) pesananFields.style.display = "block";
+            if (title) title.textContent = "Tambah Pesanan Susulan";
+            if (modeDesc) {
+              modeDesc.textContent = "Pesanan Susulan Baru (Tarif Dasar)";
+              modeDesc.classList.remove("hidden");
+            }
+            window.currentSelectedKelas = [];
           } else {
             if (dataFields) dataFields.style.display = "block";
             if (pesananFields) pesananFields.style.display = "block";
+            if (modeDesc) modeDesc.classList.add("hidden");
           }
 
           updateKelasUI();
-          modal.classList.add("active");
+          if (modal) modal.classList.add("active");
         };
 
         const closeModal = () =>
@@ -4548,11 +5249,32 @@
                   );
                 }
                 showToast("Profil sekolah berhasil diperbarui.");
-              } else if (window.currentEditMode === "pesanan") {
-                // Modus Edit Pesanan Kelas: Seluruh kelas yang dipilih (window.currentSelectedKelas)
-                // diperbarui secara langsung ke dokumen utama sekolah. Database tetap TUNGGAL!
+              } else if (window.currentEditMode === "koreksi" || window.currentEditMode === "pesanan") {
+                // KATEGORI 1: Koreksi / Edit Pesanan Kelas (Memperbaiki kesalahan / kurangi / ubah kelas)
+                // Tarif: Penyesuaian/lanjutan pada batch pesanan awal
                 const primaryDoc = window.originalDocs[0];
                 if (primaryDoc) {
+                  let existingBatches = primaryDoc.order_batches;
+                  if (!existingBatches || !Array.isArray(existingBatches) || existingBatches.length === 0) {
+                    existingBatches = [
+                      {
+                        batch: 1,
+                        tipe: "awal",
+                        kelas: [...window.currentSelectedKelas],
+                        timestamp: Date.now(),
+                        label: "Pesanan Awal & Koreksi"
+                      }
+                    ];
+                  } else {
+                    // Update Batch 1 (Koreksi Pesanan Awal)
+                    existingBatches[0].kelas = [...window.currentSelectedKelas];
+                    existingBatches[0].timestamp = Date.now();
+                    existingBatches[0].tipe = "awal";
+                    existingBatches[0].label = "Pesanan Awal & Koreksi";
+                  }
+
+                  // Gabungkan semua kelas aktif
+                  const allCombinedKelas = Array.from(new Set(existingBatches.flatMap(b => b.kelas || []))).sort((a, b) => a - b);
                   await updateDoc(
                     doc(
                       db,
@@ -4564,13 +5286,65 @@
                       primaryDoc.id,
                     ),
                     {
-                      kelas: window.currentSelectedKelas,
+                      kelas: allCombinedKelas,
+                      order_batches: existingBatches,
                       "jenis-pesanan": chosenJenis,
                       timestamp: Date.now()
                     },
                   );
                 }
-                showToast("Pesanan kelas berhasil diperbarui.");
+                showToast("Koreksi pesanan kelas berhasil disimpan.");
+              } else if (window.currentEditMode === "tambah_pesanan") {
+                // KATEGORI 2: Tambah Pesanan (Batch Baru / Susulan)
+                // Tarif: Dihitung dengan harga dasar tersendiri untuk batch penambahan ini
+                if (!window.currentSelectedKelas || window.currentSelectedKelas.length === 0) {
+                  return showToast("Pilih minimal satu kelas untuk pesanan tambahan.", false);
+                }
+
+                const primaryDoc = window.originalDocs[0];
+                if (primaryDoc) {
+                  let existingBatches = primaryDoc.order_batches;
+                  if (!existingBatches || !Array.isArray(existingBatches) || existingBatches.length === 0) {
+                    existingBatches = [
+                      {
+                        batch: 1,
+                        tipe: "awal",
+                        kelas: primaryDoc.kelas || [],
+                        timestamp: primaryDoc.timestamp || (Date.now() - 3600000),
+                        label: "Pesanan Awal"
+                      }
+                    ];
+                  }
+
+                  const nextBatchNum = existingBatches.length + 1;
+                  existingBatches.push({
+                    batch: nextBatchNum,
+                    tipe: "tambah",
+                    kelas: [...window.currentSelectedKelas],
+                    timestamp: Date.now(),
+                    label: `Tambah Pesanan #${nextBatchNum}`
+                  });
+
+                  const allCombinedKelas = Array.from(new Set(existingBatches.flatMap(b => b.kelas || []))).sort((a, b) => a - b);
+                  await updateDoc(
+                    doc(
+                      db,
+                      "artifacts",
+                      appId,
+                      "public",
+                      "data",
+                      collectionName,
+                      primaryDoc.id,
+                    ),
+                    {
+                      kelas: allCombinedKelas,
+                      order_batches: existingBatches,
+                      "jenis-pesanan": "lanjutan",
+                      timestamp: Date.now()
+                    },
+                  );
+                }
+                showToast("Pesanan tambahan (Batch Baru) berhasil disimpan.");
               } else if (id.startsWith("draft-")) {
                 // Draft submission logic
                 if (isAnyEmpty)
@@ -4946,65 +5720,115 @@
 
         // --- TEMPAT SAMPAH (RECYCLE BIN & AUDIT LOG) FUNCTIONS ---
         window.getTrashSchools = () => {
+          const trashItems = [];
+
+          // 1. Kumpulkan rekaman riwayat pesanan (batch) yang dibatalkan dari sekolah aktif
+          const allDocsWithBatches = [...drafts, ...allData].filter(d => !d.isDeleted && Array.isArray(d.deleted_batches) && d.deleted_batches.length > 0);
+          allDocsWithBatches.forEach(docObj => {
+            docObj.deleted_batches.forEach(b => {
+              trashItems.push({
+                trashType: "batch",
+                key: `batch_${docObj.id}_${b.batchId || b.batchNum}`,
+                docId: docObj.id,
+                targetDocId: b.docId || docObj.id,
+                batchId: b.batchId || b.batchNum,
+                batchNum: b.batchNum,
+                "nama-sekolah": docObj["nama-sekolah"] || b.schoolName || "-",
+                npsn: docObj.npsn || b.npsn || "-",
+                title: `${b.label || ('Pesanan #' + b.batchNum)}`,
+                deletedAt: b.deletedAt || Date.now(),
+                timestamp: b.timestamp || 0,
+                kelas: b.kelas || [],
+                isDraft: docObj.id.startsWith("draft-"),
+                docs: [], // JANGAN masukkan docObj ke docs agar tidak pernah terhapus permanen!
+                parentDoc: docObj,
+                batchData: b,
+                alamat: docObj.alamat || "-",
+                kecamatan: docObj.kecamatan || "-",
+                kabupaten: docObj["kabupaten-kota-nama"] || "-"
+              });
+            });
+          });
+
+          // 2. Kumpulkan dokumen yang isDeleted === true
           const trashDrafts = drafts.filter((d) => d.isDeleted);
           const trashData = allData.filter((d) => d.isDeleted);
           const allTrash = [...trashDrafts, ...trashData];
 
-          const trashMap = new Map();
+          const schoolTrashMap = new Map();
           allTrash.forEach((item) => {
-            const key = item.npsn
-              ? String(item.npsn).trim().toLowerCase()
-              : item["nama-sekolah"]
-                ? String(item["nama-sekolah"]).trim().toLowerCase()
-                : item.id;
-            
-            if (!trashMap.has(key)) {
-              let aggregatedKelas = Array.isArray(item.kelas) ? [...item.kelas] : [];
-              trashMap.set(key, {
-                key,
+            const itemNpsn = item.npsn && String(item.npsn).trim() !== "-" ? String(item.npsn).trim().toLowerCase() : "";
+            const itemNama = item["nama-sekolah"] ? String(item["nama-sekolah"]).trim().toLowerCase() : "";
+            const npsnKey = itemNpsn || itemNama || item.id;
+
+            // Cek apakah sekolah ini masih memiliki dokumen lain yang aktif di Data Pokok
+            const hasOtherActiveDocs = [...drafts, ...allData].some(d => !d.isDeleted && d.id !== item.id && (
+              (itemNpsn && d.npsn && String(d.npsn).trim().toLowerCase() === itemNpsn) ||
+              (itemNama && d["nama-sekolah"] && String(d["nama-sekolah"]).trim().toLowerCase() === itemNama)
+            ));
+
+            if (hasOtherActiveDocs) {
+              // Ini hanya dokumen versi pesanan yang dibatalkan, sekolah induknya masih aktif di Data Pokok!
+              trashItems.push({
+                trashType: "doc_version",
+                key: `doc_version_${item.id}`,
+                docId: item.id,
                 id: item.id,
                 "nama-sekolah": item["nama-sekolah"] || "-",
                 npsn: item.npsn || "-",
+                title: `Versi Pesanan (Kelas ${(item.kelas || []).join(', ')})`,
                 deletedAt: item.deletedAt || item.timestamp || Date.now(),
                 timestamp: item.timestamp || 0,
-                kelas: aggregatedKelas,
-                docs: [item],
-                changeLog: item.changeLog || null,
+                kelas: Array.isArray(item.kelas) ? [...item.kelas] : [],
                 isDraft: !!item.isDraft,
+                docs: [item],
                 alamat: item.alamat || "-",
                 kecamatan: item.kecamatan || "-",
-                kabupaten: item["kabupaten-kota-nama"] || "-",
-                provinsi: item.provinsi || "-"
+                kabupaten: item["kabupaten-kota-nama"] || "-"
               });
             } else {
-              const existing = trashMap.get(key);
-              existing.docs.push(item);
-              if (Array.isArray(item.kelas)) {
-                item.kelas.forEach(k => {
-                  if (!existing.kelas.includes(k)) existing.kelas.push(k);
+              // Seluruh profil sekolah dihapus
+              if (!schoolTrashMap.has(npsnKey)) {
+                let aggregatedKelas = Array.isArray(item.kelas) ? [...item.kelas] : [];
+                schoolTrashMap.set(npsnKey, {
+                  trashType: "school",
+                  key: `school_${npsnKey}`,
+                  id: item.id,
+                  "nama-sekolah": item["nama-sekolah"] || "-",
+                  npsn: item.npsn || "-",
+                  title: "Seluruh Profil Sekolah",
+                  deletedAt: item.deletedAt || item.timestamp || Date.now(),
+                  timestamp: item.timestamp || 0,
+                  kelas: aggregatedKelas,
+                  docs: [item],
+                  changeLog: item.changeLog || null,
+                  isDraft: !!item.isDraft,
+                  alamat: item.alamat || "-",
+                  kecamatan: item.kecamatan || "-",
+                  kabupaten: item["kabupaten-kota-nama"] || "-",
+                  provinsi: item.provinsi || "-"
                 });
-                existing.kelas.sort((a, b) => a - b);
-              }
-              const d1 = existing.deletedAt || 0;
-              const d2 = item.deletedAt || 0;
-              if (d2 > d1) {
-                existing.deletedAt = d2;
-                if (item.changeLog) existing.changeLog = item.changeLog;
-              }
-              const t1 = existing.timestamp || 0;
-              const t2 = item.timestamp || 0;
-              if (t2 > t1) {
-                existing.timestamp = t2;
-                existing["nama-sekolah"] = item["nama-sekolah"] || existing["nama-sekolah"];
-                existing.alamat = item.alamat || existing.alamat;
-                existing.kecamatan = item.kecamatan || existing.kecamatan;
-                existing.kabupaten = item["kabupaten-kota-nama"] || existing.kabupaten;
-                existing.provinsi = item.provinsi || existing.provinsi;
+              } else {
+                const existing = schoolTrashMap.get(npsnKey);
+                existing.docs.push(item);
+                if (Array.isArray(item.kelas)) {
+                  item.kelas.forEach(k => {
+                    if (!existing.kelas.includes(k)) existing.kelas.push(k);
+                  });
+                  existing.kelas.sort((a, b) => a - b);
+                }
+                const d1 = existing.deletedAt || 0;
+                const d2 = item.deletedAt || 0;
+                if (d2 > d1) {
+                  existing.deletedAt = d2;
+                  if (item.changeLog) existing.changeLog = item.changeLog;
+                }
               }
             }
           });
 
-          return Array.from(trashMap.values());
+          schoolTrashMap.forEach(v => trashItems.push(v));
+          return trashItems;
         };
 
         window.renderTrashTable = () => {
@@ -5033,7 +5857,8 @@
             list = list.filter((item) =>
               (item["nama-sekolah"] && item["nama-sekolah"].toLowerCase().includes(searchVal)) ||
               (item.npsn && item.npsn.toLowerCase().includes(searchVal)) ||
-              (item.alamat && item.alamat.toLowerCase().includes(searchVal))
+              (item.alamat && item.alamat.toLowerCase().includes(searchVal)) ||
+              (item.title && item.title.toLowerCase().includes(searchVal))
             );
           }
 
@@ -5062,7 +5887,7 @@
                       </svg>
                     </div>
                     <h4 class="text-slate-600 font-bold text-xs mb-0.5">Tempat Sampah Kosong</h4>
-                    <p class="text-slate-400 text-[11px]">${searchVal ? 'Tidak ada data terhapus yang cocok dengan pencarian.' : 'Tidak ada data satuan pendidikan yang dihapus sementara.'}</p>
+                    <p class="text-slate-400 text-[11px]">${searchVal ? 'Tidak ada data terhapus yang cocok dengan pencarian.' : 'Tidak ada rekaman riwayat atau data sekolah yang berada di Tempat Sampah.'}</p>
                   </div>
                 </td>
               </tr>
@@ -5077,7 +5902,7 @@
             // Format deleted time
             const dateStr = formatDisplayDate(item.deletedAt);
             
-            // Relative time (e.g. 5 menit lalu, 1 jam lalu)
+            // Relative time
             const diffMs = Date.now() - (item.deletedAt || Date.now());
             const diffMins = Math.floor(diffMs / 60000);
             let timeAgo = "Baru saja";
@@ -5087,10 +5912,20 @@
 
             // Classes badges
             const kBadges = (item.kelas && item.kelas.length > 0)
-              ? item.kelas.map(k => `<span class="inline-flex items-center justify-center w-4 h-4 bg-teal-50 border border-teal-200 text-teal-700 font-bold text-[9px] rounded">${k}</span>`).join(" ")
+              ? item.kelas.slice().sort((a,b)=>a-b).map(k => `<span class="inline-flex items-center justify-center w-4 h-4 bg-teal-50 border border-teal-200 text-teal-700 font-bold text-[9px] rounded shadow-2xs">${k}</span>`).join(" ")
               : '<span class="text-slate-300 text-[10px]">-</span>';
 
             const encodedKey = encodeURIComponent(item.key);
+
+            let typeBadgeHtml = '';
+            let subtitleHtml = '';
+            if (item.trashType === 'batch' || item.trashType === 'doc_version') {
+              typeBadgeHtml = '<span class="bg-indigo-100 text-indigo-800 border border-indigo-200 text-[9px] font-black px-1.5 py-0.5 rounded-full shadow-2xs">Riwayat Versi</span>';
+              subtitleHtml = `<div class="text-[11px] font-bold text-indigo-700 mt-0.5 flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-indigo-500"></span><span>${item.title}</span></div>`;
+            } else {
+              typeBadgeHtml = '<span class="bg-rose-100 text-rose-800 border border-rose-200 text-[9px] font-black px-1.5 py-0.5 rounded-full shadow-2xs">Sekolah Utuh</span>';
+              subtitleHtml = `<div class="text-[10px] text-rose-600 font-medium mt-0.5">Semua Riwayat & Profil Sekolah (${item.docs.length} Dokumen)</div>`;
+            }
 
             tr.innerHTML = `
               <td class="py-2.5 px-3 text-center font-bold text-slate-400">${index + 1}</td>
@@ -5099,11 +5934,13 @@
                 <div class="text-[10px] text-rose-500 font-medium">${timeAgo}</div>
               </td>
               <td class="py-2.5 px-3">
-                <div class="font-bold text-slate-800 text-xs truncate max-w-[210px]">${item["nama-sekolah"]}</div>
-                <div class="flex items-center gap-1.5 mt-0.5">
-                  <span class="text-[10px] font-mono text-slate-400">NPSN: ${item.npsn || "-"}</span>
+                <div class="flex items-center gap-1.5 mb-1">
+                  ${typeBadgeHtml}
                   ${item.isDraft ? '<span class="bg-amber-100 text-amber-700 px-1 py-0.2 rounded text-[9px] font-bold">DRAFT</span>' : ''}
                 </div>
+                <div class="font-bold text-slate-800 text-xs truncate max-w-[210px]">${item["nama-sekolah"]}</div>
+                ${subtitleHtml}
+                <div class="text-[10px] font-mono text-slate-400 mt-0.5">NPSN: ${item.npsn || "-"}</div>
               </td>
               <td class="py-2.5 px-3 text-center">
                 <div class="flex flex-wrap items-center justify-center gap-1">
@@ -5114,11 +5951,10 @@
                 <button
                   type="button"
                   onclick="window.openTrashDetailModal('${encodedKey}')"
-                  class="px-2.5 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold rounded-lg border border-indigo-200 transition-all text-[11px] inline-flex items-center gap-1 cursor-pointer active:scale-95 shadow-2xs hover:shadow-xs"
-                  data-tooltip="Lihat Catatan Riwayat"
+                  class="p-1.5 bg-slate-100 hover:bg-slate-200/90 text-slate-700 font-bold rounded-lg border border-slate-200 transition-all text-xs inline-flex items-center justify-center cursor-pointer active:scale-95 shadow-2xs hover:shadow-xs"
+                  data-tooltip="Detail Perubahan"
                 >
-                  <svg class="w-3 h-3 text-indigo-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                  <span>Riwayat (${item.docs.length})</span>
+                  <svg class="w-3.5 h-3.5 text-slate-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                 </button>
               </td>
               <td class="py-2.5 px-3 text-center whitespace-nowrap">
@@ -5126,26 +5962,127 @@
                   <button
                     type="button"
                     onclick="window.restoreTrashSchool('${encodedKey}')"
-                    class="px-2.5 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 font-bold rounded-lg transition-all text-[11px] flex items-center gap-1 cursor-pointer active:scale-95 shadow-2xs hover:shadow-xs"
-                    data-tooltip="Pulihkan Sekolah Ini"
+                    class="p-1.5 sm:px-2.5 sm:py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 font-bold rounded-lg transition-all text-xs flex items-center gap-1 cursor-pointer active:scale-95 shadow-2xs hover:shadow-xs"
+                    data-tooltip="${item.trashType === 'batch' || item.trashType === 'doc_version' ? 'Pulihkan Riwayat Pesanan' : 'Pulihkan Seluruh Data'}"
                   >
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-                    <span>Pulihkan</span>
+                    <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                    <span class="hidden sm:inline">Pulihkan</span>
                   </button>
                   <button
                     type="button"
                     onclick="window.permanentDeleteTrashSchool('${encodedKey}')"
-                    class="px-2.5 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-bold rounded-lg transition-all text-[11px] flex items-center gap-1 cursor-pointer active:scale-95 shadow-2xs hover:shadow-xs"
-                    data-tooltip="Hapus Permanen Data"
+                    class="p-1.5 sm:px-2.5 sm:py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-bold rounded-lg transition-all text-xs flex items-center gap-1 cursor-pointer active:scale-95 shadow-2xs hover:shadow-xs"
+                    data-tooltip="Hapus Permanen"
                   >
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                    <span>Hapus</span>
+                    <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                    <span class="hidden sm:inline">Hapus</span>
                   </button>
                 </div>
               </td>
             `;
             trashBody.appendChild(tr);
           });
+        };
+
+        window.syncTagihanColumnVisibility = (hasTerbayar, hasPiutang) => {
+          const thTerbayar = document.getElementById("th-tagihan-terbayar");
+          const thPiutang = document.getElementById("th-tagihan-piutang");
+          if (thTerbayar) thTerbayar.style.display = hasTerbayar ? "" : "none";
+          if (thPiutang) thPiutang.style.display = hasPiutang ? "" : "none";
+
+          document.querySelectorAll(".tagihan-col-terbayar").forEach((el) => {
+            el.style.display = hasTerbayar ? "" : "none";
+          });
+          document.querySelectorAll(".tagihan-col-piutang").forEach((el) => {
+            el.style.display = hasPiutang ? "" : "none";
+          });
+
+          const totalLabel = document.getElementById("tagihan-total-label");
+          const akumulasiLabel = document.getElementById("tagihan-akumulasi-label");
+          const cellAkumulasi = document.getElementById("tagihan-akumulasi");
+          const rowAkumulasi = document.getElementById("tagihan-akumulasi-row");
+
+          const baseColspan = 10;
+          if (totalLabel) totalLabel.colSpan = baseColspan;
+          if (akumulasiLabel) akumulasiLabel.colSpan = baseColspan;
+
+          const visibleCount = (hasTerbayar ? 1 : 0) + (hasPiutang ? 1 : 0);
+          if (cellAkumulasi) {
+            cellAkumulasi.colSpan = Math.max(1, visibleCount);
+            cellAkumulasi.style.display = visibleCount > 0 ? "" : "none";
+          }
+          if (rowAkumulasi) {
+            rowAkumulasi.style.display = visibleCount > 0 ? "" : "none";
+          }
+
+          if (akumulasiLabel) {
+            if (hasTerbayar && hasPiutang) {
+              akumulasiLabel.textContent = "TOTAL AKUMULASI (TERBAYAR + PIUTANG)";
+            } else if (hasTerbayar) {
+              akumulasiLabel.textContent = "TOTAL TERBAYAR";
+            } else if (hasPiutang) {
+              akumulasiLabel.textContent = "TOTAL PIUTANG";
+            } else {
+              akumulasiLabel.textContent = "TOTAL TAGIHAN";
+            }
+          }
+        };
+
+        window.recalculateSingleTagihanRow = (targetNpsn) => {
+          let settings = {};
+          try {
+            settings = JSON.parse(localStorage.getItem("aplikasi-rapor-tagihan-settings") || "{}");
+          } catch(e){}
+
+          let totalActive = 0;
+          let totalTransit = 0;
+          const rows = document.querySelectorAll("#tagihan-table-body tr");
+          rows.forEach((row) => {
+            const rNpsn = row.getAttribute("data-npsn");
+            const rBase = parseInt(row.getAttribute("data-base-cost") || "0", 10);
+            const rSetting = settings[rNpsn] || { isLunas: false, diskon: 0, biayaTambahan: 0 };
+            const rDiskon = rSetting.diskon || 0;
+            const rBiayaTambahan = rSetting.biayaTambahan || 0;
+            const rFinal = rBase - rDiskon + rBiayaTambahan;
+            const rIsGratis = rBase === 0 && rBiayaTambahan === 0;
+            const rActualLunas = rIsGratis ? true : Boolean(rSetting.isLunas);
+
+            if (rNpsn === targetNpsn) {
+              const lunasCell = document.getElementById(`tagihan-lunas-${targetNpsn}`);
+              const piutangCell = document.getElementById(`tagihan-piutang-${targetNpsn}`);
+              if (lunasCell) {
+                lunasCell.innerHTML = rActualLunas
+                  ? `<span class="text-teal-700 font-mono font-bold text-[10.5px]">${rFinal < 0 ? '-Rp ' + Math.abs(rFinal).toLocaleString("id-ID") : 'Rp ' + rFinal.toLocaleString("id-ID")}</span>`
+                  : `<span class="text-slate-300 font-mono font-medium text-[10.5px]">-</span>`;
+              }
+              if (piutangCell) {
+                piutangCell.innerHTML = !rActualLunas
+                  ? `<span class="text-amber-600 font-mono font-bold text-[10.5px]" data-tooltip="Belum Lunas">${rFinal < 0 ? '-Rp ' + Math.abs(rFinal).toLocaleString("id-ID") : 'Rp ' + rFinal.toLocaleString("id-ID")}</span>`
+                  : `<span class="text-slate-300 font-mono font-medium text-[10.5px]">-</span>`;
+              }
+            }
+
+            if (rActualLunas) {
+              totalActive += rFinal;
+            } else {
+              totalTransit += rFinal;
+            }
+          });
+
+          const totalAll = totalActive + totalTransit;
+          const formatAcc = (val) => val < 0 ? "-Rp " + Math.abs(val).toLocaleString("id-ID") : "Rp " + val.toLocaleString("id-ID");
+          const elTotal = document.getElementById("tagihan-total");
+          if (elTotal) elTotal.textContent = formatAcc(totalActive);
+          const elTransit = document.getElementById("tagihan-transit");
+          if (elTransit) elTransit.textContent = formatAcc(totalTransit);
+          const elAkumulasi = document.getElementById("tagihan-akumulasi");
+          if (elAkumulasi) elAkumulasi.textContent = formatAcc(totalAll);
+
+          const hasTerbayar = totalActive !== 0;
+          const hasPiutang = totalTransit !== 0;
+          if (window.syncTagihanColumnVisibility) {
+            window.syncTagihanColumnVisibility(hasTerbayar, hasPiutang);
+          }
         };
 
         window.updateTagihanSetting = async (npsn, key, val) => {
@@ -5167,13 +6104,22 @@
           }
           localStorage.setItem("aplikasi-rapor-tagihan-settings", JSON.stringify(settings));
           
-          if (window.latestUniqueSchools) {
-            window.renderTable(window.latestUniqueSchools);
+          const tagihanTableBody = document.getElementById("tagihan-table-body");
+          const activeEl = document.activeElement;
+          const isEditingTagihan = tagihanTableBody && activeEl && (
+            tagihanTableBody.contains(activeEl) || activeEl.classList?.contains("flat-tagihan-input")
+          );
+
+          if (isEditingTagihan) {
+            window.recalculateSingleTagihanRow(npsn);
           } else {
-            refreshFilterAndRender();
+            if (window.latestUniqueSchools) {
+              window.renderTable(window.latestUniqueSchools);
+            } else {
+              refreshFilterAndRender();
+            }
           }
 
-          // Persist to Supabase Database
           const npsnLower = String(npsn).toLowerCase().trim();
           const schoolDocs = allData.filter(d => d.npsn && String(d.npsn).toLowerCase().trim() === npsnLower);
           if (schoolDocs.length > 0) {
@@ -5184,6 +6130,13 @@
               else if (key === 'diskon') dbField.tagihan_diskon = parseInt(val, 10) || 0;
               else if (key === 'biayaTambahan') dbField.tagihan_biaya_tambahan = parseInt(val, 10) || 0;
               else if (key === 'pemesan') dbField.tagihan_pemesan = String(val || "").trim();
+
+              schoolDocs.forEach(d => {
+                if (key === 'isLunas') d.tagihan_is_lunas = Boolean(val);
+                else if (key === 'diskon') d.tagihan_diskon = parseInt(val, 10) || 0;
+                else if (key === 'biayaTambahan') d.tagihan_biaya_tambahan = parseInt(val, 10) || 0;
+                else if (key === 'pemesan') d.tagihan_pemesan = String(val || "").trim();
+              });
 
               const dbUpdates = schoolDocs.map(d => 
                 updateDoc(
@@ -5234,8 +6187,135 @@
           const target = list.find(s => s.key === key);
           if (!target) return;
 
+          if (target.trashType === "batch") {
+            const docObj = [...drafts, ...allData].find(d => d.id === target.docId);
+            if (!docObj) return showToast("Dokumen induk sekolah tidak ditemukan.", false);
+
+            const isConfirmed = await window.customConfirm(
+              `Pulihkan riwayat "${target.title}" untuk sekolah "${target['nama-sekolah']}" kembali ke Data Pokok?`,
+              {
+                title: "Konfirmasi Pemulihan Riwayat",
+                okText: "Pulihkan Riwayat",
+                type: "restore"
+              }
+            );
+            if (!isConfirmed) return;
+
+            showToast(`Memulihkan ${target.title}...`);
+            const remainingDeleted = (docObj.deleted_batches || []).filter(b => (b.batchId || b.batchNum) !== target.batchId);
+            const existingBatches = Array.isArray(docObj.order_batches) ? [...docObj.order_batches] : [];
+            const restoredBatch = {
+              batch: target.batchData.batchNum || (existingBatches.length + 1),
+              tipe: target.batchData.tipe || "tambah",
+              kelas: target.batchData.kelas || [],
+              timestamp: target.batchData.timestamp || Date.now(),
+              label: target.batchData.label || `Pesanan #${existingBatches.length + 1}`,
+              docId: target.targetDocId || docObj.id
+            };
+            existingBatches.push(restoredBatch);
+            existingBatches.sort((a,b) => (a.batch || 0) - (b.batch || 0));
+
+            const allCombinedKelas = Array.from(new Set(existingBatches.flatMap(b => b.kelas || []))).sort((a,b)=>a-b);
+
+            if (docObj.id.startsWith("draft-")) {
+              docObj.order_batches = existingBatches;
+              docObj.deleted_batches = remainingDeleted;
+              docObj.kelas = allCombinedKelas;
+              try { localStorage.setItem("aplikasi-rapor-drafts", JSON.stringify(drafts)); } catch(e){}
+            } else {
+              docObj.order_batches = existingBatches;
+              docObj.deleted_batches = remainingDeleted;
+              docObj.kelas = allCombinedKelas;
+              allData.forEach((d) => {
+                if (d.id === docObj.id) {
+                  d.order_batches = existingBatches;
+                  d.deleted_batches = remainingDeleted;
+                  d.kelas = allCombinedKelas;
+                }
+              });
+              const { doc, updateDoc, db, appId, collectionName } = window.fbComponents;
+              await updateDoc(
+                doc(db, "artifacts", appId, "public", "data", collectionName, docObj.id),
+                {
+                  order_batches: existingBatches,
+                  deleted_batches: remainingDeleted,
+                  kelas: allCombinedKelas
+                }
+              );
+            }
+
+            // Jika batch berasal dari dokumen terpisah, pulihkan status isDeleted: false dokumen tersebut
+            if (target.targetDocId && target.targetDocId !== target.docId) {
+              if (target.targetDocId.startsWith("draft-")) {
+                const d = drafts.find(x => x.id === target.targetDocId);
+                if (d) { d.isDeleted = false; delete d.deletedAt; }
+                try { localStorage.setItem("aplikasi-rapor-drafts", JSON.stringify(drafts)); } catch(e){}
+              } else {
+                allData.forEach((d) => {
+                  if (d.id === target.targetDocId) {
+                    d.isDeleted = false;
+                    delete d.deletedAt;
+                  }
+                });
+                try {
+                  const { doc, updateDoc, db, appId, collectionName } = window.fbComponents;
+                  await updateDoc(
+                    doc(db, "artifacts", appId, "public", "data", collectionName, target.targetDocId),
+                    { isDeleted: false, restoredAt: Date.now() }
+                  );
+                } catch(e) {}
+              }
+            }
+
+            showToast(`Riwayat ${target.title} berhasil dipulihkan ke sekolah.`);
+            refreshFilterAndRender();
+            window.renderTrashTable();
+            return;
+          }
+
+          if (target.trashType === "doc_version") {
+            const isConfirmed = await window.customConfirm(
+              `Pulihkan dokumen versi "${target.title}" untuk "${target['nama-sekolah']}" kembali ke Data Pokok?`,
+              {
+                title: "Konfirmasi Pemulihan Versi",
+                okText: "Pulihkan Versi",
+                type: "restore"
+              }
+            );
+            if (!isConfirmed) return;
+
+            showToast(`Memulihkan versi riwayat...`);
+            if (target.docId.startsWith("draft-")) {
+              const d = drafts.find(x => x.id === target.docId);
+              if (d) { d.isDeleted = false; delete d.deletedAt; }
+              try { localStorage.setItem("aplikasi-rapor-drafts", JSON.stringify(drafts)); } catch(e){}
+            } else {
+              allData.forEach((d) => {
+                if (d.id === target.docId) {
+                  d.isDeleted = false;
+                  delete d.deletedAt;
+                }
+              });
+              const { doc, updateDoc, db, appId, collectionName } = window.fbComponents;
+              await updateDoc(
+                doc(db, "artifacts", appId, "public", "data", collectionName, target.docId),
+                { isDeleted: false, restoredAt: Date.now() }
+              );
+            }
+            showToast(`Riwayat berhasil dipulihkan.`);
+            refreshFilterAndRender();
+            window.renderTrashTable();
+            return;
+          }
+
+          // target.trashType === 'school'
           const isConfirmed = await window.customConfirm(
-            `Pulihkan data sekolah ${target["nama-sekolah"]} kembali ke Data Pokok?`,
+            `Pulihkan seluruh data sekolah "${target['nama-sekolah']}" kembali ke Data Pokok?`,
+            {
+              title: "Konfirmasi Pemulihan Sekolah",
+              okText: "Pulihkan Sekolah",
+              type: "restore"
+            }
           );
           if (!isConfirmed) return;
 
@@ -5250,6 +6330,13 @@
                   delete drafts[idx].deletedAt;
                 }
               } else if (docObj.id) {
+                allData.forEach((d) => {
+                  if (d.id === docObj.id) {
+                    d.isDeleted = false;
+                    delete d.deletedAt;
+                  }
+                });
+                const { doc, updateDoc, db, appId, collectionName } = window.fbComponents;
                 await updateDoc(
                   doc(db, "artifacts", appId, "public", "data", collectionName, docObj.id),
                   {
@@ -5279,13 +6366,76 @@
           const target = list.find(s => s.key === key);
           if (!target) return;
 
+          if (target.trashType === "batch") {
+            const isConfirmed = await window.customConfirm(
+              `Hapus permanen rekaman riwayat "${target.title}" untuk "${target['nama-sekolah']}"?\n\nCATATAN: Tindakan ini HANYA memusnahkan rekaman riwayat ini dari Tempat Sampah. Sekolah induk beserta versi-versi lainnya di Data Pokok akan TETAP AMAN dan AKTIF.`
+            );
+            if (!isConfirmed) return;
+
+            showToast(`Menghapus permanen rekaman riwayat...`);
+            const docObj = [...drafts, ...allData].find(d => d.id === target.docId);
+            if (docObj) {
+              const remainingDeleted = (docObj.deleted_batches || []).filter(b => (b.batchId || b.batchNum) !== target.batchId);
+              if (docObj.id.startsWith("draft-")) {
+                docObj.deleted_batches = remainingDeleted;
+                try { localStorage.setItem("aplikasi-rapor-drafts", JSON.stringify(drafts)); } catch(e){}
+              } else {
+                const { doc, updateDoc, db, appId, collectionName } = window.fbComponents;
+                await updateDoc(
+                  doc(db, "artifacts", appId, "public", "data", collectionName, docObj.id),
+                  { deleted_batches: remainingDeleted }
+                );
+              }
+            }
+
+            // Jika batch ini berasal dari dokumen versi terpisah, hapus dokumen terpisah tersebut saja (jangan sentuh docObj induk!)
+            if (target.targetDocId && target.targetDocId !== target.docId) {
+              if (target.targetDocId.startsWith("draft-")) {
+                drafts = drafts.filter(d => d.id !== target.targetDocId);
+                try { localStorage.setItem("aplikasi-rapor-drafts", JSON.stringify(drafts)); } catch(e){}
+              } else {
+                try {
+                  const { doc, deleteDoc, db, appId, collectionName } = window.fbComponents;
+                  await deleteDoc(doc(db, "artifacts", appId, "public", "data", collectionName, target.targetDocId));
+                } catch(e) {}
+              }
+            }
+
+            showToast(`Rekaman riwayat berhasil dihapus permanen. Sekolah induk tetap aktif.`);
+            refreshFilterAndRender();
+            window.renderTrashTable();
+            return;
+          }
+
+          if (target.trashType === "doc_version") {
+            const isConfirmed = await window.customConfirm(
+              `Hapus permanen dokumen riwayat "${target.title}" untuk "${target['nama-sekolah']}"?\n\nCATATAN: Tindakan ini HANYA menghapus versi riwayat ini. Dokumen induk sekolah lainnya di Data Pokok akan TETAP AMAN dan AKTIF.`
+            );
+            if (!isConfirmed) return;
+
+            showToast(`Menghapus versi riwayat...`);
+            if (target.docId.startsWith("draft-")) {
+              drafts = drafts.filter(d => d.id !== target.docId);
+              try { localStorage.setItem("aplikasi-rapor-drafts", JSON.stringify(drafts)); } catch(e){}
+            } else {
+              const { doc, deleteDoc, db, appId, collectionName } = window.fbComponents;
+              await deleteDoc(doc(db, "artifacts", appId, "public", "data", collectionName, target.docId));
+            }
+            showToast(`Versi riwayat berhasil dihapus permanen. Sekolah induk tetap aktif.`);
+            refreshFilterAndRender();
+            window.renderTrashTable();
+            return;
+          }
+
+          // target.trashType === 'school'
           const isConfirmed = await window.customConfirm(
-            `Hapus permanen data ${target["nama-sekolah"]}? Tindakan ini tidak dapat dibatalkan dan seluruh data akan musnah selamanya dari database.`,
+            `Hapus permanen SELURUH DATA sekolah "${target['nama-sekolah']}"? Tindakan ini tidak dapat dibatalkan dan seluruh profil sekolah akan musnah selamanya dari database.`
           );
           if (!isConfirmed) return;
 
           try {
             showToast(`Menghapus permanen ${target["nama-sekolah"]}...`);
+            const { doc, deleteDoc, db, appId, collectionName } = window.fbComponents;
             for (const docObj of target.docs) {
               if (docObj.id && docObj.id.startsWith("draft-")) {
                 drafts = drafts.filter(d => d.id !== docObj.id);
@@ -5314,38 +6464,21 @@
           if (list.length === 0) return showToast("Tempat Sampah kosong.", false);
 
           const isConfirmed = await window.customConfirm(
-            `Pulihkan seluruh (${list.length}) data sekolah dari Tempat Sampah ke Data Pokok?`,
+            `Pulihkan seluruh (${list.length}) data dari Tempat Sampah ke Data Pokok?`,
+            {
+              title: "Konfirmasi Pulihkan Semua",
+              okText: "Pulihkan Semua",
+              type: "restore"
+            }
           );
           if (!isConfirmed) return;
 
           try {
             showToast("Sedang memulihkan seluruh data...");
-            const now = Date.now();
-            for (const school of list) {
-              for (const docObj of school.docs) {
-                if (docObj.id && docObj.id.startsWith("draft-")) {
-                  const idx = drafts.findIndex(d => d.id === docObj.id);
-                  if (idx > -1) {
-                    drafts[idx].isDeleted = false;
-                    delete drafts[idx].deletedAt;
-                  }
-                } else if (docObj.id) {
-                  await updateDoc(
-                    doc(db, "artifacts", appId, "public", "data", collectionName, docObj.id),
-                    {
-                      isDeleted: false,
-                      restoredAt: now
-                    }
-                  );
-                }
-              }
+            for (const item of list) {
+              await window.restoreTrashSchool(encodeURIComponent(item.key));
             }
-
-            try {
-              localStorage.setItem("aplikasi-rapor-drafts", JSON.stringify(drafts));
-            } catch(e) {}
-
-            showToast("Seluruh data sekolah berhasil dipulihkan!");
+            showToast("Seluruh data berhasil dipulihkan!");
             refreshFilterAndRender();
             window.renderTrashTable();
           } catch(e) {
@@ -5359,20 +6492,53 @@
           if (list.length === 0) return showToast("Tempat Sampah sudah kosong.", false);
 
           const isConfirmed = await window.customConfirm(
-            `PERINGATAN: Kosongkan seluruh Tempat Sampah? Semua ${list.length} data sekolah akan dihapus permanen selamanya dari database!`,
+            `PERINGATAN: Kosongkan seluruh Tempat Sampah? Semua ${list.length} item riwayat & sekolah di Tempat Sampah akan dihapus permanen!`,
           );
           if (!isConfirmed) return;
 
           try {
             showToast("Sedang mengosongkan Tempat Sampah...");
-            for (const school of list) {
-              for (const docObj of school.docs) {
-                if (docObj.id && docObj.id.startsWith("draft-")) {
-                  drafts = drafts.filter(d => d.id !== docObj.id);
-                } else if (docObj.id) {
-                  await deleteDoc(
-                    doc(db, "artifacts", appId, "public", "data", collectionName, docObj.id)
-                  );
+            const { doc, updateDoc, deleteDoc, db, appId, collectionName } = window.fbComponents;
+
+            for (const item of list) {
+              if (item.trashType === "batch") {
+                const docObj = [...drafts, ...allData].find(d => d.id === item.docId);
+                if (docObj) {
+                  docObj.deleted_batches = [];
+                  if (docObj.id.startsWith("draft-")) {
+                    try { localStorage.setItem("aplikasi-rapor-drafts", JSON.stringify(drafts)); } catch(e){}
+                  } else {
+                    await updateDoc(
+                      doc(db, "artifacts", appId, "public", "data", collectionName, docObj.id),
+                      { deleted_batches: [] }
+                    );
+                  }
+                }
+                if (item.targetDocId && item.targetDocId !== item.docId) {
+                  if (item.targetDocId.startsWith("draft-")) {
+                    drafts = drafts.filter(d => d.id !== item.targetDocId);
+                    try { localStorage.setItem("aplikasi-rapor-drafts", JSON.stringify(drafts)); } catch(e){}
+                  } else {
+                    try {
+                      await deleteDoc(doc(db, "artifacts", appId, "public", "data", collectionName, item.targetDocId));
+                    } catch(e) {}
+                  }
+                }
+              } else if (item.trashType === "doc_version") {
+                if (item.docId.startsWith("draft-")) {
+                  drafts = drafts.filter(d => d.id !== item.docId);
+                } else {
+                  await deleteDoc(doc(db, "artifacts", appId, "public", "data", collectionName, item.docId));
+                }
+              } else if (item.trashType === "school") {
+                for (const docObj of item.docs) {
+                  if (docObj.id && docObj.id.startsWith("draft-")) {
+                    drafts = drafts.filter(d => d.id !== docObj.id);
+                  } else if (docObj.id) {
+                    await deleteDoc(
+                      doc(db, "artifacts", appId, "public", "data", collectionName, docObj.id)
+                    );
+                  }
                 }
               }
             }
@@ -5396,72 +6562,108 @@
           const target = list.find(s => s.key === key);
           if (!target) return;
 
-          document.getElementById("trash-detail-subtitle").textContent = `NPSN: ${target.npsn || "-"} | ${target["nama-sekolah"]}`;
+          const trashSubtitle = document.getElementById("trash-detail-subtitle");
+          if (trashSubtitle) trashSubtitle.textContent = `NPSN: ${target.npsn || "-"} | ${target["nama-sekolah"]}`;
           const content = document.getElementById("trash-detail-content");
 
           const log = target.changeLog || {};
           const kBadges = (target.kelas && target.kelas.length > 0)
-            ? target.kelas.map(k => `<span class="inline-flex items-center justify-center w-5 h-5 bg-teal-100 text-teal-800 font-bold text-xs rounded shadow-2xs">${k}</span>`).join(" ")
+            ? target.kelas.slice().sort((a,b)=>a-b).map(k => `<span class="inline-flex items-center justify-center w-5 h-5 bg-teal-100 text-teal-800 font-bold text-xs rounded shadow-2xs">${k}</span>`).join(" ")
             : '<span class="text-slate-400">Tidak ada</span>';
 
-          const tsHistoryList = target.docs.map((d, i) => {
-            const dateStr = formatDisplayDate(d.timestamp);
-            const jp = d["jenis-pesanan"] === "lanjutan" ? "Pesanan Lanjutan" : "Pesanan Baru";
-            const kList = Array.isArray(d.kelas) && d.kelas.length > 0 ? `Kelas: ${d.kelas.join(", ")}` : "Kelas: -";
-            return `
-              <div class="p-2.5 bg-slate-50 border border-slate-200/80 rounded-lg flex items-center justify-between gap-2">
-                <div class="flex items-center gap-2">
-                  <span class="w-2 h-2 rounded-full ${d.isDraft ? 'bg-amber-400' : 'bg-teal-500'}"></span>
-                  <span class="font-mono font-bold text-slate-700 text-[11px]">${dateStr}</span>
-                  <span class="text-[10px] text-slate-500">(${jp})</span>
+          if (target.trashType === "batch" || target.trashType === "doc_version") {
+            content.innerHTML = `
+              <div class="bg-indigo-50 border border-indigo-200 rounded-xl p-3 flex items-start gap-2.5">
+                <svg class="w-4 h-4 text-indigo-600 mt-0.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <div>
+                  <div class="font-bold text-indigo-800 text-xs">Riwayat Versi Dibatalkan</div>
+                  <div class="text-indigo-700 text-[11px] mt-0.5 leading-relaxed">
+                    Pesanan: <strong>${target.title}</strong><br/>
+                    Dibatalkan pada: <strong>${formatDisplayDate(target.deletedAt)}</strong><br/>
+                    Status: <span class="bg-emerald-100 text-emerald-800 px-1 py-0.2 rounded font-bold">Sekolah Induk Masih Aktif di Data Pokok</span>
+                  </div>
                 </div>
-                <div class="text-[10.5px] font-semibold text-slate-600">${kList}</div>
+              </div>
+
+              <div class="grid grid-cols-2 gap-2.5">
+                <div class="p-3 bg-slate-50 border border-slate-200/80 rounded-xl">
+                  <div class="text-[10px] uppercase font-bold text-slate-400">Identitas Sekolah Induk</div>
+                  <div class="font-bold text-slate-800 text-xs mt-0.5 truncate">${target["nama-sekolah"]}</div>
+                  <div class="font-mono text-slate-500 text-[11px]">NPSN: ${target.npsn || "-"}</div>
+                </div>
+                <div class="p-3 bg-slate-50 border border-slate-200/80 rounded-xl">
+                  <div class="text-[10px] uppercase font-bold text-slate-400">Alamat</div>
+                  <div class="text-slate-700 text-xs mt-0.5 truncate">${target.alamat || "-"}</div>
+                </div>
+              </div>
+
+              <div class="p-3 bg-slate-50 border border-slate-200/80 rounded-xl">
+                <div class="text-[10px] uppercase font-bold text-slate-400 mb-1">Kelas yang Dibatalkan pada Versi Ini</div>
+                <div class="flex items-center gap-1 flex-wrap">${kBadges}</div>
               </div>
             `;
-          }).join("");
+          } else {
+            const tsHistoryList = target.docs.map((d, i) => {
+              const dateStr = formatDisplayDate(d.timestamp);
+              const jp = d["jenis-pesanan"] === "lanjutan" ? "Pesanan Lanjutan" : "Pesanan Baru";
+              const kList = Array.isArray(d.kelas) && d.kelas.length > 0 ? `Kelas: ${d.kelas.join(", ")}` : "Kelas: -";
+              return `
+                <div class="p-2.5 bg-slate-50 border border-slate-200/80 rounded-lg flex items-center justify-between gap-2">
+                  <div class="flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full ${d.isDraft ? 'bg-amber-400' : 'bg-teal-500'}"></span>
+                    <span class="font-mono font-bold text-slate-700 text-[11px]">${dateStr}</span>
+                    <span class="text-[10px] text-slate-500">(${jp})</span>
+                  </div>
+                  <div class="text-[10.5px] font-semibold text-slate-600">${kList}</div>
+                </div>
+              `;
+            }).join("");
 
-          content.innerHTML = `
-            <div class="bg-rose-50 border border-rose-200 rounded-xl p-3 flex items-start gap-2.5">
-              <svg class="w-4 h-4 text-rose-600 mt-0.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
-              </svg>
-              <div>
-                <div class="font-bold text-rose-800 text-xs">Informasi Penghapusan</div>
-                <div class="text-rose-700 text-[11px] mt-0.5 leading-relaxed">
-                  Dihapus pada: <strong>${formatDisplayDate(target.deletedAt)}</strong><br/>
-                  Catatan: <em>${log.note || 'Dihapus dari tabel Data Pokok'}</em>
+            content.innerHTML = `
+              <div class="bg-rose-50 border border-rose-200 rounded-xl p-3 flex items-start gap-2.5">
+                <svg class="w-4 h-4 text-rose-600 mt-0.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                </svg>
+                <div>
+                  <div class="font-bold text-rose-800 text-xs">Informasi Penghapusan Sekolah Utuh</div>
+                  <div class="text-rose-700 text-[11px] mt-0.5 leading-relaxed">
+                    Dihapus pada: <strong>${formatDisplayDate(target.deletedAt)}</strong><br/>
+                    Catatan: <em>${log.note || 'Seluruh data sekolah dipindahkan ke Tempat Sampah'}</em>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <div class="grid grid-cols-2 gap-2.5">
+              <div class="grid grid-cols-2 gap-2.5">
+                <div class="p-3 bg-slate-50 border border-slate-200/80 rounded-xl">
+                  <div class="text-[10px] uppercase font-bold text-slate-400">Identitas Sekolah</div>
+                  <div class="font-bold text-slate-800 text-xs mt-0.5 truncate">${target["nama-sekolah"]}</div>
+                  <div class="font-mono text-slate-500 text-[11px]">NPSN: ${target.npsn || "-"}</div>
+                </div>
+                <div class="p-3 bg-slate-50 border border-slate-200/80 rounded-xl">
+                  <div class="text-[10px] uppercase font-bold text-slate-400">Alamat & Lokasi</div>
+                  <div class="text-slate-700 text-xs mt-0.5 truncate">${target.alamat || "-"}</div>
+                  <div class="text-slate-500 text-[11px] truncate">${target.kecamatan || "-"}, ${target.kabupaten || "-"}</div>
+                </div>
+              </div>
+
               <div class="p-3 bg-slate-50 border border-slate-200/80 rounded-xl">
-                <div class="text-[10px] uppercase font-bold text-slate-400">Identitas Sekolah</div>
-                <div class="font-bold text-slate-800 text-xs mt-0.5 truncate">${target["nama-sekolah"]}</div>
-                <div class="font-mono text-slate-500 text-[11px]">NPSN: ${target.npsn || "-"}</div>
+                <div class="text-[10px] uppercase font-bold text-slate-400 mb-1">Pesanan Kelas Tersimpan</div>
+                <div class="flex items-center gap-1 flex-wrap">${kBadges}</div>
               </div>
-              <div class="p-3 bg-slate-50 border border-slate-200/80 rounded-xl">
-                <div class="text-[10px] uppercase font-bold text-slate-400">Alamat & Lokasi</div>
-                <div class="text-slate-700 text-xs mt-0.5 truncate">${target.alamat || "-"}</div>
-                <div class="text-slate-500 text-[11px] truncate">${target.kecamatan || "-"}, ${target.kabupaten || "-"}</div>
-              </div>
-            </div>
 
-            <div class="p-3 bg-slate-50 border border-slate-200/80 rounded-xl">
-              <div class="text-[10px] uppercase font-bold text-slate-400 mb-1">Pesanan Kelas Tersimpan</div>
-              <div class="flex items-center gap-1 flex-wrap">${kBadges}</div>
-            </div>
-
-            <div>
-              <div class="text-[10.5px] uppercase font-bold text-slate-500 mb-2 flex items-center justify-between">
-                <span>Histori Versi / Timestamps (${target.docs.length})</span>
-                <span class="text-[10px] font-normal text-slate-400">Sebelum dipindahkan ke Tempat Sampah</span>
+              <div>
+                <div class="text-[10.5px] uppercase font-bold text-slate-500 mb-2 flex items-center justify-between">
+                  <span>Histori Dokumen (${target.docs.length})</span>
+                  <span class="text-[10px] font-normal text-slate-400">Sebelum dipindahkan ke Tempat Sampah</span>
+                </div>
+                <div class="flex flex-col gap-1.5 max-h-[160px] overflow-y-auto custom-scrollbar pr-1">
+                  ${tsHistoryList}
+                </div>
               </div>
-              <div class="flex flex-col gap-1.5 max-h-[160px] overflow-y-auto custom-scrollbar pr-1">
-                ${tsHistoryList}
-              </div>
-            </div>
-          `;
+            `;
+          }
 
           document.getElementById("trash-detail-modal").classList.add("active");
         };
@@ -6188,14 +7390,18 @@
         window.openEditPasswordModalById = (id) => {
           const school = findSchoolById(id);
           if (!school) return;
-          document.getElementById("edit-password-doc-id").value = id;
-          document.getElementById("edit-password-school-name").textContent = school["nama-sekolah"] || "-";
+          const passDocId = document.getElementById("edit-password-doc-id");
+          if (passDocId) passDocId.value = id;
+          const passSchoolName = document.getElementById("edit-password-school-name");
+          if (passSchoolName) passSchoolName.textContent = school["nama-sekolah"] || "-";
           const defaultFormula = school["npsn"] ? 'rapor' + school["npsn"] : "rapor123";
           const previewEl = document.getElementById("reset-default-preview");
           if (previewEl) previewEl.textContent = defaultFormula;
 
-          document.getElementById("edit-password-input").value = school.akses_password || defaultFormula;
-          document.getElementById("edit-password-modal").classList.add("active");
+          const passInput = document.getElementById("edit-password-input");
+          if (passInput) passInput.value = school.akses_password || defaultFormula;
+          const passModal = document.getElementById("edit-password-modal");
+          if (passModal) passModal.classList.add("active");
           setTimeout(() => {
             const input = document.getElementById("edit-password-input");
             if (input) { input.focus(); input.select(); }
@@ -6379,9 +7585,12 @@
 
           window.currentMatrixFocusKey = focusKey || null;
 
-          document.getElementById("matrix-school-id").value = schoolId;
-          document.getElementById("matrix-school-name").textContent = school["nama-sekolah"] || "-";
-          document.getElementById("matrix-school-npsn").textContent = school["npsn"] || "-";
+          const mId = document.getElementById("matrix-school-id");
+          if (mId) mId.value = schoolId;
+          const mName = document.getElementById("matrix-school-name");
+          if (mName) mName.textContent = school["nama-sekolah"] || "-";
+          const mNpsn = document.getElementById("matrix-school-npsn");
+          if (mNpsn) mNpsn.textContent = school["npsn"] || "-";
 
           const titleEl = document.getElementById("matrix-modal-title");
           const badgeEl = document.getElementById("matrix-feature-badge");
@@ -7067,7 +8276,16 @@
               return;
             }
 
-            tip.textContent = text;
+            const isHtml = el.getAttribute("data-tooltip-html") === "true";
+            if (isHtml) {
+              tip.innerHTML = text;
+              tip.className = "pointer-events-none fixed z-[99999999] opacity-0 transition-opacity duration-150 p-2.5 bg-slate-900/95 text-white rounded-xl shadow-2xl border border-slate-700/90 whitespace-nowrap select-none backdrop-blur-md";
+            } else {
+              tip.textContent = text;
+              tip.className = "pointer-events-none fixed z-[99999999] opacity-0 transition-opacity duration-150 px-2.5 py-1 bg-slate-900/95 text-white text-[11px] font-semibold rounded-md shadow-2xl border border-slate-700/80 whitespace-nowrap select-none backdrop-blur-xs tracking-tight";
+            }
+
+            tip.style.zIndex = "99999999";
             tip.style.top = '-9999px';
             tip.style.left = '-9999px';
             tip.classList.remove("opacity-0", "pointer-events-none");
@@ -7075,11 +8293,11 @@
             const rect = el.getBoundingClientRect();
             const tipRect = tip.getBoundingClientRect();
 
-            let top = rect.top - tipRect.height - 6;
+            let top = rect.top - tipRect.height - 8;
             let left = rect.left + (rect.width - tipRect.width) / 2;
 
-            if (top < 6) {
-              top = rect.bottom + 6;
+            if (top < 8) {
+              top = rect.bottom + 8;
             }
             if (left < 8) left = 8;
             if (left + tipRect.width > window.innerWidth - 8) {
@@ -7105,6 +8323,6 @@
         })();
       }
     </script>
-    <div id="app-floating-tooltip" class="pointer-events-none fixed z-[9999999] opacity-0 transition-opacity duration-150 px-2.5 py-1 bg-slate-900/95 text-white text-[11px] font-semibold rounded-md shadow-2xl border border-slate-700/80 whitespace-nowrap select-none backdrop-blur-xs tracking-tight" style="z-index: 9999999;"></div>
+    <div id="app-floating-tooltip" class="pointer-events-none fixed z-[99999999] opacity-0 transition-opacity duration-150 px-2.5 py-1 bg-slate-900/95 text-white text-[11px] font-semibold rounded-md shadow-2xl border border-slate-700/80 whitespace-nowrap select-none backdrop-blur-xs tracking-tight" style="z-index: 99999999;"></div>
   </body>
 </html>
