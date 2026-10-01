@@ -19,6 +19,167 @@
     <!-- Supabase CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
+      // =========================================================
+      // SISTEM PENYIMPANAN HYBRID INDEXEDDB (OFFLINE-FIRST & HIGH CAPACITY)
+      // =========================================================
+      const IDB_CONFIG = {
+        name: "AplikasiRaporIndexedDB",
+        version: 1
+      };
+
+      let idbInstance = null;
+
+      function openAplikasiRaporIDB() {
+        return new Promise((resolve) => {
+          if (idbInstance) return resolve(idbInstance);
+          if (typeof window === "undefined" || !window.indexedDB) {
+            return resolve(null);
+          }
+
+          try {
+            const request = indexedDB.open(IDB_CONFIG.name, IDB_CONFIG.version);
+
+            request.onupgradeneeded = (e) => {
+              const db = e.target.result;
+              if (!db.objectStoreNames.contains("schools")) {
+                const schoolStore = db.createObjectStore("schools", { keyPath: "id" });
+                schoolStore.createIndex("npsn", "data_payload.npsn", { unique: false });
+                schoolStore.createIndex("timestamp", "data_payload.timestamp", { unique: false });
+              }
+              if (!db.objectStoreNames.contains("drafts")) {
+                db.createObjectStore("drafts", { keyPath: "id" });
+              }
+              if (!db.objectStoreNames.contains("pengguna")) {
+                db.createObjectStore("pengguna", { keyPath: "id" });
+              }
+              if (!db.objectStoreNames.contains("tagihan_settings")) {
+                db.createObjectStore("tagihan_settings", { keyPath: "npsn" });
+              }
+              if (!db.objectStoreNames.contains("meta")) {
+                db.createObjectStore("meta", { keyPath: "key" });
+              }
+            };
+
+            request.onsuccess = (e) => {
+              idbInstance = e.target.result;
+              resolve(idbInstance);
+            };
+
+            request.onerror = (e) => {
+              console.warn("IndexedDB init notice:", e.target.error);
+              resolve(null);
+            };
+          } catch (err) {
+            resolve(null);
+          }
+        });
+      }
+
+      const idbHelper = {
+        async getAll(storeName) {
+          const db = await openAplikasiRaporIDB();
+          if (!db) return [];
+          return new Promise((resolve) => {
+            try {
+              const tx = db.transaction(storeName, "readonly");
+              const store = tx.objectStore(storeName);
+              const req = store.getAll();
+              req.onsuccess = () => resolve(req.result || []);
+              req.onerror = () => resolve([]);
+            } catch (err) {
+              resolve([]);
+            }
+          });
+        },
+
+        async get(storeName, key) {
+          const db = await openAplikasiRaporIDB();
+          if (!db) return null;
+          return new Promise((resolve) => {
+            try {
+              const tx = db.transaction(storeName, "readonly");
+              const store = tx.objectStore(storeName);
+              const req = store.get(key);
+              req.onsuccess = () => resolve(req.result || null);
+              req.onerror = () => resolve(null);
+            } catch (err) {
+              resolve(null);
+            }
+          });
+        },
+
+        async put(storeName, item) {
+          const db = await openAplikasiRaporIDB();
+          if (!db || !item) return false;
+          return new Promise((resolve) => {
+            try {
+              const tx = db.transaction(storeName, "readwrite");
+              const store = tx.objectStore(storeName);
+              const req = store.put(item);
+              req.onsuccess = () => resolve(true);
+              req.onerror = () => resolve(false);
+            } catch (err) {
+              resolve(false);
+            }
+          });
+        },
+
+        async putMany(storeName, items) {
+          const db = await openAplikasiRaporIDB();
+          if (!db || !Array.isArray(items) || items.length === 0) return false;
+          return new Promise((resolve) => {
+            try {
+              const tx = db.transaction(storeName, "readwrite");
+              const store = tx.objectStore(storeName);
+              items.forEach(item => {
+                if (item && item.id) store.put(item);
+                else if (item && item.npsn) store.put(item);
+              });
+              tx.oncomplete = () => resolve(true);
+              tx.onerror = () => resolve(false);
+            } catch (err) {
+              resolve(false);
+            }
+          });
+        },
+
+        async clear(storeName) {
+          const db = await openAplikasiRaporIDB();
+          if (!db) return false;
+          return new Promise((resolve) => {
+            try {
+              const tx = db.transaction(storeName, "readwrite");
+              const store = tx.objectStore(storeName);
+              const req = store.clear();
+              req.onsuccess = () => resolve(true);
+              req.onerror = () => resolve(false);
+            } catch (err) {
+              resolve(false);
+            }
+          });
+        },
+
+        async delete(storeName, key) {
+          const db = await openAplikasiRaporIDB();
+          if (!db) return false;
+          return new Promise((resolve) => {
+            try {
+              const tx = db.transaction(storeName, "readwrite");
+              const store = tx.objectStore(storeName);
+              const req = store.delete(key);
+              req.onsuccess = () => resolve(true);
+              req.onerror = () => resolve(false);
+            } catch (err) {
+              resolve(false);
+            }
+          });
+        }
+      };
+      window.idbHelper = idbHelper;
+
+      // Inisialisasi IndexedDB lebih awal
+      openAplikasiRaporIDB();
+
       let supabaseClient = null;
       function getSupabaseClient() {
         if (supabaseClient) return supabaseClient;
@@ -350,16 +511,34 @@
             return docsData;
         };
 
-        // 1. Tampilkan data dari cache lokal SEGERA agar layar tidak pernah kosong
-        try {
-          const cached = localStorage.getItem("cached_school_data");
-          if (cached) {
-            const parsed = JSON.parse(cached);
-            if (Array.isArray(parsed) && parsed.length > 0) {
-              callback({ docs: processData(parsed) });
+        // 1. Tampilkan data dari IndexedDB / Cache lokal SEGERA agar layar tidak pernah kosong
+        if (window.idbHelper) {
+          window.idbHelper.getAll("schools").then((idbData) => {
+            if (Array.isArray(idbData) && idbData.length > 0) {
+              callback({ docs: processData(idbData) });
+            } else {
+              try {
+                const cached = localStorage.getItem("cached_school_data");
+                if (cached) {
+                  const parsed = JSON.parse(cached);
+                  if (Array.isArray(parsed) && parsed.length > 0) {
+                    callback({ docs: processData(parsed) });
+                  }
+                }
+              } catch(e) {}
             }
-          }
-        } catch(e) {}
+          }).catch(() => {});
+        } else {
+          try {
+            const cached = localStorage.getItem("cached_school_data");
+            if (cached) {
+              const parsed = JSON.parse(cached);
+              if (Array.isArray(parsed) && parsed.length > 0) {
+                callback({ docs: processData(parsed) });
+              }
+            }
+          } catch(e) {}
+        }
 
         const fetchLatestData = async () => {
           try {
@@ -377,6 +556,9 @@
             if (!error && data && data.length > 0) {
               try {
                 localStorage.setItem("cached_school_data", JSON.stringify(data));
+                if (window.idbHelper) {
+                  window.idbHelper.putMany("schools", data);
+                }
               } catch(e) {}
               callback({ docs: processData(data) });
             }
@@ -1025,6 +1207,38 @@
               <line x1="5" y1="12" x2="19" y2="12"></line>
             </svg>
           </button>
+
+          <!-- Tombol Undo (Ctrl+Z) -->
+          <button
+            id="undo-btn"
+            type="button"
+            onclick="window.executeUndo()"
+            class="w-8 h-8 bg-white text-slate-400 border border-slate-200 rounded-lg transition-all shadow-2xs flex items-center justify-center cursor-pointer active:scale-95 shrink-0 opacity-40 cursor-not-allowed"
+            data-tooltip="Undo (Ctrl+Z)"
+            disabled
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+              <path d="M3 7v6h6"></path>
+              <path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"></path>
+            </svg>
+          </button>
+
+          <!-- Tombol Redo (Ctrl+Y) -->
+          <button
+            id="redo-btn"
+            type="button"
+            onclick="window.executeRedo()"
+            class="w-8 h-8 bg-white text-slate-400 border border-slate-200 rounded-lg transition-all shadow-2xs flex items-center justify-center cursor-pointer active:scale-95 shrink-0 opacity-40 cursor-not-allowed"
+            data-tooltip="Redo (Ctrl+Y)"
+            disabled
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+              <path d="M21 7v6h-6"></path>
+              <path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3l3 2.7"></path>
+            </svg>
+          </button>
+
+          <div class="h-5 w-px bg-slate-200 mx-0.5"></div>
 
           <!-- Tombol Template Excel -->
           <button
@@ -1780,61 +1994,61 @@
     </div>
 
     <!-- Modal History -->
-    <div id="history-modal" class="modal-overlay" onclick="if(event.target === this) this.classList.remove('active')">
+    <div id="history-modal" class="modal-overlay" onclick="if(event.target === this) window.closeSchoolHistoryModal()">
       <div
-        class="bg-white p-5 sm:p-6 rounded-2xl w-full max-w-md mx-4 transform transition-all scale-100 opacity-100 shadow-2xl relative border border-slate-200"
+        class="bg-white p-4 sm:p-5 rounded-2xl w-full max-w-md mx-4 transform transition-all scale-100 opacity-100 shadow-2xl relative border border-slate-200"
       >
-        <button
-          onclick="
-            document.getElementById('history-modal').classList.remove('active')
-          "
-          class="absolute p-2 transition-colors rounded-full top-3 right-3 text-slate-400 hover:bg-slate-100 hover:text-slate-600 cursor-pointer"
-          data-tooltip="Tutup"
-        >
-          <svg
-            class="w-5 h-5"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M6 18L18 6M6 6l12 12"
-            ></path>
-          </svg>
-        </button>
-        <div
-          class="flex items-center gap-3 mb-4 border-b border-slate-100 pb-3"
-        >
-          <div
-            class="w-10 h-10 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center shadow-inner shrink-0"
-          >
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              class="w-5 h-5"
+        <div class="flex items-center justify-between pb-3 border-b border-slate-100 mb-3">
+          <div class="flex items-center gap-2.5 min-w-0">
+            <!-- Back Button to Parent Modal -->
+            <button
+              id="history-back-btn"
+              type="button"
+              onclick="window.closeSchoolHistoryModal()"
+              class="hidden p-1.5 text-slate-400 hover:text-indigo-700 hover:bg-indigo-50 rounded-lg transition-colors cursor-pointer active:scale-95 shrink-0"
+              data-tooltip="Kembali ke Pilihan Tindakan"
             >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-              ></path>
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+              </svg>
+            </button>
+            <div
+              class="w-8 h-8 bg-indigo-100 text-indigo-600 rounded-xl flex items-center justify-center shadow-inner shrink-0"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                class="w-4 h-4"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                ></path>
+              </svg>
+            </div>
+            <div class="min-w-0 flex-1">
+              <h3 class="text-sm font-bold text-slate-800 leading-tight">
+                Riwayat Pesanan & Versi
+              </h3>
+              <div id="history-school-name" class="text-xs font-bold text-teal-700 truncate max-w-xs mt-0.5"></div>
+              <p
+                class="text-[10px] font-mono text-slate-500"
+                id="history-npsn"
+              ></p>
+            </div>
+          </div>
+          <button
+            onclick="window.closeSchoolHistoryModal()"
+            class="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-400 hover:text-slate-600 flex items-center justify-center transition-all cursor-pointer active:scale-95 shrink-0"
+            data-tooltip="Tutup"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
             </svg>
-          </div>
-          <div class="min-w-0 flex-1">
-            <h3 class="text-base font-bold text-slate-800 leading-tight">
-              Riwayat Pesanan & Versi
-            </h3>
-            <div id="history-school-name" class="text-xs font-bold text-teal-700 truncate max-w-xs"></div>
-            <p
-              class="text-[10px] font-mono text-slate-500"
-              id="history-npsn"
-            ></p>
-          </div>
+          </button>
         </div>
         <div
           class="flex flex-col gap-2.5 max-h-[350px] overflow-y-auto pr-1"
@@ -2086,6 +2300,18 @@
           class="flex justify-between items-center mb-3 border-b border-slate-100 pb-3"
         >
           <div class="flex items-center gap-2.5 min-w-0">
+            <!-- Back Button to Parent Modal -->
+            <button
+              id="modal-back-btn"
+              type="button"
+              onclick="window.returnToActionSelector()"
+              class="hidden p-1.5 text-slate-400 hover:text-teal-700 hover:bg-teal-50 rounded-lg transition-colors cursor-pointer active:scale-95 shrink-0"
+              data-tooltip="Kembali ke Pilihan Tindakan"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+              </svg>
+            </button>
             <div
               id="modal-icon-bg"
               class="w-9 h-9 bg-teal-600 text-white rounded-xl flex items-center justify-center shadow-md transition-colors shrink-0"
@@ -3364,6 +3590,16 @@
             refreshIcon.classList.add("animate-spin");
           }
 
+          // 1. Tampilkan cache instan dari IndexedDB lebih dulu
+          if (window.idbHelper) {
+            window.idbHelper.getAll("pengguna").then((idbPengguna) => {
+              if (Array.isArray(idbPengguna) && idbPengguna.length > 0 && (!window.rawPenggunaData || window.rawPenggunaData.length === 0)) {
+                window.rawPenggunaData = idbPengguna;
+                window.renderPenggunaTable(idbPengguna);
+              }
+            }).catch(() => {});
+          }
+
           try {
             const { data, error } = await supabaseClient
               .from('aplikasirapor')
@@ -3373,13 +3609,13 @@
             if (error) {
               console.warn("Info pengambilan data aplikasirapor:", error.message || error);
               // Gunakan cache lokal jika ada saat koneksi terputus
-              try {
-                const cached = localStorage.getItem("cached_pengguna_data");
-                if (cached && (!window.rawPenggunaData || window.rawPenggunaData.length === 0)) {
-                  window.rawPenggunaData = JSON.parse(cached);
-                  window.renderPenggunaTable(window.rawPenggunaData);
+              if (window.idbHelper) {
+                const idbPengguna = await window.idbHelper.getAll("pengguna");
+                if (Array.isArray(idbPengguna) && idbPengguna.length > 0) {
+                  window.rawPenggunaData = idbPengguna;
+                  window.renderPenggunaTable(idbPengguna);
                 }
-              } catch(e) {}
+              }
               if (isManualRefresh) showToast("Koneksi ke server aplikasirapor sedang memuat ulang...", false);
               return;
             }
@@ -3387,6 +3623,9 @@
             window.rawPenggunaData = data || [];
             try {
               localStorage.setItem("cached_pengguna_data", JSON.stringify(window.rawPenggunaData));
+              if (window.idbHelper && Array.isArray(data)) {
+                window.idbHelper.putMany("pengguna", data);
+              }
             } catch(e) {}
 
             window.renderPenggunaTable(window.rawPenggunaData);
@@ -3396,13 +3635,13 @@
           } catch (err) {
             console.warn("Jaringan/fetch notice aplikasirapor:", err?.message || err);
             // Fallback ke cache jika offline
-            try {
-              const cached = localStorage.getItem("cached_pengguna_data");
-              if (cached && (!window.rawPenggunaData || window.rawPenggunaData.length === 0)) {
-                window.rawPenggunaData = JSON.parse(cached);
-                window.renderPenggunaTable(window.rawPenggunaData);
+            if (window.idbHelper) {
+              const idbPengguna = await window.idbHelper.getAll("pengguna");
+              if (Array.isArray(idbPengguna) && idbPengguna.length > 0) {
+                window.rawPenggunaData = idbPengguna;
+                window.renderPenggunaTable(idbPengguna);
               }
-            } catch(e) {}
+            }
             if (isManualRefresh) showToast("Koneksi jaringan terputus, memuat data tersimpan...", false);
           } finally {
             if (refreshIcon) {
@@ -3575,6 +3814,124 @@
           return [...drafts, ...allData].find(s => String(s.id) === String(id)) || null;
         }
         window.findSchoolById = findSchoolById;
+
+        // =========================================================
+        // SISTEM GLOBAL UNDO & REDO DENGAN SHORTCUT KEYBOARD (Ctrl+Z & Ctrl+Y)
+        // =========================================================
+        const undoStack = [];
+        const redoStack = [];
+        const MAX_HISTORY = 50;
+        let isUndoRedoProcessing = false;
+
+        function updateUndoRedoUI() {
+          const undoBtn = document.getElementById("undo-btn");
+          const redoBtn = document.getElementById("redo-btn");
+
+          if (undoBtn) {
+            undoBtn.disabled = undoStack.length === 0;
+            if (undoStack.length > 0) {
+              const last = undoStack[undoStack.length - 1];
+              undoBtn.setAttribute("data-tooltip", `Undo: ${last.name || 'Tindakan'} (Ctrl+Z)`);
+              undoBtn.classList.remove("opacity-40", "cursor-not-allowed", "text-slate-400");
+              undoBtn.classList.add("text-slate-700", "hover:text-teal-700", "hover:bg-teal-50", "hover:border-teal-300");
+            } else {
+              undoBtn.setAttribute("data-tooltip", "Tidak ada tindakan untuk di-Undo (Ctrl+Z)");
+              undoBtn.classList.add("opacity-40", "cursor-not-allowed", "text-slate-400");
+              undoBtn.classList.remove("text-slate-700", "hover:text-teal-700", "hover:bg-teal-50", "hover:border-teal-300");
+            }
+          }
+
+          if (redoBtn) {
+            redoBtn.disabled = redoStack.length === 0;
+            if (redoStack.length > 0) {
+              const next = redoStack[redoStack.length - 1];
+              redoBtn.setAttribute("data-tooltip", `Redo: ${next.name || 'Tindakan'} (Ctrl+Y)`);
+              redoBtn.classList.remove("opacity-40", "cursor-not-allowed", "text-slate-400");
+              redoBtn.classList.add("text-slate-700", "hover:text-teal-700", "hover:bg-teal-50", "hover:border-teal-300");
+            } else {
+              redoBtn.setAttribute("data-tooltip", "Tidak ada tindakan untuk di-Redo (Ctrl+Y)");
+              redoBtn.classList.add("opacity-40", "cursor-not-allowed", "text-slate-400");
+              redoBtn.classList.remove("text-slate-700", "hover:text-teal-700", "hover:bg-teal-50", "hover:border-teal-300");
+            }
+          }
+        }
+        window.updateUndoRedoUI = updateUndoRedoUI;
+
+        function recordAction(action) {
+          if (isUndoRedoProcessing) return;
+          undoStack.push(action);
+          if (undoStack.length > MAX_HISTORY) undoStack.shift();
+          redoStack.length = 0; // Clear redo history saat ada tindakan baru
+          updateUndoRedoUI();
+        }
+        window.recordAction = recordAction;
+
+        async function executeUndo() {
+          if (undoStack.length === 0 || isUndoRedoProcessing) return;
+          const action = undoStack.pop();
+          isUndoRedoProcessing = true;
+          try {
+            if (typeof action.undo === "function") {
+              await action.undo();
+            }
+            redoStack.push(action);
+            if (redoStack.length > MAX_HISTORY) redoStack.shift();
+            showToast(`↶ Berhasil mengurungkan: ${action.name || 'Tindakan Terakhir'}`);
+          } catch (err) {
+            console.error("Undo error:", err);
+            showToast("Gagal mengurungkan tindakan.", false);
+          } finally {
+            isUndoRedoProcessing = false;
+            updateUndoRedoUI();
+            if (typeof refreshFilterAndRender === "function") refreshFilterAndRender();
+          }
+        }
+        window.executeUndo = executeUndo;
+
+        async function executeRedo() {
+          if (redoStack.length === 0 || isUndoRedoProcessing) return;
+          const action = redoStack.pop();
+          isUndoRedoProcessing = true;
+          try {
+            if (typeof action.redo === "function") {
+              await action.redo();
+            }
+            undoStack.push(action);
+            if (undoStack.length > MAX_HISTORY) undoStack.shift();
+            showToast(`↷ Berhasil mengulangi: ${action.name || 'Tindakan'}`);
+          } catch (err) {
+            console.error("Redo error:", err);
+            showToast("Gagal mengulangi tindakan.", false);
+          } finally {
+            isUndoRedoProcessing = false;
+            updateUndoRedoUI();
+            if (typeof refreshFilterAndRender === "function") refreshFilterAndRender();
+          }
+        }
+        window.executeRedo = executeRedo;
+
+        // Global Keyboard Shortcut Listener for Ctrl+Z & Ctrl+Y
+        document.addEventListener("keydown", async (e) => {
+          const target = e.target;
+          const isTyping = target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable);
+
+          // Ctrl+Z or Cmd+Z (without Shift) -> UNDO
+          if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z" && !e.shiftKey) {
+            if (!isTyping) {
+              e.preventDefault();
+              await window.executeUndo();
+            }
+          }
+
+          // Ctrl+Y or Cmd+Y, or Ctrl+Shift+Z / Cmd+Shift+Z -> REDO
+          if (((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "y") ||
+              ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z" && e.shiftKey)) {
+            if (!isTyping) {
+              e.preventDefault();
+              await window.executeRedo();
+            }
+          }
+        });
 
         const getBatchCost = (classCount) => {
           if (!classCount || classCount <= 0) return 0;
@@ -4455,8 +4812,11 @@
           };
         });
 
+        window.openedFromActionSelector = false;
+
         window.openEditTypeModalById = (id) => {
           window.currentEditId = id;
+          window.openedFromActionSelector = false;
           let school = (typeof findSchoolById === "function" ? findSchoolById(id) : null) || [...drafts, ...allData].find((d) => d && (String(d.id) === String(id) || d.npsn === id));
           const nameEl = document.getElementById("edit-type-school-name");
           if (nameEl) {
@@ -4471,11 +4831,16 @@
         };
 
         window.openActionModalObj = (id, editModeType) => {
+          window.openedFromActionSelector = true;
           document.getElementById("edit-type-modal").classList.remove("active");
           openActionModal(id, editModeType);
         };
-        window.openSchoolHistoryModal = (schoolId) => {
+        window.openSchoolHistoryModal = (schoolId, fromActionSelector = true) => {
           try {
+            if (fromActionSelector) {
+              window.openedFromActionSelector = true;
+            }
+            document.getElementById("edit-type-modal").classList.remove("active");
             let school = findSchoolById(schoolId);
             if (!school) {
               school = [...drafts, ...allData].find(s => s && (String(s.id) === String(schoolId) || s.npsn === schoolId));
@@ -4484,6 +4849,15 @@
               console.warn("School not found for history modal id:", schoolId);
               showToast("Data sekolah tidak ditemukan.", false);
               return;
+            }
+
+            const histBackBtn = document.getElementById("history-back-btn");
+            if (histBackBtn) {
+              if (window.openedFromActionSelector && window.currentEditId) {
+                histBackBtn.classList.remove("hidden");
+              } else {
+                histBackBtn.classList.add("hidden");
+              }
             }
 
             const schoolName = school["nama-sekolah"] || "-";
@@ -4853,6 +5227,16 @@
         window.deleteHistoryItem = async (id, batchNum = 1) => {
           await window.deleteSchoolBatch(id, batchNum);
         };
+        window.closeSchoolHistoryModal = () => {
+          document.getElementById("history-modal").classList.remove("active");
+          if (window.openedFromActionSelector && window.currentEditId) {
+            window.openedFromActionSelector = false;
+            window.openEditTypeModalById(window.currentEditId);
+          } else {
+            window.openedFromActionSelector = false;
+          }
+        };
+
         window.openActionModal = (id = null, editModeType = "baru") => {
           window.currentEditMode = editModeType;
 
@@ -4863,12 +5247,21 @@
           const subtitle = document.getElementById("modal-subtitle");
           const modeDesc = document.getElementById("modal-mode-desc");
           const iconBg = document.getElementById("modal-icon-bg");
+          const backBtn = document.getElementById("modal-back-btn");
           const editActions = document.getElementById("edit-only-actions");
           const addMoreBtn = document.getElementById("save-add-more-btn");
           const draftBtn = document.getElementById("save-draft-btn");
           const mainBtn = document.getElementById("save-main-btn");
           const displayId = document.getElementById("display-id");
           const editIdInput = document.getElementById("edit-id");
+
+          if (backBtn) {
+            if (window.openedFromActionSelector && window.currentEditId) {
+              backBtn.classList.remove("hidden");
+            } else {
+              backBtn.classList.add("hidden");
+            }
+          }
 
           const editGratis = document.getElementById('edit-sekolah-gratis');
           if (editGratis) editGratis.checked = false;
@@ -5025,10 +5418,25 @@
           if (modal) modal.classList.add("active");
         };
 
-        const closeModal = () =>
+        const closeModal = (forceTotalClose = false) => {
           document.getElementById("action-modal").classList.remove("active");
-        document.getElementById("close-modal-btn").onclick = closeModal;
-        document.getElementById("modal-cancel-btn").onclick = closeModal;
+          if (!forceTotalClose && window.openedFromActionSelector && window.currentEditId) {
+            window.openedFromActionSelector = false;
+            window.openEditTypeModalById(window.currentEditId);
+          } else {
+            window.openedFromActionSelector = false;
+          }
+        };
+
+        window.returnToActionSelector = () => {
+          document.getElementById("action-modal").classList.remove("active");
+          if (window.currentEditId) {
+            window.openEditTypeModalById(window.currentEditId);
+          }
+        };
+
+        document.getElementById("close-modal-btn").onclick = () => closeModal(false);
+        document.getElementById("modal-cancel-btn").onclick = () => closeModal(false);
         document.addEventListener("keydown", (e) => {
           if (e.key === "Escape") {
             const activeModals = document.querySelectorAll(
@@ -5037,10 +5445,13 @@
             activeModals.forEach((modal) => {
               modal.classList.remove("active");
             });
+            window.openedFromActionSelector = false;
           }
         });
-        document.getElementById("add-school-btn").onclick = () =>
+        document.getElementById("add-school-btn").onclick = () => {
+          window.openedFromActionSelector = false;
           openActionModal();
+        };
 
         document.getElementById("save-draft-btn").onclick = () => {
           const rawNpsn = document.getElementById("edit-npsn")?.value?.trim() || "";
@@ -5313,7 +5724,7 @@
             }
 
             if (shouldClose) {
-              closeModal();
+              closeModal(true);
             } else {
               window.currentSelectedKelas = [];
               fieldIds.forEach((fid) => {
@@ -5599,6 +6010,36 @@
             try {
               localStorage.setItem("aplikasi-rapor-drafts", JSON.stringify(drafts));
             } catch(e) {}
+
+            recordAction({
+              name: `Hapus ${schoolName}`,
+              undo: async () => {
+                for (const docObj of allSchoolDocs) {
+                  if (docObj.id && docObj.id.startsWith("draft-")) {
+                    const idx = drafts.findIndex(d => d.id === docObj.id);
+                    if (idx > -1) { drafts[idx].isDeleted = false; delete drafts[idx].deletedAt; }
+                  } else if (docObj.id) {
+                    await updateDoc(doc(db, "artifacts", appId, "public", "data", collectionName, docObj.id), { isDeleted: false });
+                    const idx = allData.findIndex(d => d.id === docObj.id);
+                    if (idx > -1) { allData[idx].isDeleted = false; delete allData[idx].deletedAt; }
+                  }
+                }
+                try { localStorage.setItem("aplikasi-rapor-drafts", JSON.stringify(drafts)); } catch(e) {}
+              },
+              redo: async () => {
+                for (const docObj of allSchoolDocs) {
+                  if (docObj.id && docObj.id.startsWith("draft-")) {
+                    const idx = drafts.findIndex(d => d.id === docObj.id);
+                    if (idx > -1) { drafts[idx].isDeleted = true; drafts[idx].deletedAt = now; }
+                  } else if (docObj.id) {
+                    await updateDoc(doc(db, "artifacts", appId, "public", "data", collectionName, docObj.id), { isDeleted: true, deletedAt: now });
+                    const idx = allData.findIndex(d => d.id === docObj.id);
+                    if (idx > -1) { allData[idx].isDeleted = true; allData[idx].deletedAt = now; }
+                  }
+                }
+                try { localStorage.setItem("aplikasi-rapor-drafts", JSON.stringify(drafts)); } catch(e) {}
+              }
+            });
 
             document.getElementById("edit-type-modal").classList.remove("active");
             showToast(`Data ${schoolName} dipindahkan ke Tempat Sampah.`);
@@ -5976,7 +6417,7 @@
           }
         };
 
-        window.updateTagihanSetting = async (npsn, key, val) => {
+        window.updateTagihanSetting = async (npsn, key, val, recordUndo = true) => {
           let settings = {};
           try {
             settings = JSON.parse(localStorage.getItem("aplikasi-rapor-tagihan-settings") || "{}");
@@ -5984,6 +6425,7 @@
           if (!settings[npsn]) {
             settings[npsn] = { isLunas: false, diskon: 0, biayaTambahan: 0, pemesan: "" };
           }
+          const oldVal = settings[npsn][key];
           if (key === 'isLunas') {
             settings[npsn].isLunas = Boolean(val);
           } else if (key === 'diskon') {
@@ -5994,6 +6436,20 @@
             settings[npsn].pemesan = String(val || "").trim();
           }
           localStorage.setItem("aplikasi-rapor-tagihan-settings", JSON.stringify(settings));
+
+          if (recordUndo && oldVal !== val) {
+            const school = allData.find(s => s.npsn === npsn) || drafts.find(s => s.npsn === npsn);
+            const sName = school ? (school['nama-sekolah'] || `NPSN ${npsn}`) : `NPSN ${npsn}`;
+            recordAction({
+              name: `Ubah Tagihan ${sName} (${key})`,
+              undo: async () => {
+                await window.updateTagihanSetting(npsn, key, oldVal, false);
+              },
+              redo: async () => {
+                await window.updateTagihanSetting(npsn, key, val, false);
+              }
+            });
+          }
           
           const tagihanTableBody = document.getElementById("tagihan-table-body");
           const activeEl = document.activeElement;
@@ -6241,6 +6697,36 @@
             try {
               localStorage.setItem("aplikasi-rapor-drafts", JSON.stringify(drafts));
             } catch(e) {}
+
+            recordAction({
+              name: `Pulihkan ${target["nama-sekolah"]}`,
+              undo: async () => {
+                for (const docObj of target.docs) {
+                  if (docObj.id && docObj.id.startsWith("draft-")) {
+                    const idx = drafts.findIndex(d => d.id === docObj.id);
+                    if (idx > -1) { drafts[idx].isDeleted = true; drafts[idx].deletedAt = now; }
+                  } else if (docObj.id) {
+                    await updateDoc(doc(db, "artifacts", appId, "public", "data", collectionName, docObj.id), { isDeleted: true, deletedAt: now });
+                    const idx = allData.findIndex(d => d.id === docObj.id);
+                    if (idx > -1) { allData[idx].isDeleted = true; allData[idx].deletedAt = now; }
+                  }
+                }
+                try { localStorage.setItem("aplikasi-rapor-drafts", JSON.stringify(drafts)); } catch(e) {}
+              },
+              redo: async () => {
+                for (const docObj of target.docs) {
+                  if (docObj.id && docObj.id.startsWith("draft-")) {
+                    const idx = drafts.findIndex(d => d.id === docObj.id);
+                    if (idx > -1) { drafts[idx].isDeleted = false; delete drafts[idx].deletedAt; }
+                  } else if (docObj.id) {
+                    await updateDoc(doc(db, "artifacts", appId, "public", "data", collectionName, docObj.id), { isDeleted: false });
+                    const idx = allData.findIndex(d => d.id === docObj.id);
+                    if (idx > -1) { allData[idx].isDeleted = false; delete allData[idx].deletedAt; }
+                  }
+                }
+                try { localStorage.setItem("aplikasi-rapor-drafts", JSON.stringify(drafts)); } catch(e) {}
+              }
+            });
 
             showToast(`Data ${target["nama-sekolah"]} berhasil dipulihkan!`);
             refreshFilterAndRender();
@@ -7236,7 +7722,15 @@
         };
 
         // --- AKSES FUNCTIONS ---
-        async function updateSchoolAksesData(id, updateFields) {
+        async function updateSchoolAksesData(id, updateFields, recordUndo = true) {
+          const school = findSchoolById(id);
+          const oldFields = {};
+          if (school) {
+            Object.keys(updateFields).forEach(k => {
+              oldFields[k] = school[k];
+            });
+          }
+
           if (id.startsWith("draft-")) {
             const index = drafts.findIndex(d => d.id === id);
             if (index !== -1) {
@@ -7246,18 +7740,36 @@
               } catch(e) {}
               refreshFilterAndRender();
             }
-            return;
+          } else {
+            try {
+              const { doc, updateDoc, db, appId, collectionName } = window.fbComponents;
+              await updateDoc(
+                doc(db, "artifacts", appId, "public", "data", collectionName, id),
+                updateFields
+              );
+              const idx = allData.findIndex(d => d.id === id);
+              if (idx > -1) {
+                allData[idx] = { ...allData[idx], ...updateFields };
+              }
+              refreshFilterAndRender();
+            } catch (e) {
+              console.error("Gagal memperbarui data akses", e);
+              showToast("Gagal menyimpan perubahan akses.", false);
+              return;
+            }
           }
 
-          try {
-            const { doc, updateDoc, db, appId, collectionName } = window.fbComponents;
-            await updateDoc(
-              doc(db, "artifacts", appId, "public", "data", collectionName, id),
-              updateFields
-            );
-          } catch (e) {
-            console.error("Gagal memperbarui data akses", e);
-            showToast("Gagal menyimpan perubahan akses.", false);
+          if (recordUndo && school) {
+            const schoolName = school["nama-sekolah"] || "Sekolah";
+            recordAction({
+              name: `Ubah Akses ${schoolName}`,
+              undo: async () => {
+                await updateSchoolAksesData(id, oldFields, false);
+              },
+              redo: async () => {
+                await updateSchoolAksesData(id, updateFields, false);
+              }
+            });
           }
         }
 
