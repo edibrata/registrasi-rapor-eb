@@ -2608,6 +2608,9 @@
                   6
                 </button>
               </div>
+
+              <!-- Legend Asal Batch Pesanan (Muncul Otomatis Jika Multi-Batch) -->
+              <div id="kelas-batch-legend" class="hidden flex-wrap items-center justify-center gap-1.5 mt-2 pt-1.5 border-t border-slate-100"></div>
             </div>
           </div>
         </div>
@@ -4990,18 +4993,9 @@
               window.currentSelectedKelas.push(val);
               window.currentSelectedKelas.sort((a, b) => a - b);
             }
-            const countEl = document.getElementById("kelas-selected-count");
-            if (countEl) {
-              countEl.textContent = `${window.currentSelectedKelas.length} Kelas Dipilih`;
+            if (window.updateKelasUI) {
+              window.updateKelasUI();
             }
-            document.querySelectorAll(".kelas-btn").forEach((b) => {
-              const bVal = parseInt(b.getAttribute("data-val"));
-              if (window.currentSelectedKelas.includes(bVal)) {
-                b.className = "kelas-btn w-10 sm:w-11 h-9 sm:h-9.5 rounded-xl font-bold bg-teal-600 text-white border border-teal-600 shadow-xs scale-105 transition-all text-sm cursor-pointer flex items-center justify-center shrink-0";
-              } else {
-                b.className = "kelas-btn w-10 sm:w-11 h-9 sm:h-9.5 rounded-xl font-bold bg-white text-slate-700 hover:bg-teal-50/50 hover:text-teal-700 hover:border-teal-400 border border-slate-200 shadow-2xs transition-all text-sm cursor-pointer flex items-center justify-center shrink-0";
-              }
-            });
           };
         });
 
@@ -5472,15 +5466,94 @@
               const len = window.currentSelectedKelas ? window.currentSelectedKelas.length : 0;
               countEl.textContent = `${len} Kelas Dipilih`;
             }
-            document.querySelectorAll(".kelas-btn").forEach((btn) => {
-              const val = parseInt(btn.getAttribute("data-val"));
-              if (window.currentSelectedKelas && window.currentSelectedKelas.includes(val)) {
-                btn.className = "kelas-btn w-10 sm:w-11 h-9 sm:h-9.5 rounded-xl font-bold bg-teal-600 text-white border border-teal-600 shadow-xs scale-105 transition-all text-sm cursor-pointer flex items-center justify-center shrink-0";
-              } else {
-                btn.className = "kelas-btn w-10 sm:w-11 h-9 sm:h-9.5 rounded-xl font-bold bg-white text-slate-700 hover:bg-teal-50/50 hover:text-teal-700 hover:border-teal-400 border border-slate-200 shadow-2xs transition-all text-sm cursor-pointer flex items-center justify-center shrink-0";
+
+            const schoolBatches = window.currentModalBatches || [];
+            const classToBatchMap = {};
+            schoolBatches.forEach((b) => {
+              const bNum = b.batch || 1;
+              const themeIdx = Math.max(0, bNum - 1) % batchColorThemes.length;
+              const theme = batchColorThemes[themeIdx];
+              if (Array.isArray(b.kelas)) {
+                b.kelas.forEach((k) => {
+                  classToBatchMap[k] = {
+                    batch: bNum,
+                    theme,
+                    label: b.label || (bNum === 1 ? "Pesanan Awal" : `Tambah Pesanan #${bNum}`)
+                  };
+                });
               }
             });
+
+            const isTambahMode = window.currentEditMode === "tambah_pesanan";
+            const nextBatchNum = schoolBatches.length > 0 ? (schoolBatches[schoolBatches.length - 1].batch || schoolBatches.length) + 1 : 2;
+            const nextThemeIdx = Math.max(0, nextBatchNum - 1) % batchColorThemes.length;
+            const newBatchTheme = batchColorThemes[nextThemeIdx];
+
+            document.querySelectorAll(".kelas-btn").forEach((btn) => {
+              const val = parseInt(btn.getAttribute("data-val"));
+              const isSelected = window.currentSelectedKelas && window.currentSelectedKelas.includes(val);
+
+              if (isTambahMode) {
+                if (isSelected) {
+                  btn.className = `kelas-btn w-10 sm:w-11 h-9 sm:h-9.5 rounded-xl font-bold ${newBatchTheme.bg} ${newBatchTheme.border} shadow-xs scale-105 transition-all text-sm cursor-pointer flex items-center justify-center shrink-0 ring-2 ring-indigo-300/50`;
+                  btn.setAttribute("data-tooltip", `Kelas ${val} (Akan Masuk ke Tambah Pesanan #${nextBatchNum})`);
+                } else if (classToBatchMap[val]) {
+                  const origin = classToBatchMap[val];
+                  btn.className = `kelas-btn w-10 sm:w-11 h-9 sm:h-9.5 rounded-xl font-bold text-slate-500 bg-slate-50 border-2 border-dashed ${origin.theme.border} text-sm cursor-pointer flex items-center justify-center transition-all shrink-0 hover:border-indigo-400 hover:bg-indigo-50/40`;
+                  btn.setAttribute("data-tooltip", `Kelas ${val} (Sudah Dipesan di ${origin.label})`);
+                } else {
+                  btn.className = "kelas-btn w-10 sm:w-11 h-9 sm:h-9.5 rounded-xl font-bold bg-white text-slate-700 hover:bg-indigo-50/50 hover:text-indigo-700 hover:border-indigo-400 border border-slate-200 shadow-2xs transition-all text-sm cursor-pointer flex items-center justify-center shrink-0";
+                  btn.setAttribute("data-tooltip", `Pilih Kelas ${val}`);
+                }
+              } else {
+                if (isSelected) {
+                  const origin = classToBatchMap[val] || { theme: batchColorThemes[0], label: "Pesanan Awal/Koreksi", batch: 1 };
+                  btn.className = `kelas-btn w-10 sm:w-11 h-9 sm:h-9.5 rounded-xl font-bold ${origin.theme.bg} ${origin.theme.border} shadow-xs scale-105 transition-all text-sm cursor-pointer flex items-center justify-center shrink-0`;
+                  btn.setAttribute("data-tooltip", `Kelas ${val} (${origin.label})`);
+                } else {
+                  btn.className = "kelas-btn w-10 sm:w-11 h-9 sm:h-9.5 rounded-xl font-bold bg-white text-slate-700 hover:bg-teal-50/50 hover:text-teal-700 hover:border-teal-400 border border-slate-200 shadow-2xs transition-all text-sm cursor-pointer flex items-center justify-center shrink-0";
+                  btn.setAttribute("data-tooltip", `Pilih Kelas ${val}`);
+                }
+              }
+            });
+
+            // Update Legend UI
+            const legendEl = document.getElementById("kelas-batch-legend");
+            if (legendEl) {
+              if (schoolBatches.length > 1 || isTambahMode) {
+                let legendItems = [];
+                schoolBatches.forEach((b) => {
+                  const bNum = b.batch || 1;
+                  const themeIdx = Math.max(0, bNum - 1) % batchColorThemes.length;
+                  const theme = batchColorThemes[themeIdx];
+                  const label = b.label || (bNum === 1 ? "Pesanan Awal" : `Tambah Pesanan #${bNum}`);
+                  const kList = Array.isArray(b.kelas) ? b.kelas.sort((x,y)=>x-y).join(", ") : "-";
+                  legendItems.push(`
+                    <div class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-white border border-slate-200 shadow-2xs text-[9.5px] font-bold text-slate-700">
+                      <span class="w-2.5 h-2.5 rounded-full ${theme.dot} shrink-0 shadow-2xs"></span>
+                      <span>${label} (${kList})</span>
+                    </div>
+                  `);
+                });
+                if (isTambahMode) {
+                  legendItems.push(`
+                    <div class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-indigo-50 border border-indigo-200 shadow-2xs text-[9.5px] font-bold text-indigo-700">
+                      <span class="w-2.5 h-2.5 rounded-full ${newBatchTheme.dot} shrink-0 animate-pulse"></span>
+                      <span>Tambah Baru #${nextBatchNum}</span>
+                    </div>
+                  `);
+                }
+                legendEl.innerHTML = legendItems.join("");
+                legendEl.classList.remove("hidden");
+                legendEl.classList.add("flex");
+              } else {
+                legendEl.innerHTML = "";
+                legendEl.classList.add("hidden");
+                legendEl.classList.remove("flex");
+              }
+            }
           };
+          window.updateKelasUI = updateKelasUI;
 
           if (jpBaru) jpBaru.checked = true;
           window.isEditMode = id !== null;
@@ -5500,6 +5573,9 @@
                     String(d.npsn).toLowerCase() === npsn,
                 )
               : [firstItem];
+
+            // Resolve Batches for color mapping
+            window.currentModalBatches = resolveSchoolBatches(firstItem, allSchoolDocs);
 
             let aggregatedKelas = [];
             allSchoolDocs.forEach((d) => {
