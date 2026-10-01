@@ -3594,17 +3594,32 @@
           schoolCount.textContent = dataToDisplay.length;
 
           const activeAllData = allData.filter((d) => !d.isDeleted);
-          const validCount = activeAllData.length;
-          const todayCount = activeAllData.filter((item) => {
-            if (!item.timestamp) return false;
+          const uniqueValidMap = new Set();
+          activeAllData.forEach(d => {
+            const key = d.npsn 
+              ? String(d.npsn).trim().toLowerCase() 
+              : (d["nama-sekolah"] ? String(d["nama-sekolah"]).trim().toLowerCase() : d.id);
+            uniqueValidMap.add(key);
+          });
+          const validCount = uniqueValidMap.size;
+
+          const uniqueTodayMap = new Set();
+          const todayStart = new Date();
+          todayStart.setHours(0,0,0,0);
+          const todayEnd = new Date();
+          todayEnd.setHours(23,59,59,999);
+
+          activeAllData.forEach(item => {
+            if (!item.timestamp) return;
             const d = new Date(item.timestamp);
-            const now = new Date();
-            return (
-              d.getDate() === now.getDate() &&
-              d.getMonth() === now.getMonth() &&
-              d.getFullYear() === now.getFullYear()
-            );
-          }).length;
+            if (d >= todayStart && d <= todayEnd) {
+              const key = item.npsn 
+                ? String(item.npsn).trim().toLowerCase() 
+                : (item["nama-sekolah"] ? String(item["nama-sekolah"]).trim().toLowerCase() : item.id);
+              uniqueTodayMap.add(key);
+            }
+          });
+          const todayCount = uniqueTodayMap.size;
 
           const statTotal = document.getElementById("stat-total");
           if (statTotal) statTotal.textContent = validCount;
@@ -3744,10 +3759,8 @@
                   const jp = doc["jenis-pesanan"] || "pesanan_baru";
 
                   let costForThisDoc = 0;
-                  if (jp === "lanjutan") {
-                    costForThisDoc = kCount * 50000;
-                  } else {
-                    if (kCount > 0) costForThisDoc = 50000 + kCount * 50000;
+                  if (kCount > 0) {
+                    costForThisDoc = 50000 + kCount * 50000;
                   }
 
                   if (doc['sekolah-gratis']) costForThisDoc = 0;
@@ -3790,10 +3803,16 @@
 
                  const npsn = school["npsn"] || "-";
                 const setting = tagihanSettings[npsn] || { isLunas: false, diskon: 0, biayaTambahan: 0, pemesan: "" };
-                const isLunas = setting.isLunas === true;
-                const diskon = setting.diskon || 0;
-                const biayaTambahan = setting.biayaTambahan || 0;
-                const savedPemesan = setting.pemesan || "";
+
+                const dbIsLunas = latestDocInPeriod.tagihan_is_lunas !== undefined ? latestDocInPeriod.tagihan_is_lunas : setting.isLunas;
+                const dbDiskon = latestDocInPeriod.tagihan_diskon !== undefined ? latestDocInPeriod.tagihan_diskon : setting.diskon;
+                const dbBiayaTambahan = latestDocInPeriod.tagihan_biaya_tambahan !== undefined ? latestDocInPeriod.tagihan_biaya_tambahan : setting.biayaTambahan;
+                const dbPemesan = latestDocInPeriod.tagihan_pemesan !== undefined ? latestDocInPeriod.tagihan_pemesan : setting.pemesan;
+
+                const isLunas = dbIsLunas === true;
+                const diskon = dbDiskon || 0;
+                const biayaTambahan = dbBiayaTambahan || 0;
+                const savedPemesan = dbPemesan || "";
 
                 const isGratis = (totalSchoolBiaya === 0 && biayaTambahan === 0);
                 const actualIsLunas = isGratis ? true : isLunas;
@@ -5134,30 +5153,53 @@
           });
         };
 
-        window.updateTagihanSetting = (npsn, key, val) => {
+        window.updateTagihanSetting = async (npsn, key, val) => {
           let settings = {};
           try {
             settings = JSON.parse(localStorage.getItem("aplikasi-rapor-tagihan-settings") || "{}");
           } catch(e){}
           if (!settings[npsn]) {
-            settings[npsn] = { isLunas: false, diskon: 0, biayaTambahan: 0 };
+            settings[npsn] = { isLunas: false, diskon: 0, biayaTambahan: 0, pemesan: "" };
           }
           if (key === 'isLunas') {
             settings[npsn].isLunas = Boolean(val);
           } else if (key === 'diskon') {
-            settings[npsn].diskon = Math.max(0, parseInt(val, 10) || 0);
+            settings[npsn].diskon = parseInt(val, 10) || 0;
           } else if (key === 'biayaTambahan') {
-            settings[npsn].biayaTambahan = Math.max(0, parseInt(val, 10) || 0);
+            settings[npsn].biayaTambahan = parseInt(val, 10) || 0;
           } else if (key === 'pemesan') {
             settings[npsn].pemesan = String(val || "").trim();
           }
           localStorage.setItem("aplikasi-rapor-tagihan-settings", JSON.stringify(settings));
           
           if (window.latestUniqueSchools) {
-            // Re-render
             window.renderTable(window.latestUniqueSchools);
           } else {
             refreshFilterAndRender();
+          }
+
+          // Persist to Supabase Database
+          const npsnLower = String(npsn).toLowerCase().trim();
+          const schoolDocs = allData.filter(d => d.npsn && String(d.npsn).toLowerCase().trim() === npsnLower);
+          if (schoolDocs.length > 0) {
+            try {
+              const { doc, updateDoc, db, appId, collectionName } = window.fbComponents;
+              const dbField = {};
+              if (key === 'isLunas') dbField.tagihan_is_lunas = Boolean(val);
+              else if (key === 'diskon') dbField.tagihan_diskon = parseInt(val, 10) || 0;
+              else if (key === 'biayaTambahan') dbField.tagihan_biaya_tambahan = parseInt(val, 10) || 0;
+              else if (key === 'pemesan') dbField.tagihan_pemesan = String(val || "").trim();
+
+              const dbUpdates = schoolDocs.map(d => 
+                updateDoc(
+                  doc(db, "artifacts", appId, "public", "data", collectionName, d.id),
+                  dbField
+                )
+              );
+              await Promise.all(dbUpdates);
+            } catch(e) {
+              console.warn("Cloud save warning", e);
+            }
           }
         };
 
