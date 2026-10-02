@@ -3424,22 +3424,22 @@
               listEl.innerHTML = sessions.map((s, idx) => {
                 const isLatest = idx === 0;
                 const statusBadge = s.status.isOnline
-                  ? `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-300 text-[9.5px] font-bold shadow-2xs"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>Online (${s.status.timeAgo})</span>`
-                  : `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200 text-[9.5px] font-medium"><span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>Offline (${s.status.timeAgo})</span>`;
+                  ? `<span class="inline-flex items-center gap-1 px-1.5 py-0.2 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-300 text-[8.5px] font-bold shadow-2xs shrink-0"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>Online (${s.status.timeAgo})</span>`
+                  : `<span class="inline-flex items-center gap-1 px-1.5 py-0.2 rounded-full bg-slate-100 text-slate-600 border border-slate-200 text-[8.5px] font-medium shrink-0"><span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>Offline (${s.status.timeAgo})</span>`;
 
                 return `
-                  <div class="p-2.5 sm:p-3 rounded-xl border ${isLatest ? 'bg-teal-50/40 border-teal-200 shadow-2xs' : 'bg-white border-slate-200/80'} hover:border-slate-300 transition-all flex flex-col gap-1.5">
+                  <div class="px-2.5 py-1.5 rounded-xl border ${isLatest ? 'bg-teal-50/40 border-teal-200 shadow-2xs' : 'bg-white border-slate-200/80'} hover:border-slate-300 transition-all flex flex-col gap-1">
                     <div class="flex items-center justify-between gap-2">
                       <div class="flex items-center gap-1.5 min-w-0">
-                        <span class="w-5 h-5 rounded-full ${isLatest ? 'bg-teal-600 text-white' : 'bg-slate-100 text-slate-600'} text-[10px] font-bold flex items-center justify-center shrink-0">${idx + 1}</span>
-                        <span class="font-mono font-bold text-xs ${isLatest ? 'text-teal-900' : 'text-slate-800'} truncate">${s.status.timeFormatted}</span>
-                        ${isLatest ? '<span class="px-1.5 py-0.2 bg-teal-100 text-teal-800 text-[8.5px] font-bold rounded shrink-0">Aktivitas Terakhir</span>' : ''}
+                        <span class="w-4 h-4 rounded-full ${isLatest ? 'bg-teal-600 text-white' : 'bg-slate-100 text-slate-600'} text-[9px] font-bold flex items-center justify-center shrink-0">${idx + 1}</span>
+                        <span class="font-mono font-bold text-[11px] ${isLatest ? 'text-teal-900' : 'text-slate-800'} truncate">${s.status.timeFormatted}</span>
+                        ${isLatest ? '<span class="px-1.5 py-0.2 bg-teal-100 text-teal-800 text-[8px] font-bold rounded shrink-0">Aktivitas Terakhir</span>' : ''}
                       </div>
                       <div class="shrink-0">${statusBadge}</div>
                     </div>
-                    <div class="grid grid-cols-2 gap-2 text-[10.5px] pt-1.5 border-t border-slate-100 text-slate-600">
-                      <div><span class="text-slate-400 text-[9.5px] block">Wali Kelas / Guru:</span> <span class="font-semibold text-slate-700 truncate block">${s.guruNama}</span></div>
-                      <div><span class="text-slate-400 text-[9.5px] block">Kepala Sekolah:</span> <span class="font-semibold text-slate-700 truncate block">${s.kepsekNama}</span></div>
+                    <div class="flex items-center justify-between gap-2 text-[10px] pt-1 border-t border-slate-100/70 text-slate-600">
+                      <div class="truncate"><span class="text-slate-400">Guru:</span> <span class="font-semibold text-slate-700">${s.guruNama}</span></div>
+                      <div class="truncate text-right"><span class="text-slate-400">Kepsek:</span> <span class="font-semibold text-slate-700">${s.kepsekNama}</span></div>
                     </div>
                   </div>
                 `;
