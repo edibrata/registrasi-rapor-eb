@@ -4134,17 +4134,26 @@
         }
 
         // ==========================================
-        // --- PRESENCE HEARTBEAT PING SYSTEM ---
-        // (Track Mouse, Scroll, Keyboard, Touch, & Tab Visibility)
+        // --- PRESENCE HEARTBEAT & IMMEDIATE WAKE-UP PING SYSTEM ---
+        // (Track Mouse, Scroll, Keyboard, Touch, & Tab Visibility for Instant Online Activation)
         // ==========================================
         window.hasLocalUserActivity = false;
-        window.lastPresencePingTime = 0;
+        window.lastPresencePingTime = Date.now();
+        window.isCurrentlyIdle = false;
 
         window.markLocalActivity = function() {
           window.hasLocalUserActivity = true;
+          const now = Date.now();
+          // Immediate Wake-Up Ping if user was idle > 1 minute or flagged idle
+          if (window.isCurrentlyIdle || (now - window.lastPresencePingTime >= 60000)) {
+            window.isCurrentlyIdle = false;
+            if (window.sendPresenceHeartbeatPing) {
+              window.sendPresenceHeartbeatPing(true);
+            }
+          }
         };
 
-        // Listen for all local user interactions (scroll, mouse, keyboard, touch, click)
+        // Listen for all local user interactions (scroll, mouse, keyboard, touch, click, wheel)
         ["mousemove", "scroll", "keydown", "click", "pointerdown", "touchmove", "wheel"].forEach(evtName => {
           window.addEventListener(evtName, window.markLocalActivity, { passive: true });
         });
@@ -4164,8 +4173,8 @@
             return;
           }
 
-          // Throttle ping to at least 1.5 minutes (90,000ms)
-          if (!force && (now - window.lastPresencePingTime < 90000)) {
+          // Throttle background periodic pings to 1 minute, but force = true bypasses throttle
+          if (!force && (now - window.lastPresencePingTime < 60000)) {
             return;
           }
 
@@ -4174,38 +4183,72 @@
 
           if (!supabaseClient) return;
 
-          // Search active session ID or current active workspace record
-          const activeSessionId = localStorage.getItem("active_user_session_id") || window.currentActiveSessionId;
+          // Search active session ID or fallback to current workspace record
+          let activeSessionId = localStorage.getItem("active_user_session_id") || window.currentActiveSessionId;
+          if (!activeSessionId && window.rawPenggunaData && window.rawPenggunaData.length > 0) {
+            activeSessionId = window.rawPenggunaData[0].id;
+          }
 
           try {
             if (activeSessionId) {
-              await supabaseClient
+              const nowIso = new Date().toISOString();
+
+              // 1. Instantly update local UI state for zero-delay feedback
+              if (window.rawPenggunaData && Array.isArray(window.rawPenggunaData)) {
+                let found = false;
+                window.rawPenggunaData = window.rawPenggunaData.map(item => {
+                  if (item.id === activeSessionId) {
+                    found = true;
+                    return {
+                      ...item,
+                      status: "online",
+                      is_online: true,
+                      isOnline: true,
+                      last_active: nowIso,
+                      updated_at: nowIso
+                    };
+                  }
+                  return item;
+                });
+
+                if (!found && window.rawPenggunaData[0]) {
+                  window.rawPenggunaData[0].status = "online";
+                  window.rawPenggunaData[0].is_online = true;
+                  window.rawPenggunaData[0].last_active = nowIso;
+                }
+
+                if (window.renderPenggunaTable) {
+                  window.renderPenggunaTable(window.rawPenggunaData);
+                }
+              }
+
+              // 2. Persist to Supabase aplikasirapor
+              const { error } = await supabaseClient
                 .from('aplikasirapor')
                 .update({
                   status: 'online',
                   is_online: true,
                   isOnline: true,
-                  last_active: new Date().toISOString(),
-                  updated_at: new Date().toISOString()
+                  last_active: nowIso,
+                  updated_at: nowIso
                 })
                 .eq('id', activeSessionId);
-            } else if (window.rawPenggunaData && window.rawPenggunaData.length > 0) {
-              // Update status on local cache and refresh trigger
-              if (window.fetchPenggunaData) {
-                window.fetchPenggunaData(false);
+
+              if (error) {
+                console.warn("Ping update notice:", error.message);
               }
             }
           } catch (e) {
-            console.warn("Presence ping error:", e);
+            console.warn("Presence ping exception:", e);
           }
         };
 
-        // Run Heartbeat Ping check every 2 minutes (120,000ms)
+        // Run Heartbeat Ping check every 1 minute
         setInterval(() => {
           if (window.sendPresenceHeartbeatPing) {
             window.sendPresenceHeartbeatPing(false);
           }
-        }, 120000);
+        }, 60000);
 
         // Initial fetch for Tab Pengguna
         setTimeout(() => {
