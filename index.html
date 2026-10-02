@@ -1457,14 +1457,14 @@
                 NO
               </th>
               <th
-                class="main-header text-center sticky left-[80px] z-40 bg-slate-50 border-r border-slate-200 w-[140px] min-w-[140px] max-w-[140px] cursor-pointer"
+                class="main-header text-center sticky left-[80px] z-40 bg-slate-50 border-r border-slate-200 w-[110px] min-w-[110px] max-w-[110px] cursor-pointer"
                 data-sort="timestamp"
                 data-tooltip="Urutkan Waktu Registrasi"
               >
                 TIMESTAMP
               </th>
-              <th class="main-header text-center sticky left-[220px] z-40 bg-slate-50 border-r border-slate-200 w-[220px] min-w-[220px] max-w-[220px] cursor-pointer" data-sort="nama-sekolah" data-tooltip="Urutkan Nama Sekolah">NAMA SEKOLAH</th>
-              <th width="100" class="main-header text-center min-w-[100px] cursor-pointer" data-sort="npsn" data-tooltip="Urutkan NPSN">
+              <th class="main-header text-center sticky left-[190px] z-40 bg-slate-50 border-r border-slate-200 w-[220px] min-w-[220px] max-w-[220px] cursor-pointer" data-sort="nama-sekolah" data-tooltip="Urutkan Nama Sekolah">NAMA SEKOLAH</th>
+              <th class="main-header text-center w-[80px] min-w-[80px] max-w-[80px] cursor-pointer" data-sort="npsn" data-tooltip="Urutkan NPSN">
                 NPSN
               </th>
               <th class="main-header text-center min-w-[180px] cursor-pointer" data-sort="alamat" data-tooltip="Urutkan Alamat">ALAMAT LENGKAP</th>
@@ -2061,6 +2061,54 @@
             onclick="document.getElementById('history-modal').classList.remove('active')"
             class="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-lg transition-colors cursor-pointer active:scale-95 shadow-2xs"
             data-tooltip="Tutup Riwayat"
+          >
+            Tutup
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Riwayat Sesi Pengguna / Ruang Kerja -->
+    <div id="user-history-modal" class="modal-overlay" onclick="if(event.target === this) window.closeUserHistoryModal()">
+      <div class="bg-white p-4 sm:p-5 rounded-2xl w-full max-w-lg mx-3 sm:mx-6 transform transition-all scale-100 opacity-100 shadow-2xl relative border border-slate-200">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-100 mb-3">
+          <div class="flex items-center gap-2.5 min-w-0">
+            <div class="w-8 h-8 bg-teal-100 text-teal-700 rounded-xl flex items-center justify-center shadow-inner shrink-0">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4 h-4">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+            </div>
+            <div class="min-w-0 flex-1">
+              <h3 class="text-sm font-bold text-slate-800 leading-tight">
+                Riwayat Sesi & Aktivitas Ruang Kerja
+              </h3>
+              <div id="user-history-school-name" class="text-xs font-bold text-teal-700 truncate max-w-xs mt-0.5"></div>
+              <div id="user-history-sub" class="text-[10px] font-mono text-slate-500"></div>
+            </div>
+          </div>
+          <button
+            type="button"
+            onclick="window.closeUserHistoryModal()"
+            class="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-400 hover:text-slate-600 flex items-center justify-center transition-all cursor-pointer active:scale-95 shrink-0"
+            data-tooltip="Tutup"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+        </div>
+
+        <div class="flex flex-col gap-2 max-h-[380px] overflow-y-auto pr-1 custom-scrollbar" id="user-history-list">
+          <!-- Session items injected here -->
+        </div>
+
+        <div class="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2">
+          <div id="user-history-summary" class="text-[10.5px] font-medium text-slate-500"></div>
+          <button
+            type="button"
+            onclick="window.closeUserHistoryModal()"
+            class="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-lg transition-colors cursor-pointer active:scale-95 shadow-2xs"
+            data-tooltip="Tutup Riwayat Sesi"
           >
             Tutup
           </button>
@@ -3194,24 +3242,12 @@
             );
 
           if (!recordTime || isNaN(recordTime)) {
-            if (isExplicitOnline) {
-              return {
-                isOnline: true,
-                label: "Sedang Online",
-                subLabel: "Aktif",
-                badgeClass: "bg-emerald-50 text-emerald-700 border-emerald-300 shadow-2xs ring-1 ring-emerald-500/20",
-                dotClass: "bg-emerald-500 animate-pulse",
-                timeFormatted: "Aktif sekarang",
-                timeAgo: "Baru saja",
-                recordTime: Date.now()
-              };
-            }
             return {
               isOnline: false,
               label: "Offline",
               subLabel: isExplicitOffline ? "Telah logout" : "Tanpa riwayat waktu",
               badgeClass: "bg-slate-100 text-slate-500 border-slate-200",
-              dotClass: "bg-slate-400",
+              dotClass: "bg-slate-300",
               timeFormatted: "-",
               timeAgo: "-",
               recordTime: 0
@@ -3223,9 +3259,9 @@
           const diffMinutes = Math.floor(diffMs / (1000 * 60));
           const timeFormatted = formatDisplayDate(recordTime);
 
-          // Online jika BUKAN explicit offline, DAN (ada explicit online atau aktif dalam 120 menit terakhir)
-          const isRecentlyActive = diffMinutes >= -15 && diffMinutes <= 120;
-          const isOnline = !isExplicitOffline && (isExplicitOnline || isRecentlyActive);
+          // Online HANYA jika BUKAN explicit offline DAN ada denyut aktivitas dalam 10 menit terakhir
+          const isRecentlyActive = diffMinutes >= -15 && diffMinutes <= 10;
+          const isOnline = !isExplicitOffline && isRecentlyActive;
 
           if (isOnline) {
             const timeAgo = (diffMinutes <= 1) ? "Baru saja" : `${diffMinutes} mnt lalu`;
@@ -3246,6 +3282,8 @@
               timeAgo = "Logout";
             } else if (diffMinutes < -15) {
               timeAgo = "Baru saja";
+            } else if (diffMinutes < 60) {
+              timeAgo = `${Math.max(1, diffMinutes)} mnt lalu`;
             } else if (isToday) {
               const hours = Math.floor(diffMinutes / 60);
               timeAgo = hours <= 1 ? "1 jam lalu" : `${hours} jam lalu`;
@@ -3258,7 +3296,7 @@
               label: "Offline",
               subLabel: timeAgo,
               badgeClass: "bg-slate-100 text-slate-600 border-slate-200",
-              dotClass: "bg-slate-400",
+              dotClass: "bg-slate-300",
               timeFormatted: timeFormatted,
               timeAgo: timeAgo,
               recordTime: recordTime
@@ -3358,6 +3396,65 @@
           if (elOffline) elOffline.textContent = offline;
         }
 
+        window.userHistoryGroups = new Map();
+
+        window.openUserHistoryModal = (workspaceKey) => {
+          const group = window.userHistoryGroups.get(workspaceKey);
+          if (!group) return;
+
+          const modal = document.getElementById("user-history-modal");
+          const nameEl = document.getElementById("user-history-school-name");
+          const subEl = document.getElementById("user-history-sub");
+          const listEl = document.getElementById("user-history-list");
+          const summaryEl = document.getElementById("user-history-summary");
+
+          if (nameEl) nameEl.textContent = `${group.namaSekolah} • ${group.rombel}`;
+          if (subEl) subEl.textContent = `NPSN: ${group.npsn || "-"} • ${group.kecamatan || "-"}, ${group.kabupaten || "-"}`;
+
+          const sessions = group.sessions || [];
+          if (summaryEl) {
+            const activeCount = sessions.filter(s => s.status.isOnline).length;
+            summaryEl.innerHTML = `Total <span class="font-bold text-slate-700">${sessions.length} Sesi Terdata</span> ${activeCount > 0 ? `• <span class="text-emerald-600 font-bold">${activeCount} Sesi Sedang Online</span>` : ''}`;
+          }
+
+          if (listEl) {
+            if (sessions.length === 0) {
+              listEl.innerHTML = `<div class="text-center py-8 text-slate-400 text-xs italic bg-slate-50 rounded-xl border border-dashed border-slate-200">Tidak ada rekaman sesi.</div>`;
+            } else {
+              listEl.innerHTML = sessions.map((s, idx) => {
+                const isLatest = idx === 0;
+                const statusBadge = s.status.isOnline
+                  ? `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-300 text-[9.5px] font-bold shadow-2xs"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>Online (${s.status.timeAgo})</span>`
+                  : `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200 text-[9.5px] font-medium"><span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>Offline (${s.status.timeAgo})</span>`;
+
+                return `
+                  <div class="p-2.5 sm:p-3 rounded-xl border ${isLatest ? 'bg-teal-50/40 border-teal-200 shadow-2xs' : 'bg-white border-slate-200/80'} hover:border-slate-300 transition-all flex flex-col gap-1.5">
+                    <div class="flex items-center justify-between gap-2">
+                      <div class="flex items-center gap-1.5 min-w-0">
+                        <span class="w-5 h-5 rounded-full ${isLatest ? 'bg-teal-600 text-white' : 'bg-slate-100 text-slate-600'} text-[10px] font-bold flex items-center justify-center shrink-0">${idx + 1}</span>
+                        <span class="font-mono font-bold text-xs ${isLatest ? 'text-teal-900' : 'text-slate-800'} truncate">${s.status.timeFormatted}</span>
+                        ${isLatest ? '<span class="px-1.5 py-0.2 bg-teal-100 text-teal-800 text-[8.5px] font-bold rounded shrink-0">Aktivitas Terakhir</span>' : ''}
+                      </div>
+                      <div class="shrink-0">${statusBadge}</div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2 text-[10.5px] pt-1.5 border-t border-slate-100 text-slate-600">
+                      <div><span class="text-slate-400 text-[9.5px] block">Wali Kelas / Guru:</span> <span class="font-semibold text-slate-700 truncate block">${s.guruNama}</span></div>
+                      <div><span class="text-slate-400 text-[9.5px] block">Kepala Sekolah:</span> <span class="font-semibold text-slate-700 truncate block">${s.kepsekNama}</span></div>
+                    </div>
+                  </div>
+                `;
+              }).join("");
+            }
+          }
+
+          if (modal) modal.classList.add("active");
+        };
+
+        window.closeUserHistoryModal = () => {
+          const modal = document.getElementById("user-history-modal");
+          if (modal) modal.classList.remove("active");
+        };
+
         window.renderPenggunaTable = function(rawList) {
           const tbody = document.getElementById("pengguna-table-body");
           if (!tbody) return;
@@ -3383,17 +3480,14 @@
             return;
           }
 
-          let totalCount = rawList.length;
-          let onlineCount = 0;
-          let offlineCount = 0;
+          // 1. Kelompokkan sesi per Objek Ruang Kerja (Sekolah + Rombel)
+          const workspaceMap = new Map();
+          window.userHistoryGroups = workspaceMap;
 
-          // Process records
-          const processed = rawList.map((item, idx) => {
+          rawList.forEach((item) => {
             const p = item.data_payload || {};
             const s = p.sekolah || p || {};
             const status = getPenggunaActivityStatus(item);
-            if (status.isOnline) onlineCount++;
-            else offlineCount++;
 
             const namaSekolah = s.nama || s["nama-sekolah"] || item.data_payload?.["nama-sekolah"] || "-";
             const npsn = s.npsn || (item.npsn ? String(item.npsn).split("_")[0] : "-");
@@ -3412,10 +3506,14 @@
             const guruWa = s.waGuru || "-";
             const guruTglLahir = extractBirthDateFromNIP(s.nipWaliKelas || s.nipGuru);
 
-            return {
+            const cleanNpsn = npsn && npsn !== "-" ? String(npsn).trim().toLowerCase() : "";
+            const cleanNama = String(namaSekolah || "").trim().toLowerCase();
+            const cleanRombel = String(rombel || "").trim().toLowerCase();
+            const workspaceKey = `${cleanNpsn || cleanNama}__${cleanRombel}`;
+
+            const sessionObj = {
               raw: item,
               id: item.id,
-              index: idx + 1,
               status,
               namaSekolah,
               npsn,
@@ -3430,11 +3528,74 @@
               guruNama,
               guruNip,
               guruWa,
-              guruTglLahir
+              guruTglLahir,
+              recordTime: status.recordTime || 0
+            };
+
+            if (!workspaceMap.has(workspaceKey)) {
+              workspaceMap.set(workspaceKey, {
+                workspaceKey,
+                namaSekolah,
+                npsn,
+                rombel,
+                kecamatan,
+                kabupaten,
+                provinsi,
+                sessions: [sessionObj]
+              });
+            } else {
+              const group = workspaceMap.get(workspaceKey);
+              group.sessions.push(sessionObj);
+            }
+          });
+
+          // 2. Siapkan data baris representatif untuk setiap ruang kerja
+          let onlineCount = 0;
+          let offlineCount = 0;
+
+          const processed = Array.from(workspaceMap.values()).map((group, idx) => {
+            // Urutkan sesi dari yang paling baru ke yang paling lama
+            group.sessions.sort((a, b) => (b.recordTime || 0) - (a.recordTime || 0));
+
+            // Sesi teratas adalah representasi terdepan
+            const latestSession = group.sessions[0];
+            
+            // Cek apakah ada sesi yang sedang online
+            const activeOnlineSessions = group.sessions.filter(s => s.status.isOnline);
+            const isOnline = activeOnlineSessions.length > 0;
+
+            if (isOnline) onlineCount++;
+            else offlineCount++;
+
+            // Status yang ditampilkan mengambil sesi online aktif (jika ada) atau sesi terbaru
+            const activeStatus = isOnline ? activeOnlineSessions[0].status : latestSession.status;
+
+            return {
+              workspaceKey: group.workspaceKey,
+              raw: latestSession.raw,
+              id: latestSession.id,
+              index: idx + 1,
+              status: activeStatus,
+              sessions: group.sessions,
+              activeSessionsCount: activeOnlineSessions.length,
+              namaSekolah: group.namaSekolah,
+              npsn: group.npsn,
+              rombel: group.rombel,
+              kecamatan: latestSession.kecamatan,
+              kabupaten: latestSession.kabupaten,
+              provinsi: latestSession.provinsi,
+              kepsekNama: latestSession.kepsekNama,
+              kepsekNip: latestSession.kepsekNip,
+              kepsekWa: latestSession.kepsekWa,
+              kepsekTglLahir: latestSession.kepsekTglLahir,
+              guruNama: latestSession.guruNama,
+              guruNip: latestSession.guruNip,
+              guruWa: latestSession.guruWa,
+              guruTglLahir: latestSession.guruTglLahir
             };
           });
 
-          updatePenggunaCounters(totalCount, onlineCount, offlineCount);
+          updatePenggunaCounters(processed.length, onlineCount, offlineCount);
 
           // Apply filters
           let filtered = processed.filter(row => {
@@ -3522,7 +3683,7 @@
             tbody.innerHTML = `
               <tr>
                 <td colspan="17" class="text-center py-12 text-slate-400 bg-slate-50/40">
-                  Tidak ada data pengguna yang sesuai dengan filter/pencarian.
+                  Tidak ada data ruang kerja/pengguna yang sesuai dengan filter/pencarian.
                 </td>
               </tr>
             `;
@@ -3530,25 +3691,36 @@
           }
 
           tbody.innerHTML = filtered.map((row, i) => {
+            const historyCount = row.sessions ? row.sessions.length : 1;
+            const tsHtml = historyCount > 1
+              ? `<div class="group relative inline-flex items-center gap-1 px-1.5 py-0.5 bg-teal-50/80 hover:bg-teal-100 text-teal-800 border border-teal-200/80 hover:border-teal-300 rounded-md cursor-pointer transition-all shadow-2xs active:scale-95" onclick="window.openUserHistoryModal('${row.workspaceKey}')" data-tooltip="Klik untuk melihat ${historyCount} riwayat sesi ruang kerja ini">
+                  <span class="font-mono font-bold text-[10px] text-teal-900">${row.status.timeFormatted}</span>
+                  <span class="px-1 py-0.2 bg-teal-200/90 text-teal-900 text-[8.5px] rounded font-black">${historyCount}x</span>
+                </div>
+                <div class="text-[9px] text-slate-400 font-medium whitespace-nowrap truncate max-w-full mt-0.5 cursor-pointer" onclick="window.openUserHistoryModal('${row.workspaceKey}')">${row.status.subLabel || "-"}</div>`
+              : `<div class="flex flex-col items-center justify-center leading-tight cursor-pointer hover:bg-slate-100/80 px-1 py-0.5 rounded transition-colors" onclick="window.openUserHistoryModal('${row.workspaceKey}')" data-tooltip="Lihat detail sesi">
+                  <span class="font-mono font-bold text-slate-700 text-[10.5px] truncate max-w-full">${row.status.timeFormatted}</span>
+                  <span class="text-[9px] text-slate-400 font-medium whitespace-nowrap truncate max-w-full">${row.status.subLabel || "-"}</span>
+                </div>`;
+
             return `
               <tr class="hover:bg-slate-50/80 transition-colors text-[11px]">
                 <td class="px-2.5 py-1 text-center text-slate-400 sticky left-0 z-10 bg-white border-r border-slate-200 font-mono w-[45px] min-w-[45px] max-w-[45px]">${i + 1}</td>
                 <td class="px-1 py-1 text-center sticky left-[45px] z-10 bg-white border-r border-slate-200 w-[45px] min-w-[45px] max-w-[45px]">
                   <div class="flex items-center justify-center">
                     ${row.status.isOnline ? `
-                      <span class="relative flex h-2.5 w-2.5 cursor-pointer" data-tooltip="Sedang Online">
+                      <span class="relative flex h-2.5 w-2.5 cursor-pointer" onclick="window.openUserHistoryModal('${row.workspaceKey}')" data-tooltip="Sedang Online (${row.activeSessionsCount > 1 ? row.activeSessionsCount + ' Perangkat' : 'Aktif'})">
                         <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                         <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500 shadow-sm ring-2 ring-emerald-100"></span>
                       </span>
                     ` : `
-                      <span class="inline-flex rounded-full h-2.5 w-2.5 bg-slate-300 ring-2 ring-slate-100 cursor-pointer" data-tooltip="Offline"></span>
+                      <span class="inline-flex rounded-full h-2.5 w-2.5 bg-slate-300 ring-2 ring-slate-100 cursor-pointer" onclick="window.openUserHistoryModal('${row.workspaceKey}')" data-tooltip="Offline (${row.status.subLabel})"></span>
                     `}
                   </div>
                 </td>
                 <td class="px-2 py-1 text-center sticky left-[90px] z-10 bg-white border-r border-slate-200 w-[140px] min-w-[140px] max-w-[140px]">
                   <div class="flex flex-col items-center justify-center leading-tight">
-                    <span class="font-mono font-bold text-slate-700 text-[10.5px] truncate max-w-full">${row.status.timeFormatted}</span>
-                    <span class="text-[9px] text-slate-400 font-medium whitespace-nowrap truncate max-w-full">${row.status.subLabel || "-"}</span>
+                    ${tsHtml}
                   </div>
                 </td>
                 <td class="px-3 py-0.5 sticky left-[230px] z-10 bg-white border-r border-slate-200 w-[210px] min-w-[210px] max-w-[210px]">
@@ -4914,11 +5086,11 @@
               row.innerHTML = `
                         <td class="text-center align-middle py-0.5 px-2 sticky left-0 z-20 bg-white border-r border-slate-200 w-[35px] min-w-[35px] max-w-[35px]"><input type="checkbox" ${isSelected ? "checked" : ""} onchange="toggleRowSelection('${item.id}')" class="cursor-pointer" data-tooltip="Pilih baris ini"></td>
                         <td class="text-center font-bold text-slate-400 border-r border-slate-200 align-middle py-0.5 px-2 sticky left-[35px] z-20 bg-white w-[45px] min-w-[45px] max-w-[45px] text-[10.5px]">${index + 1}</td>
-                        <td class="text-[9.5px] text-slate-500 font-mono text-center align-middle py-0.5 px-2 sticky left-[80px] z-20 bg-white border-r border-slate-200 w-[140px] min-w-[140px] max-w-[140px] whitespace-nowrap">
+                        <td class="text-[9.5px] text-slate-500 font-mono text-center align-middle py-0.5 px-1 sticky left-[80px] z-20 bg-white border-r border-slate-200 w-[110px] min-w-[110px] max-w-[110px] whitespace-nowrap">
                             ${tsHtml}
                         </td>
-                        <td class="font-bold text-teal-700 cursor-pointer transition-all hover:underline hover:text-teal-900 underline-offset-4 decoration-teal-300 decoration-2 align-middle py-0.5 px-2 sticky left-[220px] z-20 bg-white border-r border-slate-200 w-[220px] min-w-[220px] max-w-[220px] truncate text-[11px]" data-tooltip="Klik untuk Edit Sekolah">${highlightText(item["nama-sekolah"], searchVal)}</td>
-                        <td class="font-mono text-slate-500 text-center align-middle py-0.5 px-2 min-w-[100px] text-[10.5px]">${highlightText(item["npsn"], searchVal)}</td>
+                        <td class="font-bold text-teal-700 cursor-pointer transition-all hover:underline hover:text-teal-900 underline-offset-4 decoration-teal-300 decoration-2 align-middle py-0.5 px-2 sticky left-[190px] z-20 bg-white border-r border-slate-200 w-[220px] min-w-[220px] max-w-[220px] truncate text-[11px]" data-tooltip="Klik untuk Edit Sekolah">${highlightText(item["nama-sekolah"], searchVal)}</td>
+                        <td class="font-mono text-slate-600 text-center align-middle py-0.5 px-1 w-[80px] min-w-[80px] max-w-[80px] whitespace-nowrap text-[10.5px] font-semibold">${highlightText(item["npsn"], searchVal)}</td>
                         <td class="max-w-[150px] min-w-[180px] align-middle py-0.5 px-2 group relative text-[10.5px]">
                             <span class="block truncate">${highlightText(item["alamat"], searchVal)}</span>
                             <div class="invisible group-hover:visible absolute z-50 mb-2 bottom-full left-1/2 -translate-x-1/2 px-2.5 py-1.5 bg-slate-800 text-white text-[11px] font-normal leading-relaxed rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-normal w-max max-w-xs break-words pointer-events-none text-left">
