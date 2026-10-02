@@ -897,10 +897,12 @@
       }
 
       #search-input,
-      #search-pengguna-input {
+      #search-pengguna-input,
+      #search-tagihan-input,
+      #search-akses-input {
         width: 100%;
         height: 32px;
-        padding: 0 0.75rem 0 2rem;
+        padding: 0 0.75rem 0 2rem !important;
         border: 1px solid #e2e8f0;
         border-radius: 0.5rem;
         font-size: 0.75rem;
@@ -910,7 +912,8 @@
         background-color: #ffffff;
       }
       #filter-status,
-      #filter-pengguna-status {
+      #filter-pengguna-status,
+      #filter-akses-status {
         width: 100%;
         height: 32px;
         padding: 0 1.75rem 0 0.75rem;
@@ -934,8 +937,11 @@
       input[type="text"]:focus,
       #search-input:focus,
       #search-pengguna-input:focus,
+      #search-tagihan-input:focus,
+      #search-akses-input:focus,
       #filter-status:focus,
       #filter-pengguna-status:focus,
+      #filter-akses-status:focus,
       select:focus {
         border-color: #0d9488;
         box-shadow: 0 0 0 2px rgba(13, 148, 136, 0.15);
@@ -943,8 +949,11 @@
       }
       #search-input:hover,
       #search-pengguna-input:hover,
+      #search-tagihan-input:hover,
+      #search-akses-input:hover,
       #filter-status:hover,
-      #filter-pengguna-status:hover {
+      #filter-pengguna-status:hover,
+      #filter-akses-status:hover {
         border-color: #cbd5e1;
       }
 
@@ -1333,6 +1342,20 @@
           id="filter-tagihan-container"
           class="hidden w-full sm:w-auto flex flex-row items-center justify-center sm:justify-end gap-1.5 pb-2 flex-nowrap"
         >
+          <!-- Kolom Pencarian Pesanan / Tagihan -->
+          <div class="relative w-full sm:w-48 group shrink-0">
+            <span class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none text-slate-400 group-focus-within:text-teal-600 transition-colors">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            </span>
+            <input
+              type="text"
+              id="search-tagihan-input"
+              placeholder="Cari pesanan, sekolah..."
+              class="w-full pl-8 pr-3 text-xs bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-teal-500 focus:border-teal-500 transition-all placeholder:text-slate-400 h-8"
+              data-tooltip="Cari nama sekolah, NPSN, atau pemesan"
+            />
+          </div>
+
           <div
             class="flex flex-1 sm:flex-none items-center gap-1 bg-white border border-slate-200 rounded-lg px-2 py-1 min-h-[32px] sm:h-8 shadow-2xs justify-between sm:justify-center flex-row"
           >
@@ -1365,6 +1388,39 @@
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
             </button>
+          </div>
+        </div>
+
+        <!-- Controls Container (Contextual Inline Sejajar Tab) untuk Tab Akses -->
+        <div
+          id="controls-akses-container"
+          class="hidden w-full sm:w-auto flex-wrap sm:flex-nowrap items-center justify-center sm:justify-end gap-1.5 pb-2"
+        >
+          <!-- Kolom Pencarian Akses (Proporsional & Ringkas) -->
+          <div class="relative w-full sm:w-48 group">
+            <span class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none text-slate-400 group-focus-within:text-teal-600 transition-colors">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            </span>
+            <input
+              type="text"
+              id="search-akses-input"
+              placeholder="Cari sekolah, NPSN, akses..."
+              class="w-full pl-8 pr-3 text-xs bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-teal-500 focus:border-teal-500 transition-all placeholder:text-slate-400 h-8"
+              data-tooltip="Cari sekolah, NPSN, atau password"
+            />
+          </div>
+
+          <!-- Dropdown Filter Status Akses -->
+          <div class="w-full sm:w-32 shrink-0">
+            <select
+              id="filter-akses-status"
+              class="w-full text-xs bg-white border border-slate-200 rounded-lg text-slate-700 font-semibold focus:outline-none focus:ring-1 focus:ring-teal-500 cursor-pointer h-8 truncate px-2"
+              data-tooltip="Saring Status Akses Password"
+            >
+              <option value="ALL">Semua Akses</option>
+              <option value="PASS_ACTIVE">🔑 Password Aktif</option>
+              <option value="PASS_OFF">🔓 Tanpa Password</option>
+            </select>
           </div>
         </div>
 
@@ -2958,6 +3014,7 @@
 
           const dContainer = document.getElementById("controls-data-container");
           const fContainer = document.getElementById("filter-tagihan-container");
+          const aContainer = document.getElementById("controls-akses-container");
           const pContainer = document.getElementById("controls-pengguna-container");
 
           if (activeTab === tabData) {
@@ -2967,6 +3024,7 @@
             if (viewPengguna) { viewPengguna.classList.add("hidden"); viewPengguna.classList.remove("flex"); }
             if (dContainer) { dContainer.classList.remove("hidden"); dContainer.classList.add("flex"); }
             if (fContainer) { fContainer.classList.add("hidden"); fContainer.classList.remove("flex"); }
+            if (aContainer) { aContainer.classList.add("hidden"); aContainer.classList.remove("flex"); }
             if (pContainer) { pContainer.classList.add("hidden"); pContainer.classList.remove("flex"); }
           } else if (activeTab === tabTagihan) {
             if (viewTagihan) { viewTagihan.classList.remove("hidden"); viewTagihan.classList.add("flex"); }
@@ -2975,6 +3033,7 @@
             if (viewPengguna) { viewPengguna.classList.add("hidden"); viewPengguna.classList.remove("flex"); }
             if (dContainer) { dContainer.classList.add("hidden"); dContainer.classList.remove("flex"); }
             if (fContainer) { fContainer.classList.remove("hidden"); fContainer.classList.add("flex"); }
+            if (aContainer) { aContainer.classList.add("hidden"); aContainer.classList.remove("flex"); }
             if (pContainer) { pContainer.classList.add("hidden"); pContainer.classList.remove("flex"); }
           } else if (activeTab === tabAkses) {
             if (viewAkses) { viewAkses.classList.remove("hidden"); viewAkses.classList.add("flex"); }
@@ -2983,6 +3042,7 @@
             if (viewPengguna) { viewPengguna.classList.add("hidden"); viewPengguna.classList.remove("flex"); }
             if (dContainer) { dContainer.classList.add("hidden"); dContainer.classList.remove("flex"); }
             if (fContainer) { fContainer.classList.add("hidden"); fContainer.classList.remove("flex"); }
+            if (aContainer) { aContainer.classList.remove("hidden"); aContainer.classList.add("flex"); }
             if (pContainer) { pContainer.classList.add("hidden"); pContainer.classList.remove("flex"); }
           } else if (activeTab === tabPengguna) {
             if (viewPengguna) { viewPengguna.classList.remove("hidden"); viewPengguna.classList.add("flex"); }
@@ -2991,6 +3051,7 @@
             if (viewAkses) { viewAkses.classList.add("hidden"); viewAkses.classList.remove("flex"); }
             if (dContainer) { dContainer.classList.add("hidden"); dContainer.classList.remove("flex"); }
             if (fContainer) { fContainer.classList.add("hidden"); fContainer.classList.remove("flex"); }
+            if (aContainer) { aContainer.classList.add("hidden"); aContainer.classList.remove("flex"); }
             if (pContainer) { pContainer.classList.remove("hidden"); pContainer.classList.add("flex"); }
             if (window.fetchPenggunaData) {
               window.fetchPenggunaData(false);
@@ -3398,6 +3459,76 @@
 
         window.userHistoryGroups = new Map();
 
+        window.recordUserLogout = async (recordId) => {
+          if (!recordId) return;
+          if (!supabaseClient) {
+            showToast("Koneksi Supabase belum siap.", false);
+            return;
+          }
+
+          try {
+            showToast("Memproses penandaan logout di server...");
+            const { error } = await supabaseClient
+              .from('aplikasirapor')
+              .update({
+                status: 'offline',
+                is_online: false,
+                isOnline: false,
+                updated_at: new Date().toISOString()
+              })
+              .eq('id', recordId);
+
+            if (error) {
+              console.warn("Gagal update status logout:", error.message);
+              showToast("Gagal memperbarui status di server.", false);
+            } else {
+              showToast("Sesi berhasil diubah menjadi Offline / Logout!");
+              if (window.fetchPenggunaData) {
+                window.fetchPenggunaData(false);
+              }
+            }
+          } catch (err) {
+            console.warn("Exception recordUserLogout:", err);
+            showToast("Terjadi kesalahan saat memproses logout.", false);
+          }
+        };
+
+        window.recordWorkspaceLogout = async (workspaceKey) => {
+          const group = window.userHistoryGroups.get(workspaceKey);
+          if (!group || !group.sessions || group.sessions.length === 0) return;
+
+          const activeOnline = group.sessions.filter(s => s.status.isOnline);
+          if (activeOnline.length === 0) {
+            showToast("Seluruh sesi ruang kerja ini sudah offline.");
+            return;
+          }
+
+          const activeIds = activeOnline.map(s => s.id);
+          try {
+            showToast(`Mengeluarkan ${activeIds.length} sesi aktif...`);
+            const { error } = await supabaseClient
+              .from('aplikasirapor')
+              .update({
+                status: 'offline',
+                is_online: false,
+                isOnline: false,
+                updated_at: new Date().toISOString()
+              })
+              .in('id', activeIds);
+
+            if (error) {
+              console.warn("Gagal logout ruang kerja:", error.message);
+              showToast("Gagal memproses logout di server.", false);
+            } else {
+              showToast("Semua sesi aktif berhasil diubah menjadi Offline!");
+              if (window.closeUserHistoryModal) window.closeUserHistoryModal();
+              if (window.fetchPenggunaData) window.fetchPenggunaData(false);
+            }
+          } catch(e) {
+            console.warn("Exception recordWorkspaceLogout:", e);
+          }
+        };
+
         window.openUserHistoryModal = (workspaceKey) => {
           const group = window.userHistoryGroups.get(workspaceKey);
           if (!group) return;
@@ -3414,7 +3545,16 @@
           const sessions = group.sessions || [];
           if (summaryEl) {
             const activeCount = sessions.filter(s => s.status.isOnline).length;
-            summaryEl.innerHTML = `Total <span class="font-bold text-slate-700">${sessions.length} Sesi Terdata</span> ${activeCount > 0 ? `• <span class="text-emerald-600 font-bold">${activeCount} Sesi Sedang Online</span>` : ''}`;
+            summaryEl.innerHTML = `
+              <div class="flex items-center gap-2 flex-wrap">
+                <span>Total <span class="font-bold text-slate-700">${sessions.length} Sesi Terdata</span> ${activeCount > 0 ? `• <span class="text-emerald-600 font-bold">${activeCount} Sesi Sedang Online</span>` : ''}</span>
+                ${activeCount > 0 ? `
+                  <button type="button" onclick="window.recordWorkspaceLogout('${workspaceKey}')" class="px-2 py-0.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-[9.5px] font-bold rounded-md transition-colors cursor-pointer active:scale-95 shadow-2xs" data-tooltip="Keluarkan semua sesi online ruang kerja ini">
+                    Keluarkan Sesi Aktif
+                  </button>
+                ` : ''}
+              </div>
+            `;
           }
 
           if (listEl) {
@@ -3424,7 +3564,10 @@
               listEl.innerHTML = sessions.map((s, idx) => {
                 const isLatest = idx === 0;
                 const statusBadge = s.status.isOnline
-                  ? `<span class="inline-flex items-center gap-1 px-1.5 py-0.2 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-300 text-[8.5px] font-bold shadow-2xs shrink-0"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>Online (${s.status.timeAgo})</span>`
+                  ? `<div class="flex items-center gap-1">
+                      <span class="inline-flex items-center gap-1 px-1.5 py-0.2 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-300 text-[8.5px] font-bold shadow-2xs shrink-0"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>Online (${s.status.timeAgo})</span>
+                      <button type="button" onclick="event.stopPropagation(); window.recordUserLogout('${s.id}')" class="px-1.5 py-0.2 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-[8px] font-bold rounded cursor-pointer transition-colors active:scale-95 shrink-0" data-tooltip="Tandai Sesi Ini Offline/Logout">Keluar Sesi</button>
+                    </div>`
                   : `<span class="inline-flex items-center gap-1 px-1.5 py-0.2 rounded-full bg-slate-100 text-slate-600 border border-slate-200 text-[8.5px] font-medium shrink-0"><span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>Offline (${s.status.timeAgo})</span>`;
 
                 return `
@@ -3989,6 +4132,80 @@
         } catch(e) {
           console.warn("Realtime error aplikasirapor:", e);
         }
+
+        // ==========================================
+        // --- PRESENCE HEARTBEAT PING SYSTEM ---
+        // (Track Mouse, Scroll, Keyboard, Touch, & Tab Visibility)
+        // ==========================================
+        window.hasLocalUserActivity = false;
+        window.lastPresencePingTime = 0;
+
+        window.markLocalActivity = function() {
+          window.hasLocalUserActivity = true;
+        };
+
+        // Listen for all local user interactions (scroll, mouse, keyboard, touch, click)
+        ["mousemove", "scroll", "keydown", "click", "pointerdown", "touchmove", "wheel"].forEach(evtName => {
+          window.addEventListener(evtName, window.markLocalActivity, { passive: true });
+        });
+
+        document.addEventListener("visibilitychange", () => {
+          if (document.visibilityState === "visible") {
+            window.markLocalActivity();
+            if (window.sendPresenceHeartbeatPing) {
+              window.sendPresenceHeartbeatPing(true);
+            }
+          }
+        });
+
+        window.sendPresenceHeartbeatPing = async function(force = false) {
+          const now = Date.now();
+          if (!force && (!window.hasLocalUserActivity || document.visibilityState !== "visible")) {
+            return;
+          }
+
+          // Throttle ping to at least 1.5 minutes (90,000ms)
+          if (!force && (now - window.lastPresencePingTime < 90000)) {
+            return;
+          }
+
+          window.hasLocalUserActivity = false;
+          window.lastPresencePingTime = now;
+
+          if (!supabaseClient) return;
+
+          // Search active session ID or current active workspace record
+          const activeSessionId = localStorage.getItem("active_user_session_id") || window.currentActiveSessionId;
+
+          try {
+            if (activeSessionId) {
+              await supabaseClient
+                .from('aplikasirapor')
+                .update({
+                  status: 'online',
+                  is_online: true,
+                  isOnline: true,
+                  last_active: new Date().toISOString(),
+                  updated_at: new Date().toISOString()
+                })
+                .eq('id', activeSessionId);
+            } else if (window.rawPenggunaData && window.rawPenggunaData.length > 0) {
+              // Update status on local cache and refresh trigger
+              if (window.fetchPenggunaData) {
+                window.fetchPenggunaData(false);
+              }
+            }
+          } catch (e) {
+            console.warn("Presence ping error:", e);
+          }
+        };
+
+        // Run Heartbeat Ping check every 2 minutes (120,000ms)
+        setInterval(() => {
+          if (window.sendPresenceHeartbeatPing) {
+            window.sendPresenceHeartbeatPing(false);
+          }
+        }, 120000);
 
         // Initial fetch for Tab Pengguna
         setTimeout(() => {
@@ -4708,6 +4925,18 @@
               });
             });
 
+            // Filter tagihanList berdasarkan search-tagihan-input
+            const qTagihan = (document.getElementById("search-tagihan-input")?.value || "").toLowerCase().trim();
+            if (qTagihan) {
+              tagihanList = tagihanList.filter(item => {
+                const sName = (item.school["nama-sekolah"] || "").toLowerCase();
+                const sNpsn = String(item.npsn || "").toLowerCase();
+                const sPemesan = (item.savedPemesan || item.pemesanNama || "").toLowerCase();
+                const sRombel = (item.schoolBatches || []).flatMap(b => b.kelas || []).join(", ").toLowerCase();
+                return sName.includes(qTagihan) || sNpsn.includes(qTagihan) || sPemesan.includes(qTagihan) || sRombel.includes(qTagihan);
+              });
+            }
+
             // Sort tagihanList
             if (window.sortTagihanConfig && window.sortTagihanConfig.key && window.sortTagihanConfig.direction) {
               const k = window.sortTagihanConfig.key;
@@ -4909,6 +5138,29 @@
               window.selectedAksesSchoolIds = window.selectedAksesSchoolIds || new Set();
 
               let aksesList = [...uniqueSchools];
+
+              // Filter aksesList berdasarkan search-akses-input & filter-akses-status
+              const qAkses = (document.getElementById("search-akses-input")?.value || "").toLowerCase().trim();
+              const statAkses = document.getElementById("filter-akses-status")?.value || "ALL";
+
+              if (qAkses || statAkses !== "ALL") {
+                aksesList = aksesList.filter(school => {
+                  if (qAkses) {
+                    const sName = (school["nama-sekolah"] || "").toLowerCase();
+                    const sNpsn = String(school["npsn"] || "").toLowerCase();
+                    const sPass = String(school["pass"] || "").toLowerCase();
+                    const sKec = (school["kecamatan"] || "").toLowerCase();
+                    const match = sName.includes(qAkses) || sNpsn.includes(qAkses) || sPass.includes(qAkses) || sKec.includes(qAkses);
+                    if (!match) return false;
+                  }
+                  if (statAkses === "PASS_ACTIVE") {
+                    if (school.akses_password_active === false) return false;
+                  } else if (statAkses === "PASS_OFF") {
+                    if (school.akses_password_active !== false) return false;
+                  }
+                  return true;
+                });
+              }
               if (window.sortAksesConfig && window.sortAksesConfig.key && window.sortAksesConfig.direction) {
                 const k = window.sortAksesConfig.key;
                 const dir = window.sortAksesConfig.direction;
@@ -7520,6 +7772,15 @@
           refreshFilterAndRender;
         document.getElementById("filter-status").onchange =
           refreshFilterAndRender;
+
+        const searchTagihanInp = document.getElementById("search-tagihan-input");
+        if (searchTagihanInp) searchTagihanInp.oninput = refreshFilterAndRender;
+
+        const searchAksesInp = document.getElementById("search-akses-input");
+        if (searchAksesInp) searchAksesInp.oninput = refreshFilterAndRender;
+
+        const filterAksesStat = document.getElementById("filter-akses-status");
+        if (filterAksesStat) filterAksesStat.onchange = refreshFilterAndRender;
 
         function refreshFilterAndRender() {
           const q = document.getElementById("search-input").value.toLowerCase();
