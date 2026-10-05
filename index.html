@@ -1757,6 +1757,15 @@
                     </label>
                   </div>
                 </th>
+                <th class="akses-header px-2 py-2.5 text-center min-w-[130px] cursor-pointer hover:bg-slate-100 transition-colors select-none" data-sort="akses_rank" data-tooltip="Urutkan Akses Rank">
+                  <div class="flex items-center justify-center gap-1.5">
+                    <span>RANK <span class="sort-icon ml-0.5 text-[8px] text-slate-400"></span></span>
+                    <label class="relative inline-flex items-center cursor-pointer" onclick="event.stopPropagation()">
+                      <input type="checkbox" id="header-switch-rank" class="sr-only peer" onchange="window.handleHeaderColumnToggle('akses_rank', this.checked, 'Peringkat / Rank')">
+                      <div class="w-6 h-3 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-[12px] peer-checked:after:border-white after:content-[''] after:absolute after:top-[1px] after:left-[1px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-2.5 after:w-2.5 after:transition-all peer-checked:bg-teal-600"></div>
+                    </label>
+                  </div>
+                </th>
                 <th class="px-2 py-2.5 text-center min-w-[85px]">
                   <span>MATRIKS</span>
                 </th>
@@ -5340,6 +5349,9 @@
                   <td class="px-2 py-0.5 text-center min-w-[130px]">
                     ${renderFeatureCell('akses_tanda_tangan_digital')}
                   </td>
+                  <td class="px-2 py-0.5 text-center min-w-[130px]">
+                    ${renderFeatureCell('akses_rank')}
+                  </td>
                   <td class="px-2 py-0.5 text-center min-w-[85px]">
                     <button type="button" onclick="window.openAksesClassMatrixModal('${school.id}')" class="px-2 py-0.5 bg-gradient-to-r from-teal-50 to-emerald-50 hover:from-teal-100 hover:to-emerald-100 text-teal-700 font-bold text-[10px] rounded-lg border border-teal-200 transition-all flex items-center justify-center gap-1 mx-auto shadow-2xs hover:shadow-xs cursor-pointer active:scale-95" data-tooltip="Buka Matriks Seluruh Fitur">
                       <svg class="w-3 h-3 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
@@ -6210,7 +6222,8 @@
             akses_buku_induk: true,
             akses_unggah_foto: true,
             akses_ganti_logo: true,
-            akses_tanda_tangan_digital: true
+            akses_tanda_tangan_digital: true,
+            akses_rank: true
           };
           const isLanjutan = document.getElementById(
             "jenis-pesanan-lanjut",
@@ -6401,7 +6414,8 @@
                   akses_buku_induk: true,
                   akses_unggah_foto: true,
                   akses_ganti_logo: true,
-                  akses_tanda_tangan_digital: true
+                  akses_tanda_tangan_digital: true,
+                  akses_rank: true
                 };
                 const formData = {
                   ...defaultAkses,
@@ -6444,7 +6458,8 @@
                 akses_buku_induk: true,
                 akses_unggah_foto: true,
                 akses_ganti_logo: true,
-                akses_tanda_tangan_digital: true
+                akses_tanda_tangan_digital: true,
+                akses_rank: true
               };
               const formData = {
                 ...defaultAkses,
@@ -6516,7 +6531,8 @@
               akses_buku_induk: true,
               akses_unggah_foto: true,
               akses_ganti_logo: true,
-              akses_tanda_tangan_digital: true
+              akses_tanda_tangan_digital: true,
+              akses_rank: true
             };
             fieldIds.forEach((fid) => {
               const el = document.getElementById(`edit-${fid}`);
@@ -8025,6 +8041,7 @@
             "UNGGAH FOTO",
             "GANTI LOGO",
             "TANDA TANGAN DIGITAL",
+            "PERINGKAT / RANK",
             "NAMA KEPALA SEKOLAH",
             "NIP KEPALA SEKOLAH",
             "WHATSAPP KEPALA SEKOLAH",
@@ -8093,6 +8110,7 @@
               formatExportFeature(item, "akses_unggah_foto"),
               formatExportFeature(item, "akses_ganti_logo"),
               formatExportFeature(item, "akses_tanda_tangan_digital"),
+              formatExportFeature(item, "akses_rank"),
               item["kepsek_nama"] || "-",
               item["kepsek_nip"] || "-",
               item["kepsek_wa"] || "-",
@@ -8200,7 +8218,7 @@
           XLSX.utils.book_append_sheet(wb, wsTagihan, "Pesanan & Tagihan");
 
           // 4. Sheet Hak Akses Fitur
-          const aksesHeaders = ["NO", "NAMA SEKOLAH", "NPSN", "PASSWORD AKTIF", "PASSWORD", "MAPEL KUSTOM", "BUKU INDUK", "UNGGAH FOTO", "GANTI LOGO", "TANDA TANGAN DIGITAL"];
+          const aksesHeaders = ["NO", "NAMA SEKOLAH", "NPSN", "PASSWORD AKTIF", "PASSWORD", "MAPEL KUSTOM", "BUKU INDUK", "UNGGAH FOTO", "GANTI LOGO", "TANDA TANGAN DIGITAL", "RANK"];
           const aksesRows = aggregatedExport.map((item, idx) => [
             idx + 1,
             item["nama-sekolah"] || "-",
@@ -8211,7 +8229,8 @@
             formatExportFeature(item, "akses_buku_induk"),
             formatExportFeature(item, "akses_unggah_foto"),
             formatExportFeature(item, "akses_ganti_logo"),
-            formatExportFeature(item, "akses_tanda_tangan_digital")
+            formatExportFeature(item, "akses_tanda_tangan_digital"),
+            formatExportFeature(item, "akses_rank")
           ]);
           const wsAkses = XLSX.utils.aoa_to_sheet([aksesHeaders, ...aksesRows]);
           wsAkses["!cols"] = aksesHeaders.map(() => ({ wch: 22 }));
@@ -8326,6 +8345,7 @@
                   "akses_unggah_foto": true,
                   "akses_ganti_logo": true,
                   "akses_tanda_tangan_digital": true,
+                  "akses_rank": true,
                   "kepsek_nama": findVal(["Nama Kepsek", "NAMA KEPSEK", "Kepala Sekolah"]),
                   "kepsek_nip": findVal(["NIP Kepsek", "NIP KEPSEK"]),
                   "kepsek_wa": findVal(["WhatsApp Kepsek", "WA Kepsek", "WHATSAPP KEPSEK"]),
@@ -8391,7 +8411,8 @@
             akses_buku_induk: r.akses_buku_induk !== undefined ? r.akses_buku_induk : true,
             akses_unggah_foto: r.akses_unggah_foto !== undefined ? r.akses_unggah_foto : true,
             akses_ganti_logo: r.akses_ganti_logo !== undefined ? r.akses_ganti_logo : true,
-            akses_tanda_tangan_digital: r.akses_tanda_tangan_digital !== undefined ? r.akses_tanda_tangan_digital : true
+            akses_tanda_tangan_digital: r.akses_tanda_tangan_digital !== undefined ? r.akses_tanda_tangan_digital : true,
+            akses_rank: r.akses_rank !== undefined ? r.akses_rank : true
           }));
 
           const backupPayload = {
@@ -8451,7 +8472,8 @@
                   akses_buku_induk: rawItem.akses_buku_induk !== undefined ? rawItem.akses_buku_induk : true,
                   akses_unggah_foto: rawItem.akses_unggah_foto !== undefined ? rawItem.akses_unggah_foto : true,
                   akses_ganti_logo: rawItem.akses_ganti_logo !== undefined ? rawItem.akses_ganti_logo : true,
-                  akses_tanda_tangan_digital: rawItem.akses_tanda_tangan_digital !== undefined ? rawItem.akses_tanda_tangan_digital : true
+                  akses_tanda_tangan_digital: rawItem.akses_tanda_tangan_digital !== undefined ? rawItem.akses_tanda_tangan_digital : true,
+                  akses_rank: rawItem.akses_rank !== undefined ? rawItem.akses_rank : true
                 };
 
                 let savedToCloud = false;
@@ -8665,6 +8687,7 @@
           { key: "akses_unggah_foto", label: "Unggah Foto", short: "Foto", icon: "📷" },
           { key: "akses_ganti_logo", label: "Ganti Logo", short: "Logo", icon: "🖼️" },
           { key: "akses_tanda_tangan_digital", label: "Tanda Tangan Digital", short: "TTD", icon: "✍️" },
+          { key: "akses_rank", label: "Peringkat / Ranking", short: "Rank", icon: "🏆" },
         ];
 
         function getSchoolOrderedClasses(school) {
@@ -8751,6 +8774,10 @@
 
         window.toggleAksesTandaTanganDigitalById = async (id, isChecked) => {
           await window.toggleAksesFeatureMaster(id, 'akses_tanda_tangan_digital', isChecked);
+        };
+
+        window.toggleAksesRankById = async (id, isChecked) => {
+          await window.toggleAksesFeatureMaster(id, 'akses_rank', isChecked);
         };
 
         // --- MATRIX MODAL CONTROLLER (OPTION B) ---
@@ -9194,6 +9221,7 @@
           const allFoto = schools.every(s => s.akses_unggah_foto !== false);
           const allLogo = schools.every(s => s.akses_ganti_logo !== false);
           const allTtd = schools.every(s => s.akses_tanda_tangan_digital !== false);
+          const allRank = schools.every(s => s.akses_rank !== false);
           const allPass = schools.every(s => s.akses_password_active !== false);
 
           const swMapel = document.getElementById("header-switch-mapel");
@@ -9211,10 +9239,13 @@
           const swTtd = document.getElementById("header-switch-ttd");
           if (swTtd) swTtd.checked = allTtd;
 
+          const swRank = document.getElementById("header-switch-rank");
+          if (swRank) swRank.checked = allRank;
+
           const swPass = document.getElementById("header-switch-password");
           if (swPass) swPass.checked = allPass;
 
-          const masterAll = allMapel && allBuku && allFoto && allLogo && allTtd && allPass;
+          const masterAll = allMapel && allBuku && allFoto && allLogo && allTtd && allRank && allPass;
           const masterSw = document.getElementById("master-all-schools-toggle");
           if (masterSw) masterSw.checked = masterAll;
 
@@ -9228,6 +9259,7 @@
                 s.akses_unggah_foto !== false &&
                 s.akses_ganti_logo !== false &&
                 s.akses_tanda_tangan_digital !== false &&
+                s.akses_rank !== false &&
                 s.akses_password_active !== false
               );
             }
@@ -9337,7 +9369,8 @@
             akses_buku_induk: turnOn,
             akses_unggah_foto: turnOn,
             akses_ganti_logo: turnOn,
-            akses_tanda_tangan_digital: turnOn
+            akses_tanda_tangan_digital: turnOn,
+            akses_rank: turnOn
           };
           await updateSchoolAksesData(id, updateFields);
           showToast(`Semua saklar sekolah ${turnOn ? 'diaktifkan (ON)' : 'dinonaktifkan (OFF)'}`);
@@ -9362,7 +9395,8 @@
                 akses_buku_induk: turnOn,
                 akses_unggah_foto: turnOn,
                 akses_ganti_logo: turnOn,
-                akses_tanda_tangan_digital: turnOn
+                akses_tanda_tangan_digital: turnOn,
+                akses_rank: turnOn
               });
             });
             await Promise.all(updates);
@@ -9415,7 +9449,8 @@
                 akses_buku_induk: turnOn,
                 akses_unggah_foto: turnOn,
                 akses_ganti_logo: turnOn,
-                akses_tanda_tangan_digital: turnOn
+                akses_tanda_tangan_digital: turnOn,
+                akses_rank: turnOn
               });
             });
             await Promise.all(updates);
