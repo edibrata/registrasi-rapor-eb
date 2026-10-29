@@ -184,8 +184,8 @@
       function getSupabaseClient() {
         if (supabaseClient) return supabaseClient;
         try {
-          const supabaseUrl = 'https://tnzceffjxostkwyellwf.supabase.co';
-          const supabaseKey = 'sb_publishable_b0Myq0XAqdiUj-Dzb-pHBQ_9LAmpsVE';
+          const supabaseUrl = 'https://omzktfmnolhzoibrbigt.supabase.co';
+          const supabaseKey = 'sb_publishable_hccw0KZrboGztEEmaPlGvQ_qhud_KcX';
           if (window.supabase) {
             supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey, {
               realtime: {
@@ -360,8 +360,15 @@
       ];
 
       try {
-        if (!localStorage.getItem("cached_school_data")) {
-          localStorage.setItem("cached_school_data", JSON.stringify(defaultSchoolData));
+        const legacyCache = localStorage.getItem("cached_school_data");
+        if (legacyCache) {
+          try {
+            const parsed = JSON.parse(legacyCache);
+            if (Array.isArray(parsed) && parsed.length > 0 && window.idbHelper) {
+              window.idbHelper.putMany("schools", parsed);
+            }
+          } catch(err) {}
+          localStorage.removeItem("cached_school_data");
         }
       } catch(e) {}
 
@@ -384,7 +391,7 @@
 
           if (existing) {
              const merged = { ...existing.data_payload, ...data };
-             const historyLogs = existing.data_payload.history_logs || [];
+             const historyLogs = Array.isArray(existing.data_payload.history_logs) ? existing.data_payload.history_logs : [];
              if (existing.data_payload.timestamp) {
                const oldEntry = {
                   timestamp: existing.data_payload.timestamp,
@@ -393,12 +400,13 @@
                   isDraft: existing.data_payload.isDraft,
                };
                if (oldEntry.timestamp !== data.timestamp) {
-                   merged.history_logs = [...historyLogs, oldEntry];
+                   // Batasi riwayat maksimal 10 entri terakhir agar tidak terjadi pembengkakan database size sporadis
+                   merged.history_logs = [...historyLogs, oldEntry].slice(-10);
                } else {
-                   merged.history_logs = historyLogs;
+                   merged.history_logs = historyLogs.slice(-10);
                }
              } else {
-               merged.history_logs = historyLogs;
+               merged.history_logs = historyLogs.slice(-10);
              }
 
              if (existing.data_payload.kelas && data.kelas) {
@@ -406,60 +414,151 @@
              }
              const { error } = await client.from(colName).update({ data_payload: merged }).eq('id', existing.id);
              if (error) throw error;
+             syncLocalCachePayload(existing.id, merged, false);
              return { id: existing.id };
           }
         }
 
-        const { data: record, error } = await client.from(colName).insert([payload]).select();
+        const { data: record, error } = await client.from(colName).insert([payload]).select('id, created_at, data_payload');
         if (error) {
             console.error("Supabase insert error:", error);
             throw error;
         }
+        if (record && record[0]) {
+          syncLocalCachePayload(record[0].id, record[0].data_payload || data, false, record[0]);
+        }
         return { id: record[0].id }; 
+      }
+
+      window.__localRegistrasiRawRows = window.__localRegistrasiRawRows || [];
+
+      function syncLocalCachePayload(realId, updatedPayload, isRemove = false, fullRow = null) {
+        try {
+          const strId = String(realId);
+          let currentRows = Array.isArray(window.__localRegistrasiRawRows) && window.__localRegistrasiRawRows.length > 0
+            ? [...window.__localRegistrasiRawRows]
+            : [];
+
+          if (currentRows.length === 0) {
+            const cached = localStorage.getItem("cached_school_data");
+            if (cached) {
+              const parsed = JSON.parse(cached);
+              if (Array.isArray(parsed)) currentRows = parsed;
+            }
+          }
+
+          if (isRemove) {
+            currentRows = currentRows.filter(r => String(r.id) !== strId);
+            if (window.idbHelper) {
+              window.idbHelper.delete("schools", realId);
+              window.idbHelper.delete("schools", strId);
+            }
+          } else {
+            const idx = currentRows.findIndex(r => String(r.id) === strId);
+            if (idx > -1) {
+              currentRows[idx] = {
+                ...currentRows[idx],
+                ...(fullRow || {}),
+                id: currentRows[idx].id ?? realId,
+                data_payload: updatedPayload
+              };
+              if (window.idbHelper) {
+                window.idbHelper.put("schools", currentRows[idx]);
+              }
+            } else {
+              const newRow = fullRow || { id: realId, created_at: new Date().toISOString(), data_payload: updatedPayload };
+              currentRows.push(newRow);
+              if (window.idbHelper) {
+                window.idbHelper.put("schools", newRow);
+              }
+            }
+          }
+
+          window.__localRegistrasiRawRows = currentRows;
+          if (typeof window.__triggerRegistrasiSnapshotCallback === "function") {
+            window.__triggerRegistrasiSnapshotCallback(currentRows);
+          }
+        } catch(e) {}
       }
 
       async function updateDoc(docRef, data) {
         const client = getSupabaseClient();
         if (!client) throw new Error("Supabase is offline");
         
-        let realId = docRef.id;
+        let realId = String(docRef.id);
         let histIndex = -1;
-        if (String(docRef.id).includes("_hist_")) {
-           const parts = docRef.id.split("_hist_");
+        if (realId.includes("_hist_")) {
+           const parts = realId.split("_hist_");
            realId = parts[0];
            histIndex = parseInt(parts[1], 10);
         }
 
-        const { data: oldRecord, error: fetchErr } = await client.from(docRef.table).select('data_payload').eq('id', realId).single();
-        if (fetchErr) throw fetchErr;
-        
-        const payload = oldRecord.data_payload || {};
+        // Gunakan payload dari memori lokal terlebih dahulu agar tidak melakukan SELECT data_payload berulang ke Supabase
+        let payload = null;
+        if (Array.isArray(window.__localRegistrasiRawRows)) {
+          const localMatch = window.__localRegistrasiRawRows.find(r => String(r.id) === realId);
+          if (localMatch && localMatch.data_payload) {
+            payload = JSON.parse(JSON.stringify(localMatch.data_payload));
+          }
+        }
+        if (!payload && window.idbHelper) {
+          try {
+            const idbRow = await window.idbHelper.get("schools", realId);
+            if (idbRow && idbRow.data_payload) {
+              payload = JSON.parse(JSON.stringify(idbRow.data_payload));
+            }
+          } catch(e) {}
+        }
+        if (!payload) {
+          const { data: oldRecord, error: fetchErr } = await client.from(docRef.table).select('data_payload').eq('id', realId).single();
+          if (fetchErr) throw fetchErr;
+          payload = (oldRecord && oldRecord.data_payload) ? oldRecord.data_payload : {};
+        }
         
         if (histIndex > -1) {
              if (payload.history_logs && payload.history_logs[histIndex]) {
                  payload.history_logs[histIndex] = { ...payload.history_logs[histIndex], ...data };
                  const { error } = await client.from(docRef.table).update({ data_payload: payload }).eq('id', realId);
                  if (error) throw error;
+                 syncLocalCachePayload(realId, payload, false);
              }
         } else {
              const mergedData = { ...payload, ...data };
+             if (data.isDeleted !== undefined && Array.isArray(mergedData.history_logs)) {
+               mergedData.history_logs = mergedData.history_logs.map(h => ({
+                 ...h,
+                 isDeleted: data.isDeleted,
+                 ...(data.deletedAt ? { deletedAt: data.deletedAt } : {})
+               }));
+             }
              const { error } = await client.from(docRef.table).update({ data_payload: mergedData }).eq('id', realId);
              if (error) throw error;
+             syncLocalCachePayload(realId, mergedData, false);
         }
       }
 
       async function setDoc(docRef, data, options = {}) {
         const client = getSupabaseClient();
         if (!client) throw new Error("Supabase is offline");
+        const realId = String(docRef.id);
         const payload = { id: docRef.id, data_payload: data };
         if (options.merge) {
-          const { data: oldRecord } = await client.from(docRef.table).select('data_payload').eq('id', docRef.id).maybeSingle();
-          if (oldRecord) {
-             payload.data_payload = { ...oldRecord.data_payload, ...data };
+          let existingPayload = null;
+          if (Array.isArray(window.__localRegistrasiRawRows)) {
+            const localMatch = window.__localRegistrasiRawRows.find(r => String(r.id) === realId);
+            if (localMatch && localMatch.data_payload) existingPayload = localMatch.data_payload;
+          }
+          if (!existingPayload) {
+            const { data: oldRecord } = await client.from(docRef.table).select('data_payload').eq('id', docRef.id).maybeSingle();
+            if (oldRecord && oldRecord.data_payload) existingPayload = oldRecord.data_payload;
+          }
+          if (existingPayload) {
+             payload.data_payload = { ...existingPayload, ...data };
           }
         }
         const { error } = await client.from(docRef.table).upsert(payload);
         if (error) throw error;
+        syncLocalCachePayload(docRef.id, payload.data_payload, false);
       }
 
       async function deleteDoc(docRef) {
@@ -471,22 +570,31 @@
            const realId = parts[0];
            const histIndex = parseInt(parts[1], 10);
            
-           const { data: record, error: fetchErr } = await client.from(docRef.table).select('data_payload').eq('id', realId).single();
-           if (fetchErr) throw fetchErr;
+           let payload = null;
+           if (Array.isArray(window.__localRegistrasiRawRows)) {
+             const localMatch = window.__localRegistrasiRawRows.find(r => String(r.id) === realId);
+             if (localMatch && localMatch.data_payload) payload = JSON.parse(JSON.stringify(localMatch.data_payload));
+           }
+           if (!payload) {
+             const { data: record, error: fetchErr } = await client.from(docRef.table).select('data_payload').eq('id', realId).single();
+             if (fetchErr) throw fetchErr;
+             payload = record.data_payload || {};
+           }
            
-           const payload = record.data_payload || {};
            if (payload.history_logs && Array.isArray(payload.history_logs)) {
                const newHistory = [...payload.history_logs];
                newHistory.splice(histIndex, 1);
                payload.history_logs = newHistory;
                const { error } = await client.from(docRef.table).update({ data_payload: payload }).eq('id', realId);
                if (error) throw error;
+               syncLocalCachePayload(realId, payload, false);
            }
            return;
         }
 
         const { error } = await client.from(docRef.table).delete().eq('id', docRef.id);
         if (error) throw error;
+        syncLocalCachePayload(docRef.id, null, true);
       }
 
       function query(colName) {
@@ -497,24 +605,37 @@
         const processData = (dataRow) => {
             let docsData = [];
             dataRow.forEach(d => {
+               const docId = String(d.id);
                const payload = d.data_payload || {};
                const { history_logs, ...currentData } = payload;
-               docsData.push({ id: d.id, data: () => currentData });
+               docsData.push({ id: docId, data: () => ({ ...currentData, id: docId }) });
 
                if (history_logs && Array.isArray(history_logs)) {
                    history_logs.forEach((hist, index) => {
-                       const histDoc = { ...currentData, ...hist }; 
-                       docsData.push({ id: d.id + "_hist_" + index, data: () => histDoc });
+                       const histId = docId + "_hist_" + index;
+                       const histDoc = { ...currentData, ...hist, id: histId };
+                       if (currentData.isDeleted) {
+                         histDoc.isDeleted = true;
+                         histDoc.deletedAt = currentData.deletedAt || hist.deletedAt;
+                       }
+                       docsData.push({ id: histId, data: () => histDoc });
                    });
                }
             });
             return docsData;
         };
 
+        window.__triggerRegistrasiSnapshotCallback = (rows) => {
+          if (Array.isArray(rows)) {
+            callback({ docs: processData(rows) });
+          }
+        };
+
         // 1. Tampilkan data dari IndexedDB / Cache lokal SEGERA agar layar tidak pernah kosong
         if (window.idbHelper) {
           window.idbHelper.getAll("schools").then((idbData) => {
             if (Array.isArray(idbData) && idbData.length > 0) {
+              window.__localRegistrasiRawRows = idbData;
               callback({ docs: processData(idbData) });
             } else {
               try {
@@ -522,6 +643,7 @@
                 if (cached) {
                   const parsed = JSON.parse(cached);
                   if (Array.isArray(parsed) && parsed.length > 0) {
+                    window.__localRegistrasiRawRows = parsed;
                     callback({ docs: processData(parsed) });
                   }
                 }
@@ -534,73 +656,93 @@
             if (cached) {
               const parsed = JSON.parse(cached);
               if (Array.isArray(parsed) && parsed.length > 0) {
+                window.__localRegistrasiRawRows = parsed;
                 callback({ docs: processData(parsed) });
               }
             }
           } catch(e) {}
         }
 
-        const fetchLatestData = async () => {
+        const fetchLatestData = async (force = false) => {
           try {
-            // Hindari memutus fokus atau mereset input jika pengguna sedang aktif mengetik di elemen form
-            const activeEl = document.activeElement;
-            if (activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA' || activeEl.isContentEditable)) {
+            if (!force && window.__hasFetchedRegistrasiInitial) {
               return;
             }
             const client = getSupabaseClient();
             if (!client) {
-              setTimeout(fetchLatestData, 500);
+              setTimeout(() => fetchLatestData(force), 500);
               return;
             }
-            const { data, error } = await client.from(q).select('*');
-            if (!error && data && data.length > 0) {
-              try {
-                localStorage.setItem("cached_school_data", JSON.stringify(data));
-                if (window.idbHelper) {
-                  window.idbHelper.putMany("schools", data);
+            window.__hasFetchedRegistrasiInitial = true;
+
+            // Periksa ketersediaan cache lokal untuk incremental delta sync
+            const existingRows = Array.isArray(window.__localRegistrasiRawRows) && window.__localRegistrasiRawRows.length > 0
+              ? window.__localRegistrasiRawRows
+              : null;
+            const lastSync = localStorage.getItem("last_registrasi_sync_at");
+
+            let query = client.from(q).select('id, created_at, updated_at, data_payload');
+            if (!force && existingRows && lastSync) {
+              query = query.gt('updated_at', lastSync);
+            }
+
+            const { data, error } = await query;
+            if (!error && Array.isArray(data)) {
+              const currentIso = new Date().toISOString();
+              localStorage.setItem("last_registrasi_sync_at", currentIso);
+
+              if (!force && existingRows && lastSync) {
+                // Incremental sync: gabungkan hanya baris yang berubah, hemat bandwidth mendekati 0 KB
+                if (data.length > 0) {
+                  const updatedMap = new Map();
+                  existingRows.forEach(r => updatedMap.set(String(r.id), r));
+                  data.forEach(r => updatedMap.set(String(r.id), r));
+                  const mergedList = Array.from(updatedMap.values());
+                  window.__localRegistrasiRawRows = mergedList;
+                  try {
+                    if (window.idbHelper) window.idbHelper.putMany("schools", data);
+                  } catch(e) {}
+                  callback({ docs: processData(mergedList) });
                 }
-              } catch(e) {}
-              callback({ docs: processData(data) });
+              } else if (data.length > 0) {
+                // Full initial sync
+                window.__localRegistrasiRawRows = data;
+                try {
+                  if (window.idbHelper) window.idbHelper.putMany("schools", data);
+                } catch(e) {}
+                callback({ docs: processData(data) });
+              }
             }
           } catch(err) {
             // silent catch
           }
         };
+        window.forceRefreshRegistrasiData = () => fetchLatestData(true);
 
-        // Initial fetch
-        fetchLatestData();
+        // Initial fetch CUKUP 1 KALI saat aplikasi dibuka (tanpa polling 5 detik & tanpa focus refetch)
+        fetchLatestData(false);
 
-        // Realtime channel
+        // Realtime channel: Gunakan Delta Update (payload.new / payload.old) untuk 1 baris saja, JANGAN pernah SELECT * ulang!
         let channel = null;
         try {
           const client = getSupabaseClient();
           if (client) {
             const channelName = 'table-db-' + Math.random().toString(36).substring(2, 7);
             channel = client.channel(channelName)
-              .on('postgres_changes', { event: '*', schema: 'public', table: q }, () => {
-                fetchLatestData();
-              })
-              .subscribe((status) => {
-                if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
-                  fetchLatestData();
+              .on('postgres_changes', { event: '*', schema: 'public', table: q }, (payload) => {
+                if (!payload) return;
+                const evtType = payload.eventType;
+                if ((evtType === 'INSERT' || evtType === 'UPDATE') && payload.new && payload.new.id !== undefined) {
+                  syncLocalCachePayload(payload.new.id, payload.new.data_payload || {}, false, payload.new);
+                } else if (evtType === 'DELETE' && payload.old && payload.old.id !== undefined) {
+                  syncLocalCachePayload(payload.old.id, null, true);
                 }
-              });
+              })
+              .subscribe();
           }
         } catch(e) {}
 
-        // Automatic polling fallback every 5 seconds and on window focus/visibility
-        const pollInterval = setInterval(fetchLatestData, 5000);
-        const onFocus = () => fetchLatestData();
-        window.addEventListener('focus', onFocus);
-        const onVisibilityChange = () => {
-          if (document.visibilityState === 'visible') fetchLatestData();
-        };
-        document.addEventListener('visibilitychange', onVisibilityChange);
-
         return () => {
-          clearInterval(pollInterval);
-          window.removeEventListener('focus', onFocus);
-          document.removeEventListener('visibilitychange', onVisibilityChange);
           const client = getSupabaseClient();
           if (channel && client) {
             try {
@@ -635,7 +777,7 @@
          const { data, error } = await supabaseClient.from(colName).select('*');
          if (error) throw error;
          return {
-            docs: data.map(d => ({ id: d.id, data: () => d.data_payload || {} }))
+            docs: data.map(d => ({ id: String(d.id), data: () => ({ ...(d.data_payload || {}), id: String(d.id) }) }))
          };
       }
 
@@ -1507,7 +1649,7 @@
           <thead class="bg-slate-50 border-b border-slate-200 text-center">
             <tr>
               <th class="main-header text-center sticky left-0 z-40 bg-slate-50 border-r border-slate-200 w-[35px] min-w-[35px] max-w-[35px]">
-                <input type="checkbox" id="select-all-checkbox" class="cursor-pointer" data-tooltip="Pilih Semua Baris" />
+                <input type="checkbox" id="select-all-checkbox" class="w-3.5 h-3.5 accent-teal-600 rounded border-slate-300 text-teal-600 focus:ring-teal-500 cursor-pointer" data-tooltip="Pilih Semua Baris" />
               </th>
               <th class="main-header text-center sticky left-[35px] z-40 bg-slate-50 border-r border-slate-200 w-[45px] min-w-[45px] max-w-[45px] cursor-pointer" data-sort="id" data-tooltip="Urutkan Nomor">
                 NO
@@ -1663,10 +1805,10 @@
       </div>
 
       <!-- Wadah Tabel Akses -->
-      <div id="view-akses" class="hidden flex-col gap-3 w-full">
+      <div id="view-akses" class="hidden flex-col w-full flex-1 min-h-0">
         <div
-          class="overflow-x-auto overflow-y-auto rounded-xl border border-slate-200/60 shadow-sm relative bg-white custom-scrollbar w-full"
-          style="max-height: 65vh"
+          id="view-akses-wrapper"
+          class="table-wrapper shadow-sm ring-1 ring-slate-200 relative group bg-white custom-scrollbar w-full flex-1 min-h-0 overflow-y-auto overflow-x-auto"
         >
           <table
             class="w-full text-left text-xs whitespace-nowrap"
@@ -1822,12 +1964,13 @@
 
       <!-- Footer -->
       <div
-        class="mt-4 flex flex-col md:flex-row flex-wrap items-center justify-between text-[10px] text-slate-500 gap-4"
+        id="main-footer"
+        class="mt-3 pt-2.5 border-t border-slate-100 flex flex-col md:flex-row flex-wrap items-center justify-between text-[10px] text-slate-500 gap-3 shrink-0"
       >
         <div class="flex items-center gap-3">
           <div class="flex items-center gap-1">
             <span class="w-2 h-2 bg-teal-500 rounded-full animate-pulse"></span
-            ><span
+            ><span id="footer-hint-text"
               >Klik Nama Sekolah untuk Edit •
               <span id="selection-summary">0 dipilih</span></span
             >
@@ -2965,19 +3108,19 @@
 
         let allData = [];
         try {
-          const cachedSchools = localStorage.getItem("cached_school_data");
-          if (cachedSchools) {
-            const parsed = JSON.parse(cachedSchools);
-            if (Array.isArray(parsed)) {
-              allData = parsed.map(d => {
-                const payload = d.data_payload || {};
-                return {
-                  id: d.id,
-                  ...payload,
-                  timestamp: payload.timestamp || 0
-                };
-              });
-            }
+          const sourceRows = (Array.isArray(window.__localRegistrasiRawRows) && window.__localRegistrasiRawRows.length > 0)
+            ? window.__localRegistrasiRawRows
+            : null;
+          if (sourceRows) {
+            allData = sourceRows.map(d => {
+              const payload = d.data_payload || {};
+              const docId = String(d.id);
+              return {
+                ...payload,
+                id: docId,
+                timestamp: payload.timestamp || 0
+              };
+            });
           }
         } catch(e) {}
 
@@ -3062,7 +3205,9 @@
             if (fContainer) { fContainer.classList.add("hidden"); fContainer.classList.remove("flex"); }
             if (aContainer) { aContainer.classList.add("hidden"); aContainer.classList.remove("flex"); }
             if (pContainer) { pContainer.classList.remove("hidden"); pContainer.classList.add("flex"); }
-            if (window.fetchPenggunaData) {
+            if (window.rawPenggunaData && window.rawPenggunaData.length > 0 && window.renderPenggunaTable) {
+              window.renderPenggunaTable(window.rawPenggunaData);
+            } else if (window.fetchPenggunaData) {
               window.fetchPenggunaData(false);
             }
           }
@@ -3080,6 +3225,20 @@
 
           if (activeTab === tabAkses && window.syncAksesHeaderSwitches && window.latestUniqueSchools) {
             window.syncAksesHeaderSwitches(window.latestUniqueSchools);
+          }
+
+          const footerHint = document.getElementById("footer-hint-text");
+          if (footerHint) {
+            if (activeTab === tabData) {
+              footerHint.innerHTML = 'Klik Nama Sekolah untuk Edit • <span id="selection-summary">' + (typeof selectedIds !== "undefined" && selectedIds ? selectedIds.size : 0) + ' dipilih</span>';
+            } else if (activeTab === tabAkses) {
+              const selCount = window.selectedAksesSchoolIds ? window.selectedAksesSchoolIds.size : 0;
+              footerHint.innerHTML = 'Kelola Hak Akses Sekolah • <span id="akses-selection-summary">' + selCount + ' dipilih</span>';
+            } else if (activeTab === tabTagihan) {
+              footerHint.textContent = 'Kelola Tagihan & Pesanan';
+            } else if (activeTab === tabPengguna) {
+              footerHint.textContent = 'Daftar Pengguna Aplikasi Rapor';
+            }
           }
         }
 
@@ -3477,13 +3636,14 @@
 
           try {
             showToast("Memproses penandaan logout di server...");
+            const nowIso = new Date().toISOString();
             const { error } = await supabaseClient
               .from('aplikasirapor')
               .update({
                 status: 'offline',
                 is_online: false,
                 isOnline: false,
-                updated_at: new Date().toISOString()
+                updated_at: nowIso
               })
               .eq('id', recordId);
 
@@ -3492,8 +3652,18 @@
               showToast("Gagal memperbarui status di server.", false);
             } else {
               showToast("Sesi berhasil diubah menjadi Offline / Logout!");
-              if (window.fetchPenggunaData) {
-                window.fetchPenggunaData(false);
+              if (Array.isArray(window.rawPenggunaData)) {
+                window.rawPenggunaData = window.rawPenggunaData.map(r => {
+                  if (String(r.id) === String(recordId)) {
+                    const nextPayload = { ...(r.data_payload || {}), status: 'offline', is_online: false, isOnline: false, updated_at: nowIso };
+                    if (nextPayload.sekolah) {
+                      nextPayload.sekolah = { ...nextPayload.sekolah, status: 'offline', is_online: false, isOnline: false, updated_at: nowIso };
+                    }
+                    return { ...r, status: 'offline', is_online: false, isOnline: false, updated_at: nowIso, data_payload: nextPayload };
+                  }
+                  return r;
+                });
+                if (window.renderPenggunaTable) window.renderPenggunaTable(window.rawPenggunaData);
               }
             }
           } catch (err) {
@@ -3513,15 +3683,17 @@
           }
 
           const activeIds = activeOnline.map(s => s.id);
+          const activeIdSet = new Set(activeIds.map(String));
           try {
             showToast(`Mengeluarkan ${activeIds.length} sesi aktif...`);
+            const nowIso = new Date().toISOString();
             const { error } = await supabaseClient
               .from('aplikasirapor')
               .update({
                 status: 'offline',
                 is_online: false,
                 isOnline: false,
-                updated_at: new Date().toISOString()
+                updated_at: nowIso
               })
               .in('id', activeIds);
 
@@ -3531,7 +3703,19 @@
             } else {
               showToast("Semua sesi aktif berhasil diubah menjadi Offline!");
               if (window.closeUserHistoryModal) window.closeUserHistoryModal();
-              if (window.fetchPenggunaData) window.fetchPenggunaData(false);
+              if (Array.isArray(window.rawPenggunaData)) {
+                window.rawPenggunaData = window.rawPenggunaData.map(r => {
+                  if (activeIdSet.has(String(r.id))) {
+                    const nextPayload = { ...(r.data_payload || {}), status: 'offline', is_online: false, isOnline: false, updated_at: nowIso };
+                    if (nextPayload.sekolah) {
+                      nextPayload.sekolah = { ...nextPayload.sekolah, status: 'offline', is_online: false, isOnline: false, updated_at: nowIso };
+                    }
+                    return { ...r, status: 'offline', is_online: false, isOnline: false, updated_at: nowIso, data_payload: nextPayload };
+                  }
+                  return r;
+                });
+                if (window.renderPenggunaTable) window.renderPenggunaTable(window.rawPenggunaData);
+              }
             }
           } catch(e) {
             console.warn("Exception recordWorkspaceLogout:", e);
@@ -3908,11 +4092,204 @@
           }).join("");
         };
 
+        // Proyeksi JSON PostgREST Ringan: Hanya mengambil field identitas sekolah, Kepsek, Guru, & status online
+        // TANPA menarik data siswa, nilai, mapel, buku induk, maupun gambar/logo Base64 dari aplikasirapor!
+        const PENGGUNA_LIGHT_SELECT = [
+          'id',
+          's_nama:data_payload->sekolah->>nama',
+          's_nama_alt:data_payload->sekolah->>nama-sekolah',
+          'p_nama:data_payload->>nama-sekolah',
+          's_npsn:data_payload->sekolah->>npsn',
+          'p_npsn:data_payload->>npsn',
+          's_kelas:data_payload->sekolah->>kelas',
+          'p_kelas:data_payload->kelas',
+          's_rombel:data_payload->sekolah->>ruangRombel',
+          'p_rombel:data_payload->>ruangRombel',
+          's_kec:data_payload->sekolah->>kecamatan',
+          'p_kec:data_payload->>kecamatan',
+          's_kab:data_payload->sekolah->>kabupatenKotaNama',
+          's_kab_alt:data_payload->sekolah->>kabupaten-kota-nama',
+          'p_kab:data_payload->>kabupaten-kota-nama',
+          's_prov:data_payload->sekolah->>provinsi',
+          'p_prov:data_payload->>provinsi',
+          's_kepsek:data_payload->sekolah->>kepsek',
+          's_kepsek_alt:data_payload->sekolah->>namaKepsek',
+          'p_kepsek:data_payload->>kepsek',
+          'p_kepsek_alt:data_payload->>kepsek_nama',
+          's_nip_kepsek:data_payload->sekolah->>nipKepsek',
+          'p_nip_kepsek:data_payload->>nipKepsek',
+          'p_nip_kepsek_alt:data_payload->>kepsek_nip',
+          's_wa_kepsek:data_payload->sekolah->>waKepalaSekolah',
+          's_wa_kepsek_alt:data_payload->sekolah->>waKepsek',
+          'p_wa_kepsek:data_payload->>waKepalaSekolah',
+          'p_wa_kepsek_alt:data_payload->>kepsek_wa',
+          's_guru:data_payload->sekolah->>waliKelas',
+          's_guru_alt:data_payload->sekolah->>guru',
+          's_guru_nama:data_payload->sekolah->>namaGuru',
+          'p_guru:data_payload->>waliKelas',
+          'p_guru_alt:data_payload->>guru_nama',
+          's_nip_guru:data_payload->sekolah->>nipWaliKelas',
+          's_nip_guru_alt:data_payload->sekolah->>nipGuru',
+          'p_nip_guru:data_payload->>nipWaliKelas',
+          'p_nip_guru_alt:data_payload->>guru_nip',
+          's_wa_guru:data_payload->sekolah->>waGuru',
+          'p_wa_guru:data_payload->>waGuru',
+          'p_wa_guru_alt:data_payload->>guru_wa',
+          's_status:data_payload->sekolah->>status',
+          'p_status:data_payload->>status',
+          's_is_online:data_payload->sekolah->is_online',
+          'p_is_online:data_payload->is_online',
+          's_isOnline:data_payload->sekolah->isOnline',
+          'p_isOnline:data_payload->isOnline',
+          's_last_login:data_payload->sekolah->>last_login',
+          'p_last_login:data_payload->>last_login',
+          's_last_active:data_payload->sekolah->>last_active',
+          'p_last_active:data_payload->>last_active',
+          's_last_seen:data_payload->sekolah->>last_seen',
+          'p_last_seen:data_payload->>last_seen',
+          's_last_activity:data_payload->sekolah->>last_activity',
+          'p_last_activity:data_payload->>last_activity',
+          'p_login_at:data_payload->>login_at',
+          'p_loginTime:data_payload->>loginTime',
+          's_updated_at:data_payload->sekolah->>updated_at',
+          'p_updated_at:data_payload->>updated_at',
+          's_timestamp:data_payload->sekolah->timestamp',
+          'p_timestamp:data_payload->timestamp',
+          's_waktu:data_payload->sekolah->>waktu',
+          'p_waktu:data_payload->>waktu',
+          's_tanggal:data_payload->sekolah->>tanggal',
+          'p_tanggal:data_payload->>tanggal',
+          's_created_at:data_payload->sekolah->>created_at',
+          'p_created_at:data_payload->>created_at'
+        ].join(',');
+
+        function normalizePenggunaRow(item) {
+          if (!item) return item;
+          // Jika objek sudah berbentuk data_payload (mis. dari Realtime payload.new atau cache lama),
+          // pangkas hanya ke field ringan agar tidak membebani memori/storage
+          if (item.data_payload && typeof item.data_payload === "object") {
+            const p = item.data_payload;
+            const s = (p.sekolah && typeof p.sekolah === "object") ? p.sekolah : {};
+            const lightSekolah = {
+              nama: s.nama || s["nama-sekolah"] || p["nama-sekolah"] || "-",
+              "nama-sekolah": s["nama-sekolah"] || s.nama || p["nama-sekolah"] || "-",
+              npsn: s.npsn || p.npsn || item.npsn || "-",
+              kelas: s.kelas ?? p.kelas,
+              ruangRombel: s.ruangRombel ?? p.ruangRombel,
+              kecamatan: s.kecamatan || p.kecamatan || "-",
+              kabupatenKotaNama: s.kabupatenKotaNama || s["kabupaten-kota-nama"] || p.kabupatenKotaNama || p["kabupaten-kota-nama"] || "-",
+              "kabupaten-kota-nama": s["kabupaten-kota-nama"] || s.kabupatenKotaNama || p["kabupaten-kota-nama"] || "-",
+              provinsi: s.provinsi || p.provinsi || "-",
+              kepsek: s.kepsek || s.namaKepsek || p.kepsek || p.namaKepsek || p.kepsek_nama || "-",
+              namaKepsek: s.namaKepsek || s.kepsek || p.namaKepsek || p.kepsek || p.kepsek_nama || "-",
+              nipKepsek: s.nipKepsek || p.nipKepsek || p.kepsek_nip || "-",
+              waKepalaSekolah: s.waKepalaSekolah || s.waKepsek || p.waKepalaSekolah || p.waKepsek || p.kepsek_wa || "-",
+              waKepsek: s.waKepsek || s.waKepalaSekolah || p.waKepsek || p.waKepalaSekolah || p.kepsek_wa || "-",
+              waliKelas: s.waliKelas || s.guru || s.namaGuru || p.waliKelas || p.guru || p.namaGuru || p.guru_nama || "-",
+              guru: s.guru || s.waliKelas || s.namaGuru || p.guru || p.waliKelas || p.guru_nama || "-",
+              namaGuru: s.namaGuru || s.waliKelas || s.guru || p.namaGuru || p.guru_nama || "-",
+              nipWaliKelas: s.nipWaliKelas || s.nipGuru || p.nipWaliKelas || p.nipGuru || p.guru_nip || "-",
+              nipGuru: s.nipGuru || s.nipWaliKelas || p.nipGuru || p.nipWaliKelas || p.guru_nip || "-",
+              waGuru: s.waGuru || p.waGuru || p.guru_wa || "-",
+              status: s.status || p.status || item.status,
+              is_online: s.is_online ?? p.is_online ?? item.is_online,
+              isOnline: s.isOnline ?? p.isOnline ?? item.isOnline,
+              last_login: s.last_login || p.last_login || item.last_login,
+              last_active: s.last_active || p.last_active || item.last_active,
+              last_seen: s.last_seen || p.last_seen || item.last_seen,
+              last_activity: s.last_activity || p.last_activity || item.last_activity,
+              updated_at: s.updated_at || p.updated_at || item.updated_at,
+              timestamp: s.timestamp || p.timestamp || item.timestamp,
+              waktu: s.waktu || p.waktu,
+              tanggal: s.tanggal || p.tanggal,
+              created_at: s.created_at || p.created_at || item.created_at
+            };
+            return {
+              id: item.id,
+              npsn: item.npsn || lightSekolah.npsn,
+              status: item.status || lightSekolah.status,
+              is_online: item.is_online ?? lightSekolah.is_online,
+              isOnline: item.isOnline ?? lightSekolah.isOnline,
+              last_login: item.last_login || lightSekolah.last_login,
+              last_active: item.last_active || lightSekolah.last_active,
+              updated_at: item.updated_at || lightSekolah.updated_at,
+              created_at: item.created_at || lightSekolah.created_at,
+              data_payload: {
+                ...lightSekolah,
+                login_at: p.login_at,
+                loginTime: p.loginTime,
+                sekolah: lightSekolah
+              }
+            };
+          }
+
+          // Hasil proyeksi ringan PostgREST
+          const lightSekolah = {
+            nama: item.s_nama || item.s_nama_alt || item.p_nama || "-",
+            "nama-sekolah": item.s_nama_alt || item.s_nama || item.p_nama || "-",
+            npsn: item.s_npsn || item.p_npsn || item.npsn || "-",
+            kelas: item.s_kelas ?? item.p_kelas,
+            ruangRombel: item.s_rombel ?? item.p_rombel,
+            kecamatan: item.s_kec || item.p_kec || "-",
+            kabupatenKotaNama: item.s_kab || item.s_kab_alt || item.p_kab || "-",
+            "kabupaten-kota-nama": item.s_kab_alt || item.s_kab || item.p_kab || "-",
+            provinsi: item.s_prov || item.p_prov || "-",
+            kepsek: item.s_kepsek || item.s_kepsek_alt || item.p_kepsek || item.p_kepsek_alt || "-",
+            namaKepsek: item.s_kepsek_alt || item.s_kepsek || item.p_kepsek || item.p_kepsek_alt || "-",
+            nipKepsek: item.s_nip_kepsek || item.p_nip_kepsek || item.p_nip_kepsek_alt || "-",
+            waKepalaSekolah: item.s_wa_kepsek || item.s_wa_kepsek_alt || item.p_wa_kepsek || item.p_wa_kepsek_alt || "-",
+            waKepsek: item.s_wa_kepsek_alt || item.s_wa_kepsek || item.p_wa_kepsek || item.p_wa_kepsek_alt || "-",
+            waliKelas: item.s_guru || item.s_guru_alt || item.s_guru_nama || item.p_guru || item.p_guru_alt || "-",
+            guru: item.s_guru_alt || item.s_guru || item.s_guru_nama || item.p_guru || item.p_guru_alt || "-",
+            namaGuru: item.s_guru_nama || item.s_guru || item.s_guru_alt || item.p_guru || item.p_guru_alt || "-",
+            nipWaliKelas: item.s_nip_guru || item.s_nip_guru_alt || item.p_nip_guru || item.p_nip_guru_alt || "-",
+            nipGuru: item.s_nip_guru_alt || item.s_nip_guru || item.p_nip_guru || item.p_nip_guru_alt || "-",
+            waGuru: item.s_wa_guru || item.p_wa_guru || item.p_wa_guru_alt || "-",
+            status: item.s_status || item.p_status || item.status,
+            is_online: item.s_is_online ?? item.p_is_online ?? item.is_online,
+            isOnline: item.s_isOnline ?? item.p_isOnline ?? item.isOnline,
+            last_login: item.s_last_login || item.p_last_login || item.last_login,
+            last_active: item.s_last_active || item.p_last_active || item.last_active,
+            last_seen: item.s_last_seen || item.p_last_seen || item.last_seen,
+            last_activity: item.s_last_activity || item.p_last_activity || item.last_activity,
+            updated_at: item.s_updated_at || item.p_updated_at || item.updated_at,
+            timestamp: item.s_timestamp ?? item.p_timestamp ?? item.timestamp,
+            waktu: item.s_waktu || item.p_waktu,
+            tanggal: item.s_tanggal || item.p_tanggal,
+            created_at: item.s_created_at || item.p_created_at || item.created_at
+          };
+
+          return {
+            id: item.id,
+            npsn: lightSekolah.npsn,
+            status: lightSekolah.status,
+            is_online: lightSekolah.is_online,
+            isOnline: lightSekolah.isOnline,
+            last_login: lightSekolah.last_login,
+            last_active: lightSekolah.last_active,
+            updated_at: lightSekolah.updated_at,
+            created_at: lightSekolah.created_at,
+            data_payload: {
+              ...lightSekolah,
+              login_at: item.p_login_at,
+              loginTime: item.p_loginTime,
+              sekolah: lightSekolah
+            }
+          };
+        }
+
         window.fetchPenggunaData = async function(isManualRefresh = false) {
           if (!supabaseClient) {
             console.warn("Supabase client is not ready");
             return;
           }
+
+          // Cegah penarikan berulang-ulang jika data sudah ditarik pada sesi ini dan bukan refresh manual
+          if (!isManualRefresh && window._hasFetchedPenggunaInitial && Array.isArray(window.rawPenggunaData) && window.rawPenggunaData.length > 0) {
+            window.renderPenggunaTable(window.rawPenggunaData);
+            return;
+          }
+
           const refreshIcon = document.getElementById("refresh-pengguna-icon");
           if (refreshIcon && isManualRefresh) {
             refreshIcon.classList.add("animate-spin");
@@ -3922,37 +4299,38 @@
           if (window.idbHelper) {
             window.idbHelper.getAll("pengguna").then((idbPengguna) => {
               if (Array.isArray(idbPengguna) && idbPengguna.length > 0 && (!window.rawPenggunaData || window.rawPenggunaData.length === 0)) {
-                window.rawPenggunaData = idbPengguna;
-                window.renderPenggunaTable(idbPengguna);
+                window.rawPenggunaData = idbPengguna.map(normalizePenggunaRow);
+                window.renderPenggunaTable(window.rawPenggunaData);
               }
             }).catch(() => {});
           }
 
           try {
+            window._hasFetchedPenggunaInitial = true;
             const { data, error } = await supabaseClient
               .from('aplikasirapor')
-              .select('*')
+              .select(PENGGUNA_LIGHT_SELECT)
               .order('id', { ascending: false });
 
             if (error) {
               console.warn("Info pengambilan data aplikasirapor:", error.message || error);
-              // Gunakan cache lokal jika ada saat koneksi terputus
               if (window.idbHelper) {
                 const idbPengguna = await window.idbHelper.getAll("pengguna");
                 if (Array.isArray(idbPengguna) && idbPengguna.length > 0) {
-                  window.rawPenggunaData = idbPengguna;
-                  window.renderPenggunaTable(idbPengguna);
+                  window.rawPenggunaData = idbPengguna.map(normalizePenggunaRow);
+                  window.renderPenggunaTable(window.rawPenggunaData);
                 }
               }
               if (isManualRefresh) showToast("Koneksi ke server aplikasirapor sedang memuat ulang...", false);
               return;
             }
 
-            window.rawPenggunaData = data || [];
+            const normalizedList = Array.isArray(data) ? data.map(normalizePenggunaRow) : [];
+            window.rawPenggunaData = normalizedList;
             try {
-              localStorage.setItem("cached_pengguna_data", JSON.stringify(window.rawPenggunaData));
-              if (window.idbHelper && Array.isArray(data)) {
-                window.idbHelper.putMany("pengguna", data);
+              localStorage.setItem("cached_pengguna_data", JSON.stringify(normalizedList));
+              if (window.idbHelper && normalizedList.length > 0) {
+                window.idbHelper.putMany("pengguna", normalizedList);
               }
             } catch(e) {}
 
@@ -3962,12 +4340,11 @@
             }
           } catch (err) {
             console.warn("Jaringan/fetch notice aplikasirapor:", err?.message || err);
-            // Fallback ke cache jika offline
             if (window.idbHelper) {
               const idbPengguna = await window.idbHelper.getAll("pengguna");
               if (Array.isArray(idbPengguna) && idbPengguna.length > 0) {
-                window.rawPenggunaData = idbPengguna;
-                window.renderPenggunaTable(idbPengguna);
+                window.rawPenggunaData = idbPengguna.map(normalizePenggunaRow);
+                window.renderPenggunaTable(window.rawPenggunaData);
               }
             }
             if (isManualRefresh) showToast("Koneksi jaringan terputus, memuat data tersimpan...", false);
@@ -4054,24 +4431,29 @@
         window.sortTagihanConfig = { key: null, direction: null };
         window.sortAksesConfig = { key: null, direction: null };
 
+        // Helper rotasi sorting 3-state (asc -> desc -> netral)
+        function toggleSortCycle(config, sortKey) {
+          if (config.key === sortKey) {
+            if (config.direction === "asc") {
+              config.direction = "desc";
+            } else if (config.direction === "desc") {
+              config.key = null;
+              config.direction = null;
+            } else {
+              config.direction = "asc";
+            }
+          } else {
+            config.key = sortKey;
+            config.direction = "asc";
+          }
+        }
+
         // Setup Header Click Listeners for Sorting in Tab Pesanan (Tagihan)
         document.querySelectorAll("th.tagihan-header").forEach(th => {
           th.addEventListener("click", () => {
             const sortKey = th.getAttribute("data-sort");
             if (!sortKey) return;
-            if (window.sortTagihanConfig.key === sortKey) {
-              if (window.sortTagihanConfig.direction === "asc") {
-                window.sortTagihanConfig.direction = "desc";
-              } else if (window.sortTagihanConfig.direction === "desc") {
-                window.sortTagihanConfig.key = null;
-                window.sortTagihanConfig.direction = null;
-              } else {
-                window.sortTagihanConfig.direction = "asc";
-              }
-            } else {
-              window.sortTagihanConfig.key = sortKey;
-              window.sortTagihanConfig.direction = "asc";
-            }
+            toggleSortCycle(window.sortTagihanConfig, sortKey);
             if (window.latestUniqueSchools) {
               window.renderTable(window.latestUniqueSchools);
             }
@@ -4083,19 +4465,7 @@
           th.addEventListener("click", () => {
             const sortKey = th.getAttribute("data-sort");
             if (!sortKey) return;
-            if (window.sortAksesConfig.key === sortKey) {
-              if (window.sortAksesConfig.direction === "asc") {
-                window.sortAksesConfig.direction = "desc";
-              } else if (window.sortAksesConfig.direction === "desc") {
-                window.sortAksesConfig.key = null;
-                window.sortAksesConfig.direction = null;
-              } else {
-                window.sortAksesConfig.direction = "asc";
-              }
-            } else {
-              window.sortAksesConfig.key = sortKey;
-              window.sortAksesConfig.direction = "asc";
-            }
+            toggleSortCycle(window.sortAksesConfig, sortKey);
             if (window.latestUniqueSchools) {
               window.renderTable(window.latestUniqueSchools);
             }
@@ -4126,14 +4496,47 @@
           });
         });
 
-        // Live Realtime Channel on aplikasirapor
+        // Live Realtime Channel on aplikasirapor:
+        // Tangkap payload.new / payload.old untuk memperbarui 1 baris secara lokal TANPA memanggil fetchPenggunaData() / SELECT * ulang!
         try {
           if (supabaseClient) {
             const pChannelName = 'table-rapor-' + Math.random().toString(36).substring(2, 7);
             supabaseClient.channel(pChannelName)
-              .on('postgres_changes', { event: '*', schema: 'public', table: 'aplikasirapor' }, () => {
-                if (window.fetchPenggunaData) {
-                  window.fetchPenggunaData(false);
+              .on('postgres_changes', { event: '*', schema: 'public', table: 'aplikasirapor' }, (payload) => {
+                if (!payload) return;
+                const evtType = payload.eventType;
+                let currentList = Array.isArray(window.rawPenggunaData) ? [...window.rawPenggunaData] : [];
+
+                if ((evtType === 'INSERT' || evtType === 'UPDATE') && payload.new && payload.new.id !== undefined) {
+                  const normalizedRow = normalizePenggunaRow(payload.new);
+                  const idx = currentList.findIndex(item => String(item.id) === String(normalizedRow.id));
+                  if (idx > -1) {
+                    currentList[idx] = normalizedRow;
+                  } else {
+                    currentList.unshift(normalizedRow);
+                  }
+                  window.rawPenggunaData = currentList;
+                  try {
+                    localStorage.setItem("cached_pengguna_data", JSON.stringify(currentList));
+                    if (window.idbHelper) window.idbHelper.put("pengguna", normalizedRow);
+                  } catch(e) {}
+                  if (window.renderPenggunaTable) {
+                    window.renderPenggunaTable(window.rawPenggunaData);
+                  }
+                } else if (evtType === 'DELETE' && payload.old && payload.old.id !== undefined) {
+                  const delId = String(payload.old.id);
+                  currentList = currentList.filter(item => String(item.id) !== delId);
+                  window.rawPenggunaData = currentList;
+                  try {
+                    localStorage.setItem("cached_pengguna_data", JSON.stringify(currentList));
+                    if (window.idbHelper) {
+                      window.idbHelper.delete("pengguna", payload.old.id);
+                      window.idbHelper.delete("pengguna", delId);
+                    }
+                  } catch(e) {}
+                  if (window.renderPenggunaTable) {
+                    window.renderPenggunaTable(window.rawPenggunaData);
+                  }
                 }
               })
               .subscribe();
@@ -4142,139 +4545,12 @@
           console.warn("Realtime error aplikasirapor:", e);
         }
 
-        // ==========================================
-        // --- PRESENCE HEARTBEAT & IMMEDIATE WAKE-UP PING SYSTEM ---
-        // (Track Mouse, Scroll, Keyboard, Touch, & Tab Visibility for Instant Online Activation)
-        // ==========================================
-        window.hasLocalUserActivity = false;
-        window.lastPresencePingTime = Date.now();
-        window.isCurrentlyIdle = false;
-
-        window.markLocalActivity = function() {
-          window.hasLocalUserActivity = true;
-          const now = Date.now();
-          // Immediate Wake-Up Ping if user was idle > 1 minute or flagged idle
-          if (window.isCurrentlyIdle || (now - window.lastPresencePingTime >= 60000)) {
-            window.isCurrentlyIdle = false;
-            if (window.sendPresenceHeartbeatPing) {
-              window.sendPresenceHeartbeatPing(true);
-            }
-          }
-        };
-
-        // Listen for all local user interactions (scroll, mouse, keyboard, touch, click, wheel)
-        ["mousemove", "scroll", "keydown", "click", "pointerdown", "touchmove", "wheel"].forEach(evtName => {
-          window.addEventListener(evtName, window.markLocalActivity, { passive: true });
-        });
-
-        document.addEventListener("visibilitychange", () => {
-          if (document.visibilityState === "visible") {
-            window.markLocalActivity();
-            if (window.sendPresenceHeartbeatPing) {
-              window.sendPresenceHeartbeatPing(true);
-            }
-          }
-        });
-
-        window.sendPresenceHeartbeatPing = async function(force = false) {
-          const now = Date.now();
-          if (!force && (!window.hasLocalUserActivity || document.visibilityState !== "visible")) {
-            return;
-          }
-
-          // Throttle background periodic pings to 1 minute, but force = true bypasses throttle
-          if (!force && (now - window.lastPresencePingTime < 60000)) {
-            return;
-          }
-
-          window.hasLocalUserActivity = false;
-          window.lastPresencePingTime = now;
-
-          if (!supabaseClient) return;
-
-          // Search active session ID or fallback to current workspace record
-          let activeSessionId = localStorage.getItem("active_user_session_id") || window.currentActiveSessionId;
-          if (!activeSessionId && window.rawPenggunaData && window.rawPenggunaData.length > 0) {
-            activeSessionId = window.rawPenggunaData[0].id;
-          }
-
-          try {
-            if (activeSessionId) {
-              const nowIso = new Date().toISOString();
-
-              // 1. Instantly update local UI state for zero-delay feedback
-              if (window.rawPenggunaData && Array.isArray(window.rawPenggunaData)) {
-                let found = false;
-                window.rawPenggunaData = window.rawPenggunaData.map(item => {
-                  if (item.id === activeSessionId) {
-                    found = true;
-                    return {
-                      ...item,
-                      status: "online",
-                      is_online: true,
-                      isOnline: true,
-                      last_active: nowIso,
-                      updated_at: nowIso
-                    };
-                  }
-                  return item;
-                });
-
-                if (!found && window.rawPenggunaData[0]) {
-                  window.rawPenggunaData[0].status = "online";
-                  window.rawPenggunaData[0].is_online = true;
-                  window.rawPenggunaData[0].last_active = nowIso;
-                }
-
-                if (window.renderPenggunaTable) {
-                  window.renderPenggunaTable(window.rawPenggunaData);
-                }
-              }
-
-              // 2. Persist to Supabase aplikasirapor
-              const { error } = await supabaseClient
-                .from('aplikasirapor')
-                .update({
-                  status: 'online',
-                  is_online: true,
-                  isOnline: true,
-                  last_active: nowIso,
-                  updated_at: nowIso
-                })
-                .eq('id', activeSessionId);
-
-              if (error) {
-                console.warn("Ping update notice:", error.message);
-              }
-            }
-          } catch (e) {
-            console.warn("Presence ping exception:", e);
-          }
-        };
-
-        // Run Heartbeat Ping check every 1 minute
-        setInterval(() => {
-          if (window.sendPresenceHeartbeatPing) {
-            window.sendPresenceHeartbeatPing(false);
-          }
-        }, 60000);
-
-        // Initial fetch for Tab Pengguna
+        // Initial fetch for Tab Pengguna (1 kali saja saat startup, menggunakan proyeksi ringan)
         setTimeout(() => {
           if (window.fetchPenggunaData) {
             window.fetchPenggunaData(false);
           }
         }, 500);
-
-        // Auto refresh pengguna data every 30 seconds if Tab Pengguna is active
-        setInterval(() => {
-          const viewPengguna = document.getElementById("view-pengguna");
-          if (viewPengguna && !viewPengguna.classList.contains("hidden")) {
-            if (window.fetchPenggunaData) {
-              window.fetchPenggunaData(false);
-            }
-          }
-        }, 30000);
 
         const toast = document.getElementById("toast-notification");
         let toastTimeout = null;
@@ -4312,123 +4588,7 @@
         }
         window.findSchoolById = findSchoolById;
 
-        // =========================================================
-        // SISTEM GLOBAL UNDO & REDO DENGAN SHORTCUT KEYBOARD (Ctrl+Z & Ctrl+Y)
-        // =========================================================
-        const undoStack = [];
-        const redoStack = [];
-        const MAX_HISTORY = 50;
-        let isUndoRedoProcessing = false;
 
-        function updateUndoRedoUI() {
-          const undoBtn = document.getElementById("undo-btn");
-          const redoBtn = document.getElementById("redo-btn");
-
-          if (undoBtn) {
-            undoBtn.disabled = undoStack.length === 0;
-            if (undoStack.length > 0) {
-              const last = undoStack[undoStack.length - 1];
-              undoBtn.setAttribute("data-tooltip", `Undo: ${last.name || 'Tindakan'} (Ctrl+Z)`);
-              undoBtn.classList.remove("opacity-40", "cursor-not-allowed", "text-slate-400");
-              undoBtn.classList.add("text-slate-700", "hover:text-teal-700", "hover:bg-teal-50", "hover:border-teal-300");
-            } else {
-              undoBtn.setAttribute("data-tooltip", "Tidak ada tindakan untuk di-Undo (Ctrl+Z)");
-              undoBtn.classList.add("opacity-40", "cursor-not-allowed", "text-slate-400");
-              undoBtn.classList.remove("text-slate-700", "hover:text-teal-700", "hover:bg-teal-50", "hover:border-teal-300");
-            }
-          }
-
-          if (redoBtn) {
-            redoBtn.disabled = redoStack.length === 0;
-            if (redoStack.length > 0) {
-              const next = redoStack[redoStack.length - 1];
-              redoBtn.setAttribute("data-tooltip", `Redo: ${next.name || 'Tindakan'} (Ctrl+Y)`);
-              redoBtn.classList.remove("opacity-40", "cursor-not-allowed", "text-slate-400");
-              redoBtn.classList.add("text-slate-700", "hover:text-teal-700", "hover:bg-teal-50", "hover:border-teal-300");
-            } else {
-              redoBtn.setAttribute("data-tooltip", "Tidak ada tindakan untuk di-Redo (Ctrl+Y)");
-              redoBtn.classList.add("opacity-40", "cursor-not-allowed", "text-slate-400");
-              redoBtn.classList.remove("text-slate-700", "hover:text-teal-700", "hover:bg-teal-50", "hover:border-teal-300");
-            }
-          }
-        }
-        window.updateUndoRedoUI = updateUndoRedoUI;
-
-        function recordAction(action) {
-          if (isUndoRedoProcessing) return;
-          undoStack.push(action);
-          if (undoStack.length > MAX_HISTORY) undoStack.shift();
-          redoStack.length = 0; // Clear redo history saat ada tindakan baru
-          updateUndoRedoUI();
-        }
-        window.recordAction = recordAction;
-
-        async function executeUndo() {
-          if (undoStack.length === 0 || isUndoRedoProcessing) return;
-          const action = undoStack.pop();
-          isUndoRedoProcessing = true;
-          try {
-            if (typeof action.undo === "function") {
-              await action.undo();
-            }
-            redoStack.push(action);
-            if (redoStack.length > MAX_HISTORY) redoStack.shift();
-            showToast(`↶ Berhasil mengurungkan: ${action.name || 'Tindakan Terakhir'}`);
-          } catch (err) {
-            console.error("Undo error:", err);
-            showToast("Gagal mengurungkan tindakan.", false);
-          } finally {
-            isUndoRedoProcessing = false;
-            updateUndoRedoUI();
-            if (typeof refreshFilterAndRender === "function") refreshFilterAndRender();
-          }
-        }
-        window.executeUndo = executeUndo;
-
-        async function executeRedo() {
-          if (redoStack.length === 0 || isUndoRedoProcessing) return;
-          const action = redoStack.pop();
-          isUndoRedoProcessing = true;
-          try {
-            if (typeof action.redo === "function") {
-              await action.redo();
-            }
-            undoStack.push(action);
-            if (undoStack.length > MAX_HISTORY) undoStack.shift();
-            showToast(`↷ Berhasil mengulangi: ${action.name || 'Tindakan'}`);
-          } catch (err) {
-            console.error("Redo error:", err);
-            showToast("Gagal mengulangi tindakan.", false);
-          } finally {
-            isUndoRedoProcessing = false;
-            updateUndoRedoUI();
-            if (typeof refreshFilterAndRender === "function") refreshFilterAndRender();
-          }
-        }
-        window.executeRedo = executeRedo;
-
-        // Global Keyboard Shortcut Listener for Ctrl+Z & Ctrl+Y
-        document.addEventListener("keydown", async (e) => {
-          const target = e.target;
-          const isTyping = target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable);
-
-          // Ctrl+Z or Cmd+Z (without Shift) -> UNDO
-          if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z" && !e.shiftKey) {
-            if (!isTyping) {
-              e.preventDefault();
-              await window.executeUndo();
-            }
-          }
-
-          // Ctrl+Y or Cmd+Y, or Ctrl+Shift+Z / Cmd+Shift+Z -> REDO
-          if (((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "y") ||
-              ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z" && e.shiftKey)) {
-            if (!isTyping) {
-              e.preventDefault();
-              await window.executeRedo();
-            }
-          }
-        });
 
         const getBatchCost = (classCount) => {
           if (!classCount || classCount <= 0) return 0;
@@ -4569,46 +4729,84 @@
           const deleteGroup = document.getElementById("delete-actions-group");
           const summarySpan = document.getElementById("selection-summary");
           const selectAllCheck = document.getElementById("select-all-checkbox");
+          const visibleRows = (window.latestUniqueSchools && window.latestUniqueSchools.length > 0)
+            ? window.latestUniqueSchools
+            : displayedData;
 
           if (selectedIds.size > 0) {
-            deleteGroup.classList.remove("hidden");
-            summarySpan.textContent = `${selectedIds.size} dipilih`;
-            summarySpan.classList.add("font-bold", "text-teal-600");
+            if (deleteGroup) deleteGroup.classList.remove("hidden");
+            if (summarySpan) {
+              summarySpan.textContent = `${selectedIds.size} dipilih`;
+              summarySpan.classList.add("font-bold", "text-teal-600");
+            }
           } else {
-            deleteGroup.classList.add("hidden");
-            summarySpan.textContent = `0 dipilih`;
-            summarySpan.classList.remove("font-bold", "text-teal-600");
+            if (deleteGroup) deleteGroup.classList.add("hidden");
+            if (summarySpan) {
+              summarySpan.textContent = `0 dipilih`;
+              summarySpan.classList.remove("font-bold", "text-teal-600");
+            }
           }
 
-          if (
-            displayedData.length > 0 &&
-            displayedData.every((item) => selectedIds.has(item.id))
-          ) {
-            selectAllCheck.checked = true;
-            selectAllCheck.indeterminate = false;
-          } else if (displayedData.some((item) => selectedIds.has(item.id))) {
-            selectAllCheck.checked = false;
-            selectAllCheck.indeterminate = true;
-          } else {
-            selectAllCheck.checked = false;
-            selectAllCheck.indeterminate = false;
+          if (selectAllCheck) {
+            if (
+              visibleRows.length > 0 &&
+              visibleRows.every((item) => selectedIds.has(String(item.id)))
+            ) {
+              selectAllCheck.checked = true;
+              selectAllCheck.indeterminate = false;
+            } else if (visibleRows.some((item) => selectedIds.has(String(item.id)))) {
+              selectAllCheck.checked = false;
+              selectAllCheck.indeterminate = true;
+            } else {
+              selectAllCheck.checked = false;
+              selectAllCheck.indeterminate = false;
+            }
           }
         }
 
         document
           .getElementById("select-all-checkbox")
           .addEventListener("change", (e) => {
-            if (e.target.checked)
-              displayedData.forEach((item) => selectedIds.add(item.id));
-            else displayedData.forEach((item) => selectedIds.delete(item.id));
-            renderTable(displayedData);
+            const isChecked = e.target.checked;
+            const visibleRows = (window.latestUniqueSchools && window.latestUniqueSchools.length > 0)
+              ? window.latestUniqueSchools
+              : displayedData;
+            if (isChecked) {
+              visibleRows.forEach((item) => selectedIds.add(String(item.id)));
+            } else {
+              visibleRows.forEach((item) => selectedIds.delete(String(item.id)));
+              displayedData.forEach((item) => selectedIds.delete(String(item.id)));
+            }
+            const tb = document.getElementById("table-body");
+            if (tb) {
+              tb.querySelectorAll("tr").forEach(tr => {
+                const cb = tr.querySelector("input[type='checkbox']");
+                if (cb) {
+                  cb.checked = isChecked;
+                  if (isChecked) tr.classList.add("selected");
+                  else tr.classList.remove("selected");
+                }
+              });
+            }
             updateSelectionUI();
           });
 
-        window.toggleRowSelection = (id) => {
-          if (selectedIds.has(id)) selectedIds.delete(id);
-          else selectedIds.add(id);
-          renderTable(displayedData);
+        window.toggleRowSelection = (id, checkboxEl) => {
+          const strId = String(id);
+          const isNowChecked = checkboxEl ? checkboxEl.checked : !selectedIds.has(strId);
+          if (isNowChecked) {
+            selectedIds.add(strId);
+          } else {
+            selectedIds.delete(strId);
+          }
+          if (checkboxEl) {
+            checkboxEl.checked = isNowChecked;
+            const tr = checkboxEl.closest("tr");
+            if (tr) {
+              if (isNowChecked) tr.classList.add("selected");
+              else tr.classList.remove("selected");
+            }
+          }
           updateSelectionUI();
         };
 
@@ -4664,20 +4862,21 @@
           onSnapshot(q, (snapshot) => {
             allData = snapshot.docs.map((doc) => {
               const data = doc.data();
+              const docId = String(doc.id);
               return {
-                id: doc.id,
                 ...data,
+                id: docId,
                 timestamp: data.timestamp?.toMillis
                   ? data.timestamp.toMillis()
                   : data.timestamp || 0,
               };
             });
             const currentDocIds = new Set([
-              ...allData.filter((d) => !d.isDeleted).map((d) => d.id),
-              ...drafts.filter((d) => !d.isDeleted).map((d) => d.id),
+              ...allData.filter((d) => !d.isDeleted).map((d) => String(d.id)),
+              ...drafts.filter((d) => !d.isDeleted).map((d) => String(d.id)),
             ]);
             selectedIds.forEach((id) => {
-              if (!currentDocIds.has(id)) selectedIds.delete(id);
+              if (!currentDocIds.has(String(id))) selectedIds.delete(id);
             });
 
             refreshFilterAndRender();
@@ -5373,7 +5572,8 @@
 
             // Render Data Pokok Table
             uniqueSchools.forEach((item, index) => {
-              const isSelected = selectedIds.has(item.id);
+              const itemId = String(item.id);
+              const isSelected = selectedIds.has(itemId);
 
               const row = document.createElement("tr");
               if (isSelected) row.classList.add("selected");
@@ -5382,16 +5582,16 @@
               const latestBatchTs = schoolBatches.length > 0 ? (schoolBatches[schoolBatches.length - 1].timestamp || item.timestamp) : item.timestamp;
 
               const tsHtml = schoolBatches.length > 1
-                ? `<div class="group relative inline-flex items-center gap-1.5 px-1.5 py-0.5 bg-indigo-50 text-indigo-700 border border-indigo-200 hover:bg-indigo-100 hover:border-indigo-300 transition-all cursor-pointer rounded-md shadow-2xs" onclick="window.openSchoolHistoryModal('${item.id}')" data-tooltip="Lihat & Kelola ${schoolBatches.length} Riwayat Versi Pesanan">
+                ? `<div class="group relative inline-flex items-center gap-1.5 px-1.5 py-0.5 bg-indigo-50 text-indigo-700 border border-indigo-200 hover:bg-indigo-100 hover:border-indigo-300 transition-all cursor-pointer rounded-md shadow-2xs" onclick="window.openSchoolHistoryModal('${itemId}')" data-tooltip="Lihat & Kelola ${schoolBatches.length} Riwayat Versi Pesanan">
                     <span class="font-bold text-[9.5px]">${item.isDraft ? '<span class="bg-amber-100 text-amber-600 px-1 py-0.2 rounded text-[8px]">DRAFT</span>' : formatDisplayDate(latestBatchTs)}</span>
                     <span class="px-1.5 py-0.2 bg-indigo-200/80 text-indigo-800 text-[8.5px] rounded-md font-black">${schoolBatches.length}x</span>
                   </div>`
-                : `<div class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded hover:bg-slate-100 cursor-pointer transition-colors" onclick="window.openSchoolHistoryModal('${item.id}')" data-tooltip="Lihat Rincian Pesanan & Riwayat">
+                : `<div class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded hover:bg-slate-100 cursor-pointer transition-colors" onclick="window.openSchoolHistoryModal('${itemId}')" data-tooltip="Lihat Rincian Pesanan & Riwayat">
                     <span class="block">${item.isDraft ? '<span class="bg-amber-100 border border-amber-200 text-amber-600 px-1 py-0.2 rounded shadow-sm font-bold tracking-tight text-[8px]">DRAFT</span>' : formatDisplayDate(latestBatchTs)}</span>
                   </div>`;
 
               row.innerHTML = `
-                        <td class="text-center align-middle py-0.5 px-2 sticky left-0 z-20 bg-white border-r border-slate-200 w-[35px] min-w-[35px] max-w-[35px]"><input type="checkbox" ${isSelected ? "checked" : ""} onchange="toggleRowSelection('${item.id}')" class="cursor-pointer" data-tooltip="Pilih baris ini"></td>
+                        <td class="text-center align-middle py-0.5 px-2 sticky left-0 z-20 bg-white border-r border-slate-200 w-[35px] min-w-[35px] max-w-[35px]"><input type="checkbox" ${isSelected ? "checked" : ""} onchange="window.toggleRowSelection('${itemId}', this)" class="w-3.5 h-3.5 accent-teal-600 rounded border-slate-300 text-teal-600 focus:ring-teal-500 cursor-pointer" data-tooltip="Pilih baris ini"></td>
                         <td class="text-center font-bold text-slate-400 border-r border-slate-200 align-middle py-0.5 px-2 sticky left-[35px] z-20 bg-white w-[45px] min-w-[45px] max-w-[45px] text-[10.5px]">${index + 1}</td>
                         <td class="text-[9.5px] text-slate-500 font-mono text-center align-middle py-0.5 px-1 sticky left-[80px] z-20 bg-white border-r border-slate-200 w-[110px] min-w-[110px] max-w-[110px] whitespace-nowrap">
                             ${tsHtml}
@@ -5698,7 +5898,7 @@
             primaryDoc.deleted_batches = existingDeleted;
 
             allData.forEach((d) => {
-              if (d.id === primaryDoc.id) {
+              if (String(d.id) === String(primaryDoc.id)) {
                 d.order_batches = remainingBatches;
                 d.kelas = remainingKelas;
                 d.deleted_batches = existingDeleted;
@@ -5706,22 +5906,22 @@
             });
 
             drafts.forEach((d) => {
-              if (d.id === primaryDoc.id) {
+              if (String(d.id) === String(primaryDoc.id)) {
                 d.order_batches = remainingBatches;
                 d.kelas = remainingKelas;
                 d.deleted_batches = existingDeleted;
               }
             });
 
-            if (targetBatch.docId && targetBatch.docId !== primaryDoc.id) {
+            if (targetBatch.docId && String(targetBatch.docId) !== String(primaryDoc.id)) {
               allData.forEach((d) => {
-                if (d.id === targetBatch.docId) {
+                if (String(d.id) === String(targetBatch.docId)) {
                   d.isDeleted = true;
                   d.deletedAt = Date.now();
                 }
               });
               drafts.forEach((d) => {
-                if (d.id === targetBatch.docId) {
+                if (String(d.id) === String(targetBatch.docId)) {
                   d.isDeleted = true;
                   d.deletedAt = Date.now();
                 }
@@ -5729,7 +5929,7 @@
             }
 
             // 3. Simpan perubahan ke Firestore / LocalStorage
-            if (primaryDoc.id.startsWith("draft-")) {
+            if (String(primaryDoc.id).startsWith("draft-")) {
               try { localStorage.setItem("aplikasi-rapor-drafts", JSON.stringify(drafts)); } catch(e){}
             } else {
               const { doc, updateDoc, db, appId, collectionName } = window.fbComponents;
@@ -5744,8 +5944,8 @@
             }
 
             // Jika batch berasal dari dokumen versi terpisah, tandai dokumen terpisah tersebut sebagai isDeleted: true
-            if (targetBatch.docId && targetBatch.docId !== primaryDoc.id) {
-              if (targetBatch.docId.startsWith("draft-")) {
+            if (targetBatch.docId && String(targetBatch.docId) !== String(primaryDoc.id)) {
+              if (String(targetBatch.docId).startsWith("draft-")) {
                 try { localStorage.setItem("aplikasi-rapor-drafts", JSON.stringify(drafts)); } catch(e){}
               } else {
                 const { doc, updateDoc, db, appId, collectionName } = window.fbComponents;
@@ -5791,19 +5991,27 @@
 
             // Automatic type detection if not explicitly specified
             let type = opts.type;
+            const isPermanenOrDelete = /permanen|hapus|kosongkan|musnah|delete/i.test(message) || /permanen|hapus|kosongkan|musnah|delete/i.test(opts.title || "");
+            
             if (!type) {
-              if (/pulih|restore/i.test(message) || /pulih|restore/i.test(opts.title || "")) {
+              if (isPermanenOrDelete) {
+                type = "danger";
+              } else if (/pulih|restore/i.test(message) || /pulih|restore/i.test(opts.title || "")) {
                 type = "restore";
-              } else if (/batal(kan)?/i.test(message) || /batal/i.test(opts.title || "")) {
+              } else if (/batal(kan)?\s+pesanan|batal(kan)?\s+riwayat/i.test(message) || /pembatalan/i.test(opts.title || "")) {
                 type = "warning";
               } else {
                 type = "danger";
               }
+            } else if (isPermanenOrDelete && type === "warning") {
+              // Safety guard: Any permanent deletion must NEVER be classified as warning
+              type = "danger";
             }
 
             // Defaults based on type
-            let defaultTitle = "Konfirmasi Hapus";
-            let defaultOkText = "Hapus";
+            let defaultTitle = isPermanenOrDelete ? "Konfirmasi Hapus Permanen" : "Konfirmasi Hapus";
+            let defaultOkText = isPermanenOrDelete ? "Hapus Permanen" : "Hapus";
+            let defaultCancelText = "Batal";
             let iconBgClass = "bg-rose-100";
             let okBtnClass = "bg-rose-600 hover:bg-rose-700 text-white shadow-rose-700/20";
             let iconSvg = `
@@ -5815,6 +6023,7 @@
             if (type === "restore") {
               defaultTitle = "Konfirmasi Pemulihan";
               defaultOkText = "Pulihkan";
+              defaultCancelText = "Batal";
               iconBgClass = "bg-teal-100";
               okBtnClass = "bg-teal-600 hover:bg-teal-700 text-white shadow-teal-700/20";
               iconSvg = `
@@ -5824,7 +6033,8 @@
               `;
             } else if (type === "warning") {
               defaultTitle = "Konfirmasi Pembatalan";
-              defaultOkText = "Batalkan";
+              defaultOkText = "Ya, Batalkan";
+              defaultCancelText = "Kembali";
               iconBgClass = "bg-amber-100";
               okBtnClass = "bg-amber-600 hover:bg-amber-700 text-white shadow-amber-700/20";
               iconSvg = `
@@ -5832,14 +6042,11 @@
                   <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
                 </svg>
               `;
-            } else if (/permanen/i.test(message) || /permanen/i.test(opts.title || "")) {
-              defaultTitle = "Konfirmasi Hapus Permanen";
-              defaultOkText = "Hapus Permanen";
             }
 
             const title = opts.title || defaultTitle;
             const okText = opts.okText || defaultOkText;
-            const cancelText = opts.cancelText || "Batal";
+            const cancelText = opts.cancelText || defaultCancelText;
 
             const modal = document.getElementById("confirm-modal");
             const titleEl = document.getElementById("confirm-title");
@@ -6039,7 +6246,7 @@
 
           if (id) {
             isEditMode = true;
-            const firstItem = [...drafts, ...allData].find((d) => d.id === id);
+            const firstItem = [...drafts, ...allData].find((d) => String(d.id) === String(id));
             if (!firstItem) return;
             const npsn = firstItem.npsn
               ? String(firstItem.npsn).toLowerCase()
@@ -6517,131 +6724,9 @@
         document.getElementById("save-add-more-btn").onclick = () =>
           saveProcess(false);
 
-        const dupBtn = document.getElementById("duplicate-btn");
-        if (dupBtn) {
-          dupBtn.onclick = async () => {
-            const id = document.getElementById("edit-id").value;
-            const formData = {
-              timestamp: Date.now(),
-              kelas: window.currentSelectedKelas || [],
-              'sekolah-gratis': document.getElementById('edit-sekolah-gratis').checked,
-              akses_password_active: true,
-              akses_password: 'RPR' + Math.floor(1000 + Math.random() * 9000),
-              akses_mapel_kustom: true,
-              akses_buku_induk: true,
-              akses_unggah_foto: true,
-              akses_ganti_logo: true,
-              akses_tanda_tangan_digital: true,
-              akses_rank: true
-            };
-            fieldIds.forEach((fid) => {
-              const el = document.getElementById(`edit-${fid}`);
-              if (el) formData[fid] = el.value.trim();
-            });
-            formData["nama-sekolah"] += " (Salinan)";
-
-            if (id.startsWith("draft-")) {
-              formData.id = "draft-" + Date.now();
-              formData.isDraft = true;
-              drafts.unshift(formData);
-              try {
-                localStorage.setItem(
-                  "aplikasi-rapor-drafts",
-                  JSON.stringify(drafts),
-                );
-              } catch(e) {}
-              showToast("Draft diduplikat!");
-              closeModal();
-              refreshFilterAndRender();
-              return;
-            }
-
-            try {
-              await addDoc(
-                collection(
-                  db,
-                  "artifacts",
-                  appId,
-                  "public",
-                  "data",
-                  collectionName,
-                ),
-                formData,
-              );
-              showToast("Data berhasil diduplikat!");
-              closeModal();
-            } catch (e) {
-              showToast("Gagal duplikat data.", false);
-            }
-          };
-        }
-
-        const delBtn = document.getElementById("delete-btn");
-        if (delBtn) {
-          delBtn.onclick = async () => {
-            const id = document.getElementById("edit-id").value;
-            if (!id) return;
-            const schoolName = document.getElementById("edit-nama-sekolah")?.value || "data ini";
-            const isConfirmed = await window.customConfirm(
-              `Pindahkan data ${schoolName} ke Tempat Sampah? Anda dapat memulihkannya sewaktu-waktu.`,
-            );
-            if (isConfirmed) {
-              try {
-                const now = Date.now();
-                const schoolDocs = (window.originalDocs && window.originalDocs.length > 0)
-                  ? window.originalDocs
-                  : (allData.filter(d => d.id === id).length > 0 ? allData.filter(d => d.id === id) : drafts.filter(d => d.id === id));
-
-                const snapshotLog = {
-                  deletedAt: now,
-                  deletedBy: "Admin",
-                  schoolName: schoolName,
-                  npsn: document.getElementById("edit-npsn")?.value || "",
-                  kelas: window.currentSelectedKelas || [],
-                  totalHistory: schoolDocs.length,
-                  lastUpdated: schoolDocs[0]?.timestamp || now,
-                  alamat: document.getElementById("edit-alamat")?.value || "",
-                  wilayah: `${document.getElementById("edit-kecamatan")?.value || ""}, ${document.getElementById("edit-kabupaten-kota-nama")?.value || ""}`,
-                  note: "Dihapus dari Formulir Data Pokok"
-                };
-
-                for (const docObj of schoolDocs) {
-                  if (docObj.id && docObj.id.startsWith("draft-")) {
-                    const idx = drafts.findIndex(d => d.id === docObj.id);
-                    if (idx > -1) {
-                      drafts[idx].isDeleted = true;
-                      drafts[idx].deletedAt = now;
-                      drafts[idx].changeLog = snapshotLog;
-                    }
-                  } else if (docObj.id) {
-                    await updateDoc(
-                      doc(db, "artifacts", appId, "public", "data", collectionName, docObj.id),
-                      {
-                        isDeleted: true,
-                        deletedAt: now,
-                        changeLog: snapshotLog
-                      }
-                    );
-                  }
-                }
-
-                try {
-                  localStorage.setItem("aplikasi-rapor-drafts", JSON.stringify(drafts));
-                } catch(e) {}
-
-                showToast(`Data ${schoolName} berhasil dipindahkan ke Tempat Sampah.`);
-                closeModal();
-                refreshFilterAndRender();
-              } catch (e) {
-                console.error("Gagal memindahkan ke Tempat Sampah", e);
-                showToast("Gagal memindahkan data ke Tempat Sampah.", false);
-              }
-            }
-          };
-        }
-
         document.getElementById("delete-selected-btn").onclick = async () => {
-          const count = selectedIds.size;
+          const idsToDelete = Array.from(selectedIds).map(String);
+          const count = idsToDelete.length;
           if (count === 0) return;
           const isConfirmed = await window.customConfirm(
             `Pindahkan ${count} data terpilih ke Tempat Sampah?`,
@@ -6650,9 +6735,12 @@
             try {
               showToast(`Sedang memindahkan ${count} data ke Tempat Sampah...`);
               const now = Date.now();
-              for (const id of selectedIds) {
-                if (id.startsWith("draft-")) {
-                  const idx = drafts.findIndex((d) => d.id === id);
+              const updatedRealIds = new Set();
+
+              for (const rawId of idsToDelete) {
+                const strId = String(rawId);
+                if (strId.startsWith("draft-")) {
+                  const idx = drafts.findIndex((d) => String(d.id) === strId);
                   if (idx > -1) {
                     drafts[idx].isDeleted = true;
                     drafts[idx].deletedAt = now;
@@ -6666,30 +6754,68 @@
                     };
                   }
                 } else {
-                  const item = allData.find(d => d.id === id);
-                  await updateDoc(
-                    doc(
-                      db,
-                      "artifacts",
-                      appId,
-                      "public",
-                      "data",
-                      collectionName,
-                      id,
-                    ),
-                    {
-                      isDeleted: true,
-                      deletedAt: now,
-                      changeLog: {
-                        deletedAt: now,
-                        deletedBy: "Admin",
-                        schoolName: item ? (item["nama-sekolah"] || "-") : "-",
-                        npsn: item ? (item.npsn || "-") : "-",
-                        kelas: item ? (item.kelas || []) : [],
-                        note: "Dihapus massal dari Data Pokok"
-                      }
-                    }
+                  const realId = strId.split("_hist_")[0];
+                  const item = allData.find(d => String(d.id) === strId || String(d.id) === realId);
+                  const npsn = item && item.npsn && String(item.npsn).trim() !== "-" ? String(item.npsn).trim().toLowerCase() : "";
+                  const matchingDocs = allData.filter(d =>
+                    String(d.id) === strId ||
+                    String(d.id).split("_hist_")[0] === realId ||
+                    (npsn && d.npsn && String(d.npsn).trim().toLowerCase() === npsn)
                   );
+                  const targetDocs = matchingDocs.length > 0 ? matchingDocs : [{ id: realId }];
+
+                  let aggregatedKelas = [];
+                  targetDocs.forEach(d => {
+                    if (Array.isArray(d.kelas)) aggregatedKelas.push(...d.kelas);
+                  });
+
+                  const snapshotLog = {
+                    deletedAt: now,
+                    deletedBy: "Admin",
+                    schoolName: item ? (item["nama-sekolah"] || "-") : "-",
+                    npsn: item ? (item.npsn || "-") : "-",
+                    kelas: Array.from(new Set(aggregatedKelas)).sort(),
+                    totalHistory: targetDocs.length,
+                    lastUpdated: item?.timestamp || now,
+                    alamat: item?.alamat || "-",
+                    wilayah: item ? `${item.kecamatan || ""}, ${item["kabupaten-kota-nama"] || ""}` : "-",
+                    note: "Dihapus dari Data Pokok"
+                  };
+
+                  allData.forEach(d => {
+                    if (
+                      String(d.id) === strId ||
+                      String(d.id).split("_hist_")[0] === realId ||
+                      (npsn && d.npsn && String(d.npsn).trim().toLowerCase() === npsn)
+                    ) {
+                      d.isDeleted = true;
+                      d.deletedAt = now;
+                      d.changeLog = snapshotLog;
+                    }
+                  });
+
+                  for (const docObj of targetDocs) {
+                    const docRealId = String(docObj.id).split("_hist_")[0];
+                    if (docRealId && !docRealId.startsWith("draft-") && !updatedRealIds.has(docRealId)) {
+                      updatedRealIds.add(docRealId);
+                      await updateDoc(
+                        doc(
+                          db,
+                          "artifacts",
+                          appId,
+                          "public",
+                          "data",
+                          collectionName,
+                          docRealId,
+                        ),
+                        {
+                          isDeleted: true,
+                          deletedAt: now,
+                          changeLog: snapshotLog
+                        }
+                      );
+                    }
+                  }
                 }
               }
 
@@ -6700,8 +6826,8 @@
                 );
               } catch(e) {}
               selectedIds.clear();
-              showToast(`${count} data berhasil dipindahkan ke Tempat Sampah.`);
               refreshFilterAndRender();
+              showToast(`${count} data berhasil dipindahkan ke Tempat Sampah.`);
             } catch (e) {
               console.error("Gagal memindahkan ke Tempat Sampah", e);
               showToast("Gagal memindahkan data ke Tempat Sampah.", false);
@@ -6711,19 +6837,35 @@
 
         window.deleteSchoolToTrashById = async (id) => {
           if (!id) return;
+          const strId = String(id);
+          const realId = strId.split("_hist_")[0];
           const firstItem =
-            allData.find((d) => d.id === id) ||
-            drafts.find((d) => d.id === id);
+            allData.find((d) => String(d.id) === strId || String(d.id) === realId) ||
+            drafts.find((d) => String(d.id) === strId);
           if (!firstItem) return;
 
-          const npsn = firstItem.npsn ? String(firstItem.npsn).toLowerCase() : "";
+          const npsn = firstItem.npsn && String(firstItem.npsn).trim() !== "-" ? String(firstItem.npsn).trim().toLowerCase() : "";
           const schoolName = firstItem["nama-sekolah"] || (npsn ? `NPSN ${npsn}` : "Sekolah");
-          const allSchoolDocs = npsn
-            ? allData.filter(d => d.npsn && String(d.npsn).toLowerCase() === npsn)
-            : [firstItem];
+          const allSchoolDocs = [
+            ...allData.filter(d =>
+              String(d.id) === strId ||
+              String(d.id).split("_hist_")[0] === realId ||
+              (npsn && d.npsn && String(d.npsn).trim().toLowerCase() === npsn)
+            ),
+            ...drafts.filter(d =>
+              String(d.id) === strId ||
+              (npsn && d.npsn && String(d.npsn).trim().toLowerCase() === npsn)
+            )
+          ];
+          if (allSchoolDocs.length === 0) allSchoolDocs.push(firstItem);
 
           const isConfirmed = await window.customConfirm(
             `Pindahkan ${schoolName} ke Tempat Sampah? Anda dapat memulihkannya sewaktu-waktu.`,
+            {
+              title: "Pindahkan ke Tempat Sampah",
+              okText: "Pindahkan",
+              type: "danger"
+            }
           );
           if (!isConfirmed) return;
 
@@ -6747,17 +6889,51 @@
               note: "Dihapus dari Menu Baris Data Pokok"
             };
 
+            // 1. Seketika perbarui memori lokal agar baris langsung hilang dari layar
+            allData.forEach(d => {
+              if (
+                String(d.id) === strId ||
+                String(d.id).split("_hist_")[0] === realId ||
+                (npsn && d.npsn && String(d.npsn).trim().toLowerCase() === npsn)
+              ) {
+                d.isDeleted = true;
+                d.deletedAt = now;
+                d.changeLog = snapshotLog;
+              }
+            });
+
+            drafts.forEach(d => {
+              if (
+                String(d.id) === strId ||
+                (npsn && d.npsn && String(d.npsn).trim().toLowerCase() === npsn)
+              ) {
+                d.isDeleted = true;
+                d.deletedAt = now;
+                d.changeLog = snapshotLog;
+              }
+            });
+
+            try {
+              localStorage.setItem("aplikasi-rapor-drafts", JSON.stringify(drafts));
+            } catch(e) {}
+
+            selectedIds.delete(strId);
+            selectedIds.delete(realId);
+            const editModal = document.getElementById("edit-type-modal");
+            if (editModal) editModal.classList.remove("active");
+            refreshFilterAndRender();
+            showToast(`Data ${schoolName} dipindahkan ke Tempat Sampah.`);
+
+            // 2. Simpan ke database Supabase
+            const updatedRealIds = new Set();
             for (const docObj of allSchoolDocs) {
-              if (docObj.id && docObj.id.startsWith("draft-")) {
-                const idx = drafts.findIndex(d => d.id === docObj.id);
-                if (idx > -1) {
-                  drafts[idx].isDeleted = true;
-                  drafts[idx].deletedAt = now;
-                  drafts[idx].changeLog = snapshotLog;
-                }
-              } else if (docObj.id) {
+              const docIdStr = String(docObj.id || "");
+              if (!docIdStr || docIdStr.startsWith("draft-")) continue;
+              const docRealId = docIdStr.split("_hist_")[0];
+              if (!updatedRealIds.has(docRealId)) {
+                updatedRealIds.add(docRealId);
                 await updateDoc(
-                  doc(db, "artifacts", appId, "public", "data", collectionName, docObj.id),
+                  doc(db, "artifacts", appId, "public", "data", collectionName, docRealId),
                   {
                     isDeleted: true,
                     deletedAt: now,
@@ -6771,39 +6947,6 @@
               localStorage.setItem("aplikasi-rapor-drafts", JSON.stringify(drafts));
             } catch(e) {}
 
-            recordAction({
-              name: `Hapus ${schoolName}`,
-              undo: async () => {
-                for (const docObj of allSchoolDocs) {
-                  if (docObj.id && docObj.id.startsWith("draft-")) {
-                    const idx = drafts.findIndex(d => d.id === docObj.id);
-                    if (idx > -1) { drafts[idx].isDeleted = false; delete drafts[idx].deletedAt; }
-                  } else if (docObj.id) {
-                    await updateDoc(doc(db, "artifacts", appId, "public", "data", collectionName, docObj.id), { isDeleted: false });
-                    const idx = allData.findIndex(d => d.id === docObj.id);
-                    if (idx > -1) { allData[idx].isDeleted = false; delete allData[idx].deletedAt; }
-                  }
-                }
-                try { localStorage.setItem("aplikasi-rapor-drafts", JSON.stringify(drafts)); } catch(e) {}
-              },
-              redo: async () => {
-                for (const docObj of allSchoolDocs) {
-                  if (docObj.id && docObj.id.startsWith("draft-")) {
-                    const idx = drafts.findIndex(d => d.id === docObj.id);
-                    if (idx > -1) { drafts[idx].isDeleted = true; drafts[idx].deletedAt = now; }
-                  } else if (docObj.id) {
-                    await updateDoc(doc(db, "artifacts", appId, "public", "data", collectionName, docObj.id), { isDeleted: true, deletedAt: now });
-                    const idx = allData.findIndex(d => d.id === docObj.id);
-                    if (idx > -1) { allData[idx].isDeleted = true; allData[idx].deletedAt = now; }
-                  }
-                }
-                try { localStorage.setItem("aplikasi-rapor-drafts", JSON.stringify(drafts)); } catch(e) {}
-              }
-            });
-
-            document.getElementById("edit-type-modal").classList.remove("active");
-            showToast(`Data ${schoolName} dipindahkan ke Tempat Sampah.`);
-            refreshFilterAndRender();
           } catch(e) {
             console.error("Gagal memindahkan ke Tempat Sampah", e);
             showToast("Gagal memindahkan ke Tempat Sampah.", false);
@@ -6819,7 +6962,7 @@
           const allDocsWithBatches = [...drafts, ...allData].filter(d => !d.isDeleted && Array.isArray(d.deleted_batches) && d.deleted_batches.length > 0);
           
           allDocsWithBatches.forEach(docObj => {
-            const schNpsn = docObj.npsn && String(docObj.npsn).trim() !== "-" ? String(docObj.npsn).trim().toLowerCase() : (docObj["nama-sekolah"] ? String(docObj["nama-sekolah"]).trim().toLowerCase() : docObj.id);
+            const schNpsn = docObj.npsn && String(docObj.npsn).trim() !== "-" ? String(docObj.npsn).trim().toLowerCase() : (docObj["nama-sekolah"] ? String(docObj["nama-sekolah"]).trim().toLowerCase() : String(docObj.id));
             docObj.deleted_batches.forEach(b => {
               const bId = String(b.batchId || b.batchNum || "1");
               const uniqueBatchKey = `batch_${schNpsn}_${bId}`;
@@ -6828,9 +6971,9 @@
                 batchTrashMap.set(uniqueBatchKey, {
                   trashType: "batch",
                   key: uniqueBatchKey,
-                  docId: docObj.id,
-                  targetDocId: b.docId || docObj.id,
-                  allDocIds: [docObj.id],
+                  docId: String(docObj.id),
+                  targetDocId: String(b.docId || docObj.id),
+                  allDocIds: [String(docObj.id)],
                   batchId: b.batchId || b.batchNum,
                   batchNum: b.batchNum,
                   "nama-sekolah": docObj["nama-sekolah"] || b.schoolName || "-",
@@ -6839,7 +6982,7 @@
                   deletedAt: b.deletedAt || Date.now(),
                   timestamp: b.timestamp || 0,
                   kelas: b.kelas || [],
-                  isDraft: docObj.id.startsWith("draft-"),
+                  isDraft: String(docObj.id).startsWith("draft-"),
                   docs: [], // JANGAN masukkan docObj ke docs agar tidak pernah terhapus permanen!
                   parentDoc: docObj,
                   batchData: b,
@@ -7199,7 +7342,7 @@
           }
         };
 
-        window.updateTagihanSetting = async (npsn, key, val, recordUndo = true) => {
+        window.updateTagihanSetting = async (npsn, key, val) => {
           let settings = {};
           try {
             settings = JSON.parse(localStorage.getItem("aplikasi-rapor-tagihan-settings") || "{}");
@@ -7207,7 +7350,6 @@
           if (!settings[npsn]) {
             settings[npsn] = { isLunas: false, diskon: 0, biayaTambahan: 0, pemesan: "" };
           }
-          const oldVal = settings[npsn][key];
           if (key === 'isLunas') {
             settings[npsn].isLunas = Boolean(val);
           } else if (key === 'diskon') {
@@ -7219,20 +7361,6 @@
           }
           localStorage.setItem("aplikasi-rapor-tagihan-settings", JSON.stringify(settings));
 
-          if (recordUndo && oldVal !== val) {
-            const school = allData.find(s => s.npsn === npsn) || drafts.find(s => s.npsn === npsn);
-            const sName = school ? (school['nama-sekolah'] || `NPSN ${npsn}`) : `NPSN ${npsn}`;
-            recordAction({
-              name: `Ubah Tagihan ${sName} (${key})`,
-              undo: async () => {
-                await window.updateTagihanSetting(npsn, key, oldVal, false);
-              },
-              redo: async () => {
-                await window.updateTagihanSetting(npsn, key, val, false);
-              }
-            });
-          }
-          
           const tagihanTableBody = document.getElementById("tagihan-table-body");
           const activeEl = document.activeElement;
           const isEditingTagihan = tagihanTableBody && activeEl && (
@@ -7267,13 +7395,15 @@
                 else if (key === 'pemesan') d.tagihan_pemesan = String(val || "").trim();
               });
 
-              const dbUpdates = schoolDocs.map(d => 
-                updateDoc(
-                  doc(db, "artifacts", appId, "public", "data", collectionName, d.id),
+              // Konsolidasi write: cukup 1 update ke dokumen root (realId) untuk hemat bandwidth & dead tuples
+              const primaryDoc = schoolDocs[0];
+              const realId = String(primaryDoc.id).split("_hist_")[0];
+              if (realId && !realId.startsWith("draft-")) {
+                await updateDoc(
+                  doc(db, "artifacts", appId, "public", "data", collectionName, realId),
                   dbField
-                )
-              );
-              await Promise.all(dbUpdates);
+                );
+              }
             } catch(e) {
               console.warn("Cloud save warning", e);
             }
@@ -7317,7 +7447,7 @@
           if (!target) return;
 
           if (target.trashType === "batch") {
-            const docObj = [...drafts, ...allData].find(d => d.id === target.docId) || [...drafts, ...allData].find(d => d.npsn && target.npsn && String(d.npsn).toLowerCase() === String(target.npsn).toLowerCase());
+            const docObj = [...drafts, ...allData].find(d => String(d.id) === String(target.docId)) || [...drafts, ...allData].find(d => d.npsn && target.npsn && String(d.npsn).toLowerCase() === String(target.npsn).toLowerCase());
             if (!docObj) return showToast("Dokumen induk sekolah tidak ditemukan.", false);
 
             const isConfirmed = await window.customConfirm(
@@ -7331,7 +7461,7 @@
             if (!isConfirmed) return;
 
             showToast(`Memulihkan ${target.title}...`);
-            const allTargetDocs = [...drafts, ...allData].filter(d => (target.allDocIds && target.allDocIds.includes(d.id)) || (d.npsn && target.npsn && String(d.npsn).toLowerCase() === String(target.npsn).toLowerCase()) || d.id === target.docId);
+            const allTargetDocs = [...drafts, ...allData].filter(d => (target.allDocIds && target.allDocIds.map(String).includes(String(d.id))) || (d.npsn && target.npsn && String(d.npsn).toLowerCase() === String(target.npsn).toLowerCase()) || String(d.id) === String(target.docId));
 
             const existingBatches = Array.isArray(docObj.order_batches) ? [...docObj.order_batches] : [];
             const restoredBatch = {
@@ -7353,7 +7483,7 @@
               d.deleted_batches = remainingDeleted;
               d.kelas = allCombinedKelas;
 
-              if (d.id.startsWith("draft-")) {
+              if (String(d.id).startsWith("draft-")) {
                 try { localStorage.setItem("aplikasi-rapor-drafts", JSON.stringify(drafts)); } catch(e){}
               } else {
                 try {
@@ -7371,14 +7501,14 @@
             }
 
             // Jika batch berasal dari dokumen terpisah, pulihkan status isDeleted: false dokumen tersebut
-            if (target.targetDocId && target.targetDocId !== target.docId) {
-              if (target.targetDocId.startsWith("draft-")) {
-                const d = drafts.find(x => x.id === target.targetDocId);
+            if (target.targetDocId && String(target.targetDocId) !== String(target.docId)) {
+              if (String(target.targetDocId).startsWith("draft-")) {
+                const d = drafts.find(x => String(x.id) === String(target.targetDocId));
                 if (d) { d.isDeleted = false; delete d.deletedAt; }
                 try { localStorage.setItem("aplikasi-rapor-drafts", JSON.stringify(drafts)); } catch(e){}
               } else {
                 allData.forEach((d) => {
-                  if (d.id === target.targetDocId) {
+                  if (String(d.id) === String(target.targetDocId)) {
                     d.isDeleted = false;
                     delete d.deletedAt;
                   }
@@ -7411,13 +7541,13 @@
             if (!isConfirmed) return;
 
             showToast(`Memulihkan versi riwayat...`);
-            if (target.docId.startsWith("draft-")) {
-              const d = drafts.find(x => x.id === target.docId);
+            if (String(target.docId).startsWith("draft-")) {
+              const d = drafts.find(x => String(x.id) === String(target.docId));
               if (d) { d.isDeleted = false; delete d.deletedAt; }
               try { localStorage.setItem("aplikasi-rapor-drafts", JSON.stringify(drafts)); } catch(e){}
             } else {
               allData.forEach((d) => {
-                if (d.id === target.docId) {
+                if (String(d.id) === String(target.docId)) {
                   d.isDeleted = false;
                   delete d.deletedAt;
                 }
@@ -7448,64 +7578,41 @@
           try {
             showToast(`Sedang memulihkan ${target["nama-sekolah"]}...`);
             const now = Date.now();
+            const restoredRealIds = new Set();
             for (const docObj of target.docs) {
-              if (docObj.id && docObj.id.startsWith("draft-")) {
-                const idx = drafts.findIndex(d => d.id === docObj.id);
+              const docIdStr = String(docObj.id || "");
+              if (!docIdStr) continue;
+              if (docIdStr.startsWith("draft-")) {
+                const idx = drafts.findIndex(d => String(d.id) === docIdStr);
                 if (idx > -1) {
                   drafts[idx].isDeleted = false;
                   delete drafts[idx].deletedAt;
                 }
-              } else if (docObj.id) {
+              } else {
+                const realId = docIdStr.split("_hist_")[0];
                 allData.forEach((d) => {
-                  if (d.id === docObj.id) {
+                  if (String(d.id) === docIdStr || String(d.id).split("_hist_")[0] === realId) {
                     d.isDeleted = false;
                     delete d.deletedAt;
                   }
                 });
-                const { doc, updateDoc, db, appId, collectionName } = window.fbComponents;
-                await updateDoc(
-                  doc(db, "artifacts", appId, "public", "data", collectionName, docObj.id),
-                  {
-                    isDeleted: false,
-                    restoredAt: now
-                  }
-                );
+                if (!restoredRealIds.has(realId)) {
+                  restoredRealIds.add(realId);
+                  const { doc, updateDoc, db, appId, collectionName } = window.fbComponents;
+                  await updateDoc(
+                    doc(db, "artifacts", appId, "public", "data", collectionName, realId),
+                    {
+                      isDeleted: false,
+                      restoredAt: now
+                    }
+                  );
+                }
               }
             }
 
             try {
               localStorage.setItem("aplikasi-rapor-drafts", JSON.stringify(drafts));
             } catch(e) {}
-
-            recordAction({
-              name: `Pulihkan ${target["nama-sekolah"]}`,
-              undo: async () => {
-                for (const docObj of target.docs) {
-                  if (docObj.id && docObj.id.startsWith("draft-")) {
-                    const idx = drafts.findIndex(d => d.id === docObj.id);
-                    if (idx > -1) { drafts[idx].isDeleted = true; drafts[idx].deletedAt = now; }
-                  } else if (docObj.id) {
-                    await updateDoc(doc(db, "artifacts", appId, "public", "data", collectionName, docObj.id), { isDeleted: true, deletedAt: now });
-                    const idx = allData.findIndex(d => d.id === docObj.id);
-                    if (idx > -1) { allData[idx].isDeleted = true; allData[idx].deletedAt = now; }
-                  }
-                }
-                try { localStorage.setItem("aplikasi-rapor-drafts", JSON.stringify(drafts)); } catch(e) {}
-              },
-              redo: async () => {
-                for (const docObj of target.docs) {
-                  if (docObj.id && docObj.id.startsWith("draft-")) {
-                    const idx = drafts.findIndex(d => d.id === docObj.id);
-                    if (idx > -1) { drafts[idx].isDeleted = false; delete drafts[idx].deletedAt; }
-                  } else if (docObj.id) {
-                    await updateDoc(doc(db, "artifacts", appId, "public", "data", collectionName, docObj.id), { isDeleted: false });
-                    const idx = allData.findIndex(d => d.id === docObj.id);
-                    if (idx > -1) { allData[idx].isDeleted = false; delete allData[idx].deletedAt; }
-                  }
-                }
-                try { localStorage.setItem("aplikasi-rapor-drafts", JSON.stringify(drafts)); } catch(e) {}
-              }
-            });
 
             showToast(`Data ${target["nama-sekolah"]} berhasil dipulihkan!`);
             refreshFilterAndRender();
@@ -7524,17 +7631,22 @@
 
           if (target.trashType === "batch") {
             const isConfirmed = await window.customConfirm(
-              `Hapus permanen rekaman riwayat "${target.title}" untuk "${target['nama-sekolah']}"?`
+              `Hapus permanen rekaman riwayat "${target.title}" untuk "${target['nama-sekolah']}"?`,
+              {
+                title: "Konfirmasi Hapus Permanen Riwayat",
+                okText: "Hapus Permanen",
+                type: "danger"
+              }
             );
             if (!isConfirmed) return;
 
             showToast(`Menghapus permanen rekaman riwayat...`);
-            const allTargetDocs = [...drafts, ...allData].filter(d => (target.allDocIds && target.allDocIds.includes(d.id)) || (d.npsn && target.npsn && String(d.npsn).toLowerCase() === String(target.npsn).toLowerCase()) || d.id === target.docId);
+            const allTargetDocs = [...drafts, ...allData].filter(d => (target.allDocIds && target.allDocIds.map(String).includes(String(d.id))) || (d.npsn && target.npsn && String(d.npsn).toLowerCase() === String(target.npsn).toLowerCase()) || String(d.id) === String(target.docId));
 
             for (const docObj of allTargetDocs) {
               const remainingDeleted = (docObj.deleted_batches || []).filter(b => (b.batchId || b.batchNum) !== target.batchId && (b.batchId !== target.batchData?.batchId));
               docObj.deleted_batches = remainingDeleted;
-              if (docObj.id.startsWith("draft-")) {
+              if (String(docObj.id).startsWith("draft-")) {
                 try { localStorage.setItem("aplikasi-rapor-drafts", JSON.stringify(drafts)); } catch(e){}
               } else {
                 try {
@@ -7548,11 +7660,12 @@
             }
 
             // Jika batch ini berasal dari dokumen versi terpisah, hapus dokumen terpisah tersebut saja (jangan sentuh docObj induk!)
-            if (target.targetDocId && target.targetDocId !== target.docId) {
-              if (target.targetDocId.startsWith("draft-")) {
-                drafts = drafts.filter(d => d.id !== target.targetDocId);
+            if (target.targetDocId && String(target.targetDocId) !== String(target.docId)) {
+              if (String(target.targetDocId).startsWith("draft-")) {
+                drafts = drafts.filter(d => String(d.id) !== String(target.targetDocId));
                 try { localStorage.setItem("aplikasi-rapor-drafts", JSON.stringify(drafts)); } catch(e){}
               } else {
+                allData = allData.filter(d => String(d.id) !== String(target.targetDocId));
                 try {
                   const { doc, deleteDoc, db, appId, collectionName } = window.fbComponents;
                   await deleteDoc(doc(db, "artifacts", appId, "public", "data", collectionName, target.targetDocId));
@@ -7568,15 +7681,21 @@
 
           if (target.trashType === "doc_version") {
             const isConfirmed = await window.customConfirm(
-              `Hapus permanen dokumen riwayat "${target.title}" untuk "${target['nama-sekolah']}"?`
+              `Hapus permanen dokumen riwayat "${target.title}" untuk "${target['nama-sekolah']}"?`,
+              {
+                title: "Konfirmasi Hapus Permanen Versi",
+                okText: "Hapus Permanen",
+                type: "danger"
+              }
             );
             if (!isConfirmed) return;
 
             showToast(`Menghapus versi riwayat...`);
-            if (target.docId.startsWith("draft-")) {
-              drafts = drafts.filter(d => d.id !== target.docId);
+            if (String(target.docId).startsWith("draft-")) {
+              drafts = drafts.filter(d => String(d.id) !== String(target.docId));
               try { localStorage.setItem("aplikasi-rapor-drafts", JSON.stringify(drafts)); } catch(e){}
             } else {
+              allData = allData.filter(d => String(d.id) !== String(target.docId));
               const { doc, deleteDoc, db, appId, collectionName } = window.fbComponents;
               await deleteDoc(doc(db, "artifacts", appId, "public", "data", collectionName, target.docId));
             }
@@ -7588,20 +7707,33 @@
 
           // target.trashType === 'school'
           const isConfirmed = await window.customConfirm(
-            `Hapus permanen SELURUH DATA sekolah "${target['nama-sekolah']}"? Tindakan ini tidak dapat dibatalkan dan seluruh profil sekolah akan musnah selamanya dari database.`
+            `Hapus permanen SELURUH DATA sekolah "${target['nama-sekolah']}"? Tindakan ini tidak dapat dibatalkan dan seluruh profil sekolah akan musnah selamanya dari database.`,
+            {
+              title: "Konfirmasi Hapus Permanen",
+              okText: "Hapus Permanen",
+              type: "danger"
+            }
           );
           if (!isConfirmed) return;
 
           try {
             showToast(`Menghapus permanen ${target["nama-sekolah"]}...`);
             const { doc, deleteDoc, db, appId, collectionName } = window.fbComponents;
+            const deletedRealIds = new Set();
             for (const docObj of target.docs) {
-              if (docObj.id && docObj.id.startsWith("draft-")) {
-                drafts = drafts.filter(d => d.id !== docObj.id);
-              } else if (docObj.id) {
-                await deleteDoc(
-                  doc(db, "artifacts", appId, "public", "data", collectionName, docObj.id)
-                );
+              const docIdStr = String(docObj.id || "");
+              if (!docIdStr) continue;
+              if (docIdStr.startsWith("draft-")) {
+                drafts = drafts.filter(d => String(d.id) !== docIdStr);
+              } else {
+                const realId = docIdStr.split("_hist_")[0];
+                allData = allData.filter(d => String(d.id) !== docIdStr && String(d.id).split("_hist_")[0] !== realId);
+                if (!deletedRealIds.has(realId)) {
+                  deletedRealIds.add(realId);
+                  await deleteDoc(
+                    doc(db, "artifacts", appId, "public", "data", collectionName, realId)
+                  );
+                }
               }
             }
 
@@ -7652,19 +7784,25 @@
 
           const isConfirmed = await window.customConfirm(
             `PERINGATAN: Kosongkan seluruh Tempat Sampah? Semua ${list.length} item riwayat & sekolah di Tempat Sampah akan dihapus permanen!`,
+            {
+              title: "Konfirmasi Kosongkan Sampah",
+              okText: "Hapus Permanen Semua",
+              type: "danger"
+            }
           );
           if (!isConfirmed) return;
 
           try {
             showToast("Sedang mengosongkan Tempat Sampah...");
             const { doc, updateDoc, deleteDoc, db, appId, collectionName } = window.fbComponents;
+            const deletedRealIds = new Set();
 
             for (const item of list) {
               if (item.trashType === "batch") {
-                const docObj = [...drafts, ...allData].find(d => d.id === item.docId);
+                const docObj = [...drafts, ...allData].find(d => String(d.id) === String(item.docId));
                 if (docObj) {
                   docObj.deleted_batches = [];
-                  if (docObj.id.startsWith("draft-")) {
+                  if (String(docObj.id).startsWith("draft-")) {
                     try { localStorage.setItem("aplikasi-rapor-drafts", JSON.stringify(drafts)); } catch(e){}
                   } else {
                     await updateDoc(
@@ -7673,30 +7811,39 @@
                     );
                   }
                 }
-                if (item.targetDocId && item.targetDocId !== item.docId) {
-                  if (item.targetDocId.startsWith("draft-")) {
-                    drafts = drafts.filter(d => d.id !== item.targetDocId);
+                if (item.targetDocId && String(item.targetDocId) !== String(item.docId)) {
+                  if (String(item.targetDocId).startsWith("draft-")) {
+                    drafts = drafts.filter(d => String(d.id) !== String(item.targetDocId));
                     try { localStorage.setItem("aplikasi-rapor-drafts", JSON.stringify(drafts)); } catch(e){}
                   } else {
+                    allData = allData.filter(d => String(d.id) !== String(item.targetDocId));
                     try {
                       await deleteDoc(doc(db, "artifacts", appId, "public", "data", collectionName, item.targetDocId));
                     } catch(e) {}
                   }
                 }
               } else if (item.trashType === "doc_version") {
-                if (item.docId.startsWith("draft-")) {
-                  drafts = drafts.filter(d => d.id !== item.docId);
+                if (String(item.docId).startsWith("draft-")) {
+                  drafts = drafts.filter(d => String(d.id) !== String(item.docId));
                 } else {
+                  allData = allData.filter(d => String(d.id) !== String(item.docId));
                   await deleteDoc(doc(db, "artifacts", appId, "public", "data", collectionName, item.docId));
                 }
               } else if (item.trashType === "school") {
                 for (const docObj of item.docs) {
-                  if (docObj.id && docObj.id.startsWith("draft-")) {
-                    drafts = drafts.filter(d => d.id !== docObj.id);
-                  } else if (docObj.id) {
-                    await deleteDoc(
-                      doc(db, "artifacts", appId, "public", "data", collectionName, docObj.id)
-                    );
+                  const docIdStr = String(docObj.id || "");
+                  if (!docIdStr) continue;
+                  if (docIdStr.startsWith("draft-")) {
+                    drafts = drafts.filter(d => String(d.id) !== docIdStr);
+                  } else {
+                    const realId = docIdStr.split("_hist_")[0];
+                    allData = allData.filter(d => String(d.id) !== docIdStr && String(d.id).split("_hist_")[0] !== realId);
+                    if (!deletedRealIds.has(realId)) {
+                      deletedRealIds.add(realId);
+                      await deleteDoc(
+                        doc(db, "artifacts", appId, "public", "data", collectionName, realId)
+                      );
+                    }
                   }
                 }
               }
@@ -8519,68 +8666,75 @@
         };
 
         // --- AKSES FUNCTIONS ---
-        async function updateSchoolAksesData(id, updateFields, recordUndo = true) {
-          const school = findSchoolById(id);
-          const oldFields = {};
-          if (school) {
-            Object.keys(updateFields).forEach(k => {
-              oldFields[k] = school[k];
-            });
-          }
+        function findSchoolById(id) {
+          if (id == null) return null;
+          const strId = String(id).trim();
+          const list = [...drafts, ...allData, ...(window.latestUniqueSchools || [])];
+          return list.find(s => s && String(s.id).trim() === strId) || null;
+        }
 
-          if (id.startsWith("draft-")) {
-            const index = drafts.findIndex(d => d.id === id);
-            if (index !== -1) {
-              drafts[index] = { ...drafts[index], ...updateFields };
-              try {
-                localStorage.setItem("aplikasi-rapor-drafts", JSON.stringify(drafts));
-              } catch(e) {}
-              refreshFilterAndRender();
-            }
+        async function updateSchoolAksesData(id, updateFields, arg3, arg4) {
+          if (id == null) return;
+          const skipRender = (typeof arg3 === 'boolean' && typeof arg4 === 'boolean') ? arg4 : (typeof arg3 === 'boolean' ? arg3 : false);
+          const strId = String(id).trim();
+          const school = findSchoolById(strId);
+          const realId = strId.split("_hist_")[0];
+          const targetNpsn = school ? String(school["npsn"] || "").trim().toLowerCase() : "";
+
+          if (strId.startsWith("draft-")) {
+            drafts.forEach((d, idx) => {
+              const dId = String(d.id || "").trim();
+              const dNpsn = String(d["npsn"] || "").trim().toLowerCase();
+              if (dId === strId || (targetNpsn && dNpsn === targetNpsn)) {
+                drafts[idx] = { ...d, ...updateFields };
+              }
+            });
+            try {
+              localStorage.setItem("aplikasi-rapor-drafts", JSON.stringify(drafts));
+            } catch(e) {}
+            if (!skipRender) refreshFilterAndRender();
           } else {
             try {
               const { doc, updateDoc, db, appId, collectionName } = window.fbComponents;
               await updateDoc(
-                doc(db, "artifacts", appId, "public", "data", collectionName, id),
+                doc(db, "artifacts", appId, "public", "data", collectionName, realId),
                 updateFields
               );
-              const idx = allData.findIndex(d => d.id === id);
-              if (idx > -1) {
-                allData[idx] = { ...allData[idx], ...updateFields };
+              allData.forEach((d, idx) => {
+                const dId = String(d.id || "").trim();
+                const dRealId = dId.split("_hist_")[0];
+                const dNpsn = String(d["npsn"] || "").trim().toLowerCase();
+                if (dId === strId || dRealId === realId || (targetNpsn && dNpsn === targetNpsn)) {
+                  allData[idx] = { ...d, ...updateFields };
+                }
+              });
+              if (window.latestUniqueSchools) {
+                window.latestUniqueSchools.forEach((s, uIdx) => {
+                  const sId = String(s.id || "").trim();
+                  const sRealId = sId.split("_hist_")[0];
+                  const sNpsn = String(s["npsn"] || "").trim().toLowerCase();
+                  if (sId === strId || sRealId === realId || (targetNpsn && sNpsn === targetNpsn)) {
+                    window.latestUniqueSchools[uIdx] = { ...s, ...updateFields };
+                  }
+                });
               }
-              refreshFilterAndRender();
             } catch (e) {
               console.error("Gagal memperbarui data akses", e);
               showToast("Gagal menyimpan perubahan akses.", false);
               return;
             }
+            if (!skipRender) refreshFilterAndRender();
           }
-
-          if (recordUndo && school) {
-            const schoolName = school["nama-sekolah"] || "Sekolah";
-            recordAction({
-              name: `Ubah Akses ${schoolName}`,
-              undo: async () => {
-                await updateSchoolAksesData(id, oldFields, false);
-              },
-              redo: async () => {
-                await updateSchoolAksesData(id, updateFields, false);
-              }
-            });
-          }
-        }
-
-        function findSchoolById(id) {
-          return [...drafts, ...allData].find(s => s.id === id);
         }
 
         window.toggleAksesPassActiveById = async (id, isActive) => {
-          const school = findSchoolById(id);
+          const strId = String(id || "").trim();
+          const school = findSchoolById(strId);
           let passToSet = school ? (school.akses_password || "") : "";
           if (isActive && !passToSet) {
             passToSet = school && school["npsn"] ? 'rapor' + school["npsn"] : ('RPR' + Math.floor(1000 + Math.random() * 9000));
           }
-          await updateSchoolAksesData(id, {
+          await updateSchoolAksesData(strId, {
             akses_password_active: isActive,
             akses_password: passToSet
           });
@@ -8588,18 +8742,18 @@
         };
 
         window.openEditPasswordModalById = (id) => {
-          const school = findSchoolById(id);
-          if (!school) return;
+          const strId = String(id || "").trim();
+          const school = findSchoolById(strId);
           const passDocId = document.getElementById("edit-password-doc-id");
-          if (passDocId) passDocId.value = id;
+          if (passDocId) passDocId.value = strId;
           const passSchoolName = document.getElementById("edit-password-school-name");
-          if (passSchoolName) passSchoolName.textContent = school["nama-sekolah"] || "-";
-          const defaultFormula = school["npsn"] ? 'rapor' + school["npsn"] : "rapor123";
+          if (passSchoolName) passSchoolName.textContent = (school && school["nama-sekolah"]) ? school["nama-sekolah"] : "Kelola Akses";
+          const defaultFormula = (school && school["npsn"]) ? 'rapor' + school["npsn"] : "rapor123";
           const previewEl = document.getElementById("reset-default-preview");
           if (previewEl) previewEl.textContent = defaultFormula;
 
           const passInput = document.getElementById("edit-password-input");
-          if (passInput) passInput.value = school.akses_password || defaultFormula;
+          if (passInput) passInput.value = (school && school.akses_password) ? school.akses_password : defaultFormula;
           const passModal = document.getElementById("edit-password-modal");
           if (passModal) passModal.classList.add("active");
           setTimeout(() => {
@@ -9245,10 +9399,6 @@
           const swPass = document.getElementById("header-switch-password");
           if (swPass) swPass.checked = allPass;
 
-          const masterAll = allMapel && allBuku && allFoto && allLogo && allTtd && allRank && allPass;
-          const masterSw = document.getElementById("master-all-schools-toggle");
-          if (masterSw) masterSw.checked = masterAll;
-
           const floatSw = document.getElementById("floating-selected-master-toggle");
           if (floatSw && window.selectedAksesSchoolIds && window.selectedAksesSchoolIds.size > 0) {
             const selectedSchools = schools.filter(s => window.selectedAksesSchoolIds.has(s.id));
@@ -9268,19 +9418,13 @@
 
         window.updateAksesSelectionUI = () => {
           const count = window.selectedAksesSchoolIds ? window.selectedAksesSchoolIds.size : 0;
-          const badge = document.getElementById("akses-selected-badge");
-          const countSpan = document.getElementById("akses-selected-count");
           const floatingBar = document.getElementById("akses-floating-bar");
           const floatingCount = document.getElementById("akses-floating-count");
           const selectAllCb = document.getElementById("akses-select-all-checkbox");
 
-          if (badge && countSpan) {
-            if (count > 0) {
-              countSpan.textContent = count;
-              badge.classList.remove("hidden");
-            } else {
-              badge.classList.add("hidden");
-            }
+          const aksesSelSum = document.getElementById("akses-selection-summary");
+          if (aksesSelSum) {
+            aksesSelSum.textContent = `${count} dipilih`;
           }
 
           if (floatingBar && floatingCount) {
@@ -9376,6 +9520,15 @@
           showToast(`Semua saklar sekolah ${turnOn ? 'diaktifkan (ON)' : 'dinonaktifkan (OFF)'}`);
         };
 
+        // Helper eksekusi batch terkontrol untuk mencegah ledakan koneksi HTTP dan egress sporadis
+        async function runAksesBatchUpdates(items, mapper) {
+          const CHUNK_SIZE = 5;
+          for (let i = 0; i < items.length; i += CHUNK_SIZE) {
+            const chunk = items.slice(i, i + CHUNK_SIZE);
+            await Promise.all(chunk.map(mapper));
+          }
+        }
+
         // Master switch toggle for all schools
         window.handleMasterAllSchoolsToggle = async (turnOn) => {
           const schools = window.latestUniqueSchools || [];
@@ -9383,7 +9536,7 @@
 
           showToast(`Sedang me-${turnOn ? 'ngaktifkan' : 'nonaktifkan'} seluruh saklar sekolah...`);
           try {
-            const updates = schools.map(s => {
+            await runAksesBatchUpdates(schools, s => {
               let passVal = s.akses_password;
               if (turnOn && !passVal) {
                 passVal = s["npsn"] ? "rapor" + s["npsn"] : ("RPR" + Math.floor(1000 + Math.random() * 9000));
@@ -9397,9 +9550,9 @@
                 akses_ganti_logo: turnOn,
                 akses_tanda_tangan_digital: turnOn,
                 akses_rank: turnOn
-              });
+              }, false, true);
             });
-            await Promise.all(updates);
+            refreshFilterAndRender();
             showToast(`Semua saklar berhasil di-${turnOn ? 'aktifkan (ON)' : 'nonaktifkan (OFF)'} untuk seluruh sekolah.`);
           } catch(e) {
             console.error(e);
@@ -9414,14 +9567,14 @@
 
           showToast(`Mengubah saklar ${featureName} seluruh sekolah...`);
           try {
-            const updates = schools.map(s => {
+            await runAksesBatchUpdates(schools, s => {
               const payload = { [featureKey]: turnOn };
               if (featureKey === 'akses_password_active' && turnOn && !s.akses_password) {
                 payload.akses_password = s["npsn"] ? "rapor" + s["npsn"] : ("RPR" + Math.floor(1000 + Math.random() * 9000));
               }
-              return updateSchoolAksesData(s.id, payload);
+              return updateSchoolAksesData(s.id, payload, false, true);
             });
-            await Promise.all(updates);
+            refreshFilterAndRender();
             showToast(`Saklar ${featureName} berhasil di-${turnOn ? 'aktifkan (ON)' : 'nonaktifkan (OFF)'} untuk seluruh sekolah.`);
           } catch(e) {
             console.error(e);
@@ -9436,7 +9589,7 @@
 
           showToast(`Memproses ${selectedIds.length} sekolah terpilih...`);
           try {
-            const updates = selectedIds.map(id => {
+            await runAksesBatchUpdates(selectedIds, id => {
               const s = findSchoolById(id);
               let passVal = s ? s.akses_password : "";
               if (turnOn && !passVal) {
@@ -9451,9 +9604,9 @@
                 akses_ganti_logo: turnOn,
                 akses_tanda_tangan_digital: turnOn,
                 akses_rank: turnOn
-              });
+              }, false, true);
             });
-            await Promise.all(updates);
+            refreshFilterAndRender();
             showToast(`Semua saklar berhasil di-${turnOn ? 'aktifkan' : 'nonaktifkan'} untuk ${selectedIds.length} sekolah terpilih.`);
           } catch(e) {
             console.error(e);
